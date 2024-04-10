@@ -25,9 +25,15 @@ android {
 		}
 	}
 
+//	externalNativeBuild {
+//		ndkBuild {
+//			path = File(projectDir, "./src/main/jni/Android.mk")
+//		}
+//	}
+
 	externalNativeBuild {
-		ndkBuild {
-			path = File(projectDir, "./src/main/jni/Android.mk")
+		cmake {
+			path = File(projectDir, "CMakeLists.txt")
 		}
 	}
 }
