@@ -197,7 +197,7 @@ void UVCPreviewJni::clearDisplay() {
 void UVCPreviewJni::handleFrame(uvc_frame_t *pFrame) {
     if (frameMode) {
         // MJPEG mode
-        LOGD("ASD got frame_mjpeg");
+//        LOGD("ASD got frame_mjpeg");
         if (LIKELY(pFrame)) {
             auto frame = get_frame(pFrame->width * pFrame->height * 2);
             auto result = uvc_mjpeg2yuyv(pFrame, frame);   // MJPEG => yuyv

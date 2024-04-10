@@ -343,7 +343,6 @@ char *UVCDiags::getSupportedSize(const uvc_device_handle_t *deviceHandle) {
 	Writer<StringBuffer> writer(buffer);
 	char buf[256];
 
-	
 	writer.StartObject();
 	{
 		if (deviceHandle->info->stream_ifs) {

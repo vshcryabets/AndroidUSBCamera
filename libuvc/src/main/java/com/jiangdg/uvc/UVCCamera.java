@@ -32,12 +32,10 @@ import android.view.SurfaceHolder;
 import com.jiangdg.usb.USBMonitor;
 import com.jiangdg.usb.USBMonitor.UsbControlBlock;
 import com.jiangdg.utils.Size;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.vsh.uvc.UvcCameraResolution;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import timber.log.Timber;
@@ -130,8 +128,7 @@ public class UVCCamera {
     protected int mCurrentFrameFormat = FRAME_FORMAT_MJPEG;
 	protected int mCurrentWidth = 640, mCurrentHeight = 480;
 	protected float mCurrentBandwidthFactor = DEFAULT_BANDWIDTH;
-    protected String mSupportedSize;
-    protected List<Size> mCurrentSizeList;
+    protected List<UvcCameraResolution> mSupportedSize = Collections.emptyList();
 	// these fields from here are accessed from native code and do not change name and remove
     protected long mNativePtr;
     protected int mScanningModeMin, mScanningModeMax, mScanningModeDef;
@@ -218,16 +215,16 @@ public class UVCCamera {
 					+";usbfs="+(mCtrlBlock==null ? "": getUSBFSName(mCtrlBlock))+"\n"+"Exception："+sb.toString());
 		}
 		mCurrentFrameFormat = FRAME_FORMAT_MJPEG;
-    	if (mNativePtr != 0 && TextUtils.isEmpty(mSupportedSize)) {
+    	if (mNativePtr != 0 && mSupportedSize.isEmpty()) {
     		mSupportedSize = nativeGetSupportedSize(mNativePtr);
     	}
     	if (USBMonitor.DEBUG) {
     		Timber.i("open camera status: " + mNativePtr +", size: " + mSupportedSize);
 		}
-    	List<Size> supportedSizes = getSupportedSizeList();
+    	var supportedSizes = getSupportedSizeList2();
 		if (!supportedSizes.isEmpty()) {
-			mCurrentWidth = supportedSizes.get(0).width;
-			mCurrentHeight = supportedSizes.get(0).height;
+			mCurrentWidth = supportedSizes.get(0).getWidth();
+			mCurrentHeight = supportedSizes.get(0).getHeight();
 		}
 		nativeSetPreviewSize(mNativePtr, mCurrentWidth, mCurrentHeight,
 			DEFAULT_PREVIEW_MIN_FPS, DEFAULT_PREVIEW_MAX_FPS, DEFAULT_PREVIEW_MODE, DEFAULT_BANDWIDTH);
@@ -269,8 +266,7 @@ public class UVCCamera {
 		mControlSupports = mProcSupports = 0;
 		mCurrentFrameFormat = -1;
 		mCurrentBandwidthFactor = 0;
-		mSupportedSize = null;
-		mCurrentSizeList = null;
+		mSupportedSize = Collections.emptyList();
     	Timber.v("close:finished");
     }
 
@@ -286,22 +282,9 @@ public class UVCCamera {
 		return mCtrlBlock;
 	}
 
-	public synchronized String getSupportedSize() {
-    	return !TextUtils.isEmpty(mSupportedSize) ? mSupportedSize : (mSupportedSize = nativeGetSupportedSize(mNativePtr));
+	public synchronized List<UvcCameraResolution> getSupportedSize() {
+    	return !mSupportedSize.isEmpty() ? mSupportedSize : (mSupportedSize = nativeGetSupportedSize(mNativePtr));
     }
-
-	public Size getPreviewSize() {
-		Size result = null;
-		final List<Size> list = getSupportedSizeList();
-		for (final Size sz: list) {
-			if ((sz.width == mCurrentWidth)
-				|| (sz.height == mCurrentHeight)) {
-				result =sz;
-				break;
-			}
-		}
-		return result;
-	}
 
 	/**
 	 * Set preview size and preview mode
@@ -356,50 +339,25 @@ public class UVCCamera {
 		}
 	}
 
-	public List<Size> getSupportedSizeList() {
+	public List<UvcCameraResolution> getSupportedSizeList2() {
 		if (mCurrentFrameFormat < 0) {
 			mCurrentFrameFormat = FRAME_FORMAT_MJPEG;
 		}
-		return getSupportedSize((mCurrentFrameFormat > 0) ? 6 : 4, getSupportedSize());
+		return getSupportedSize2((mCurrentFrameFormat > 0) ? 6 : 4, getSupportedSize());
 	}
 
-	public List<Size> getSupportedSizeList(int frameFormat) {
-		return getSupportedSize((frameFormat > 0) ? 6 : 4, getSupportedSize());
+	public List<UvcCameraResolution> getSupportedSizeList2(int frameFormat) {
+		return getSupportedSize2((frameFormat > 0) ? 6 : 4, getSupportedSize());
 	}
 
-	public List<Size> getSupportedSize(final int type, final String supportedSize) {
-		final List<Size> result = new ArrayList<Size>();
-		if (!TextUtils.isEmpty(supportedSize))
-		try {
-			final JSONObject json = new JSONObject(supportedSize);
-			final JSONArray formats = json.getJSONArray("formats");
-			final int format_nums = formats.length();
-			for (int i = 0; i < format_nums; i++) {
-				final JSONObject format = formats.getJSONObject(i);
-				if(format.has("type") && format.has("size")) {
-					final int format_type = format.getInt("type");
-					if ((format_type == type) || (type == -1)) {
-						addSize(format, format_type, 0, result);
-					}
-				}
+	public List<UvcCameraResolution> getSupportedSize2(final int type, final List<UvcCameraResolution> supportedSize) {
+		var result = new ArrayList<UvcCameraResolution>();
+		for (var it: supportedSize) {
+			if (it.getSubtype() == type) {
+				result.add(it);
 			}
-		} catch (final JSONException e) {
-			e.printStackTrace();
 		}
 		return result;
-	}
-
-	private static final void addSize(final JSONObject format, final int formatType, final int frameType, final List<Size> size_list) throws JSONException {
-		final JSONArray size = format.getJSONArray("size");
-		final int size_nums = size.length();
-		for (int j = 0; j < size_nums; j++) {
-			final String[] sz = size.getString(j).split("x");
-			try {
-				size_list.add(new Size(formatType, frameType, j, Integer.parseInt(sz[0]), Integer.parseInt(sz[1])));
-			} catch (final Exception e) {
-				break;
-			}
-		}
 	}
 
     /**
@@ -1091,7 +1049,7 @@ public class UVCCamera {
 	private static final native int nativeSetButtonCallback(final long mNativePtr, final IButtonCallback callback);
 
 	private static final native int nativeSetPreviewSize(final long id_camera, final int width, final int height, final int min_fps, final int max_fps, final int mode, final float bandwidth);
-	private static final native String nativeGetSupportedSize(final long id_camera);
+	private static native List<UvcCameraResolution> nativeGetSupportedSize(final long id_camera);
 	private static final native int nativeStartPreview(final long id_camera);
 	private static final native int nativeStopPreview(final long id_camera);
 	private static final native int nativeSetPreviewDisplay(final long id_camera, final Surface surface);
