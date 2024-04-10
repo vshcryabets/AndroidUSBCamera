@@ -31,7 +31,6 @@ import android.view.SurfaceHolder;
 
 import com.jiangdg.usb.USBMonitor;
 import com.jiangdg.usb.USBMonitor.UsbControlBlock;
-import com.jiangdg.utils.Size;
 import com.vsh.uvc.UvcCameraResolution;
 
 import java.util.ArrayList;

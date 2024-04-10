@@ -1123,20 +1123,19 @@ int UVCCameraAdjustments::setBrightness(int brightness) {
     return ret;
 }
 
-// 明るさの現在値を取得
-int UVCCameraAdjustments::getBrightness() {
-
-    if (mPUSupports & PU_BRIGHTNESS) {
-        int ret = update_ctrl_values(mDeviceHandle, mBrightness, uvc_get_brightness);
-        if (LIKELY(!ret)) {    // 正常に最小・最大値を取得出来た時
-            int16_t value;
-            ret = uvc_get_brightness(mDeviceHandle, &value, UVC_GET_CUR);
-            if (LIKELY(!ret))
-                return value;
-        }
-    }
-    RETURN(0, int);
-}
+//// 明るさの現在値を取得
+//int UVCCameraAdjustments::getBrightness() {
+//    if (mPUSupports & PU_BRIGHTNESS) {
+//        int ret = update_ctrl_values(mDeviceHandle, mBrightness, uvc_get_brightness);
+//        if (LIKELY(!ret)) {    // 正常に最小・最大値を取得出来た時
+//            int16_t value;
+//            ret = uvc_get_brightness(mDeviceHandle, &value, UVC_GET_CUR);
+//            if (LIKELY(!ret))
+//                return value;
+//        }
+//    }
+//    RETURN(0, int);
+//}
 
 //======================================================================
 // コントラスト調整

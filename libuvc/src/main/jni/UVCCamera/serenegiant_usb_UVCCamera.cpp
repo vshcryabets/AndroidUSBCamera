@@ -689,11 +689,10 @@ static jint nativeSetBrightness(JNIEnv *env,
     return result;
 }
 
-static jint nativeGetBrightness(JNIEnv *env, jobject thiz,
+static jint nativeGetBrightness(JNIEnv *env,
+                                jobject thiz,
                                 ID_TYPE id_camera) {
-
     jint result = 0;
-
     UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
     if (LIKELY(camera)) {
         result = camera->getAdjustments()->getBrightness();

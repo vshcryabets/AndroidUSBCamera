@@ -56,6 +56,12 @@ typedef uvc_error_t (*paramset_func_i8u8u8)(uvc_device_handle_t *devh, int8_t va
 typedef uvc_error_t (*paramset_func_i32i32)(uvc_device_handle_t *devh, int32_t value1, int32_t value2);
 
 
+enum UvcAdjustment {
+    PAN = 1,
+    TILT,
+    BRIGHTNESS,
+};
+
 class UVCCameraAdjustments {
 private:
     uvc_device_handle_t *mDeviceHandle;
@@ -123,6 +129,9 @@ public:
     uint64_t mPUSupports = 0;
 
     UVCCameraAdjustments(uvc_device_handle_t *deviceHandle);
+
+    int getAjustment(UvcAdjustment ajustment);
+    int setAjustment(UvcAdjustment ajustment);
 
     void clearCameraParams();
     int updatePanLimit(int &min, int &max, int &def);
@@ -215,7 +224,6 @@ public:
 
     int updateBrightnessLimit(int &min, int &max, int &def);
     int setBrightness(int brightness);
-    int getBrightness();
 
     int updateContrastLimit(int &min, int &max, int &def);
     int setContrast(uint16_t contrast);

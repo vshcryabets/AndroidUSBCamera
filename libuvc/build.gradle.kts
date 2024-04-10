@@ -3,6 +3,10 @@ plugins {
 	id("kotlin-android")
 }
 
+ repositories {
+    maven { url = uri("https://jitpack.io") }
+ }
+
 android {
 	compileSdk = libs.versions.compileSdk.get().toInt()
 	namespace = "com.jiangdg.uvccamera"
@@ -35,4 +39,12 @@ android {
 dependencies {
 	implementation(libs.androidx.appcompat)
 	implementation(libs.timber)
+	implementation("com.github.vshcryabets:codegen:cafbd0e2b3")
 }
+
+ task("buildCgen", JavaExec::class) {
+    workingDir(File("../cgen/"))
+    args("--project","./project.json")
+    mainClass.set("ce.entrypoints.BuildProjectKt")
+//    classpath = sourceSets["test"].runtimeClasspath
+ }
