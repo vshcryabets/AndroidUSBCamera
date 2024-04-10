@@ -344,11 +344,11 @@ class CameraUvcStrategy(ctx: Context) : ICameraStrategy(ctx) {
             }
             val previewSizeList = cameraInfo?.cameraPreviewSizes ?: mutableListOf()
             if (previewSizeList.isEmpty()) {
-                Logger.i(TAG, "getAllPreviewSizes = ${mUVCCamera?.supportedSizeList}")
-                if (mUVCCamera?.supportedSizeList?.isNotEmpty() == true) {
-                    mUVCCamera?.supportedSizeList
+                Logger.i(TAG, "getAllPreviewSizes = ${mUVCCamera?.supportedSizeList2}")
+                if (mUVCCamera?.supportedSizeList2?.isNotEmpty() == true) {
+                    mUVCCamera?.supportedSizeList2
                 } else {
-                    mUVCCamera?.getSupportedSizeList(UVCCamera.FRAME_FORMAT_YUYV)
+                    mUVCCamera?.getSupportedSizeList2(UVCCamera.FRAME_FORMAT_YUYV)
                 }.also { sizeList ->
                     sizeList?.forEach { size ->
                         previewSizeList.find {

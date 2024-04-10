@@ -178,12 +178,42 @@ int UVCCamera::setButtonCallback(JNIEnv *env, jobject button_callback_obj) {
     RETURN(result, int);
 }
 
-char *UVCCamera::getSupportedSize() {
-    if (mDeviceHandle) {
-        UVCDiags params;
-        RETURN(params.getSupportedSize(mDeviceHandle), char *)
+std::vector<UvcCameraResolution> UVCCamera::getSupportedSize() {
+
+    auto result = std::vector<UvcCameraResolution>();
+    if (!mDeviceHandle)
+        return result;
+    if (mDeviceHandle->info->stream_ifs) {
+        int stream_idx = 0;
+        for (auto *stream_if = mDeviceHandle->info->stream_ifs;
+             stream_if;
+             stream_if = stream_if->next) {
+            ++stream_idx;
+            for (auto *fmt_desc = stream_if->format_descs;
+                 fmt_desc;
+                 fmt_desc = fmt_desc->next) {
+                switch (fmt_desc->bDescriptorSubtype) {
+                    case UVC_VS_FORMAT_UNCOMPRESSED:
+                    case UVC_VS_FORMAT_MJPEG:
+                        for (const auto *frame_desc = fmt_desc->frame_descs;
+                             frame_desc;
+                             frame_desc = frame_desc->next) {
+                            result.push_back({
+                                                     .id =  fmt_desc->bFormatIndex,
+                                                     .subtype = (uint8_t) fmt_desc->bDescriptorSubtype,
+                                                     .frameIndex = fmt_desc->bDefaultFrameIndex,
+                                                     .width = frame_desc->wWidth,
+                                                     .height = frame_desc->wHeight
+                                             });
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
     }
-    RETURN(NULL, char *);
+    return result;
 }
 
 int UVCCamera::setFrameCallback(JNIEnv *env, jobject frame_callback_obj, int pixel_format) {

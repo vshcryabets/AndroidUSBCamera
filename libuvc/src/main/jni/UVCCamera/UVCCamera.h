@@ -34,6 +34,15 @@
 #include "UVCPreviewJni.h"
 #include <memory>
 #include <chrono>
+#include <vector>
+
+struct UvcCameraResolution {
+    const uint8_t id;
+    const uint8_t subtype;
+    const uint8_t frameIndex;
+    const uint16_t width;
+    const uint16_t height;
+};
 
 class UVCCamera {
 private:
@@ -57,7 +66,7 @@ public:
 	int setStatusCallback(JNIEnv *env, jobject status_callback_obj);
 	int setButtonCallback(JNIEnv *env, jobject button_callback_obj);
 
-	char *getSupportedSize();
+	std::vector<UvcCameraResolution> getSupportedSize();
 	int setFrameCallback(JNIEnv *env, jobject frame_callback_obj, int pixel_format);
 
 	int getCtrlSupports(uint64_t *supports);

@@ -78,10 +78,10 @@ class CameraUVC(ctx: Context, device: UsbDevice) : MultiCameraClient.ICamera(ctx
     override fun getAllPreviewSizes(aspectRatio: Double?): MutableList<PreviewSize> {
         val previewSizeList = arrayListOf<PreviewSize>()
         val isMjpegFormat = mCameraRequest?.previewFormat == CameraRequest.PreviewFormat.FORMAT_MJPEG
-        if (isMjpegFormat && (mUvcCamera?.supportedSizeList?.isNotEmpty() == true)) {
-            mUvcCamera?.supportedSizeList
+        if (isMjpegFormat && (mUvcCamera?.supportedSizeList2?.isNotEmpty() == true)) {
+            mUvcCamera?.supportedSizeList2
         }  else {
-            mUvcCamera?.getSupportedSizeList(UVCCamera.FRAME_FORMAT_YUYV)
+            mUvcCamera?.getSupportedSizeList2(UVCCamera.FRAME_FORMAT_YUYV)
         }?.let { sizeList ->
             if (sizeList.size > mCameraPreviewSize.size) {
                 mCameraPreviewSize.clear()
@@ -145,7 +145,7 @@ class CameraUVC(ctx: Context, device: UsbDevice) : MultiCameraClient.ICamera(ctx
             if (! isPreviewSizeSupported(previewSize)) {
                 closeCamera()
                 postStateEvent(ICameraStateCallBack.State.ERROR, "unsupported preview size")
-                Logger.e(TAG, "open camera failed, preview size($previewSize) unsupported-> ${mUvcCamera?.supportedSizeList}")
+                Logger.e(TAG, "open camera failed, preview size($previewSize) unsupported-> ${mUvcCamera?.supportedSizeList2}")
                 return
             }
             initEncodeProcessor(previewSize.width, previewSize.height)
@@ -168,7 +168,7 @@ class CameraUVC(ctx: Context, device: UsbDevice) : MultiCameraClient.ICamera(ctx
                 if (! isPreviewSizeSupported(previewSize)) {
                     postStateEvent(ICameraStateCallBack.State.ERROR, "unsupported preview size")
                     closeCamera()
-                    Logger.e(TAG, "open camera failed, preview size($previewSize) unsupported-> ${mUvcCamera?.supportedSizeList}")
+                    Logger.e(TAG, "open camera failed, preview size($previewSize) unsupported-> ${mUvcCamera?.supportedSizeList2}")
                     return
                 }
                 Logger.e(TAG, " setPreviewSize failed(format is $previewFormat), try to use other format...")

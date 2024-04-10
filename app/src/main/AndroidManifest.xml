@@ -24,7 +24,7 @@
         android:requestLegacyExternalStorage="true"
         android:supportsRtl="true">
         <activity
-            android:name="com.vshcryabets.activity.DevicesActivity"
+            android:name="com.vsh.activity.DevicesActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

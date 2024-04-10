@@ -155,10 +155,8 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
     }
 
     fun openCamera(deviceId: Int) {
-        Timber.d("ASD open $deviceId")
         val usbManager = requireActivity().getSystemService(ComponentActivity.USB_SERVICE) as UsbManager
         val device = usbManager.deviceList.values.find { it.deviceId == deviceId } ?: return
-        Timber.d("ASD open 2 $deviceId = $device")
         context?.let {
             if (mCameraMap.containsKey(device.deviceId)) {
                 return
