@@ -31,7 +31,6 @@ import android.view.SurfaceHolder;
 
 import com.jiangdg.usb.USBMonitor;
 import com.jiangdg.usb.USBMonitor.UsbControlBlock;
-import com.jiangdg.utils.Size;
 import com.vsh.uvc.UvcCameraResolution;
 
 import java.util.ArrayList;
@@ -230,25 +229,25 @@ public class UVCCamera {
 			DEFAULT_PREVIEW_MIN_FPS, DEFAULT_PREVIEW_MAX_FPS, DEFAULT_PREVIEW_MODE, DEFAULT_BANDWIDTH);
     }
 
-	/**
-	 * set status callback
-	 * @param callback
-	 */
-	public void setStatusCallback(final IStatusCallback callback) {
-		if (mNativePtr != 0) {
-			nativeSetStatusCallback(mNativePtr, callback);
-		}
-	}
-
-	/**
-	 * set button callback
-	 * @param callback
-	 */
-	public void setButtonCallback(final IButtonCallback callback) {
-		if (mNativePtr != 0) {
-			nativeSetButtonCallback(mNativePtr, callback);
-		}
-	}
+//	/**
+//	 * set status callback
+//	 * @param callback
+//	 */
+//	public void setStatusCallback(final IStatusCallback callback) {
+//		if (mNativePtr != 0) {
+//			nativeSetStatusCallback(mNativePtr, callback);
+//		}
+//	}
+//
+//	/**
+//	 * set button callback
+//	 * @param callback
+//	 */
+//	public void setButtonCallback(final IButtonCallback callback) {
+//		if (mNativePtr != 0) {
+//			nativeSetButtonCallback(mNativePtr, callback);
+//		}
+//	}
 
     /**
      * close and release UVC camera

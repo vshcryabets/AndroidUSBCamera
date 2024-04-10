@@ -26,7 +26,7 @@
 #define LOG_TAG "UVCCamera"
 #if 1    // デバッグ情報を出さない時1
 #ifndef LOG_NDEBUG
-#define	LOG_NDEBUG		// LOGV/LOGD/MARKを出力しない時
+#define    LOG_NDEBUG        // LOGV/LOGD/MARKを出力しない時
 #endif
 #undef USE_LOGALL            // 指定したLOGxだけを出力
 #else
@@ -39,7 +39,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "UVCCamera.h"
-#include "Parameters.h"
 #include "libuvc_internal.h"
 
 #define    LOCAL_DEBUG 0
@@ -50,9 +49,7 @@ UVCCamera::UVCCamera()
           mContext(NULL),
           mDevice(NULL),
           mDeviceHandle(NULL),
-          mStatusCallback(NULL),
-          mButtonCallback(NULL),
-          mPreviewOld(nullptr) {
+          mPreview(nullptr) {
     clearCameraParams();
 }
 
@@ -102,20 +99,12 @@ int UVCCamera::connect(int vid, int pid, int fd, int busnum, int devaddr, const 
             // カメラのopen処理
             result = uvc_open(mDevice, &mDeviceHandle);
             if (LIKELY(!result)) {
-                // open出来た時
-#if LOCAL_DEBUG
-                uvc_print_diag(mDeviceHandle, stderr);
-#endif
                 mCameraConfig = std::shared_ptr<UVCCameraAdjustments>(new UVCCameraAdjustments(mDeviceHandle));
                 mFd = fd;
-                mStatusCallback = new UVCStatusCallback(mDeviceHandle);
-                mButtonCallback = new UVCButtonCallback(mDeviceHandle);
-                mPreviewOld = std::shared_ptr<UVCPreviewJni>(new UVCPreviewJni(mDeviceHandle));
+                mPreview = constructPreview(mDeviceHandle);
             } else {
-                // open出来なかった時
                 LOGE("could not open camera:err=%d", result);
                 uvc_unref_device(mDevice);
-//				SAFE_DELETE(mDevice);	// 参照カウンタが0ならuvc_unref_deviceでmDeviceがfreeされるから不要 XXX クラッシュ, 既に破棄されているのを再度破棄しようとしたからみたい
                 mDevice = NULL;
                 mDeviceHandle = NULL;
                 close(fd);
@@ -131,18 +120,11 @@ int UVCCamera::connect(int vid, int pid, int fd, int busnum, int devaddr, const 
     RETURN(result, int);
 }
 
-// カメラを開放する
 int UVCCamera::release() {
-    if (LIKELY(mPreviewOld)) {
-        mPreviewOld->stopPreview();
+    if (LIKELY(mPreview)) {
+        mPreview->stopPreview();
     }
-    // カメラのclose処理
     if (LIKELY(mDeviceHandle)) {
-        MARK("カメラがopenしていたら開放する");
-        // ステータスコールバックオブジェクトを破棄
-        SAFE_DELETE(mStatusCallback);
-        SAFE_DELETE(mButtonCallback);
-        // カメラをclose
         uvc_close(mDeviceHandle);
         mDeviceHandle = NULL;
     }
@@ -159,27 +141,10 @@ int UVCCamera::release() {
         free(mUsbFs);
         mUsbFs = NULL;
     }
-    RETURN(0, int);
-}
-
-int UVCCamera::setStatusCallback(JNIEnv *env, jobject status_callback_obj) {
-    int result = EXIT_FAILURE;
-    if (mStatusCallback) {
-        result = mStatusCallback->setCallback(env, status_callback_obj);
-    }
-    RETURN(result, int);
-}
-
-int UVCCamera::setButtonCallback(JNIEnv *env, jobject button_callback_obj) {
-    int result = EXIT_FAILURE;
-    if (mButtonCallback) {
-        result = mButtonCallback->setCallback(env, button_callback_obj);
-    }
-    RETURN(result, int);
+    return 0;
 }
 
 std::vector<UvcCameraResolution> UVCCamera::getSupportedSize() {
-
     auto result = std::vector<UvcCameraResolution>();
     if (!mDeviceHandle)
         return result;
@@ -216,13 +181,13 @@ std::vector<UvcCameraResolution> UVCCamera::getSupportedSize() {
     return result;
 }
 
-int UVCCamera::setFrameCallback(JNIEnv *env, jobject frame_callback_obj, int pixel_format) {
-    int result = EXIT_FAILURE;
-    if (mPreviewOld) {
-        result = mPreviewOld->setFrameCallback(env, frame_callback_obj, pixel_format);
-    }
-    RETURN(result, int);
-}
+//int UVCCamera::setFrameCallback(JNIEnv *env, jobject frame_callback_obj, int pixel_format) {
+//    int result = EXIT_FAILURE;
+//    if (mPreview) {
+//        result = mPreview->setFrameCallback(env, frame_callback_obj, pixel_format);
+//    }
+//    return result;
+//}
 
 int UVCCamera::getCtrlSupports(uint64_t *supports) {
     uvc_error_t ret = UVC_ERROR_NOT_FOUND;
@@ -270,10 +235,18 @@ int UVCCamera::getProcSupports(uint64_t *supports) {
     RETURN(ret, int);
 }
 
-std::shared_ptr<UVCPreviewJni> UVCCamera::getPreviewOldObject() {
-    return mPreviewOld;
+std::shared_ptr<UVCPreviewBase> UVCCamera::getPreview() {
+    return mPreview;
 }
 
 std::shared_ptr<UVCCameraAdjustments> UVCCamera::getAdjustments() {
     return mCameraConfig;
+}
+
+UVCCameraJniImpl::UVCCameraJniImpl() : UVCCamera() {
+
+}
+
+std::shared_ptr<UVCPreviewBase> UVCCameraJniImpl::constructPreview(uvc_device_handle_t *deviceHandle) {
+    return std::shared_ptr<UVCPreviewBase>(new UVCPreviewJni(deviceHandle));
 }

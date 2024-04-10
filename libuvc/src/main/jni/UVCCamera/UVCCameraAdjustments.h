@@ -24,6 +24,7 @@
 #pragma once
 
 #include <stdint.h>
+#include "libuvc.h"
 
 typedef struct control_value {
 	int res;	// unused

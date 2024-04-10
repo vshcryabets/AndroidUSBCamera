@@ -24,7 +24,10 @@
 */
 #pragma once
 
-#include "libUVCCamera.h"
+#include <jni.h>
+#include "libusb.h"
+#include "libuvc.h"
+#include "utilbase.h"
 #include <pthread.h>
 #include <stdint.h>
 #include <mutex>
@@ -51,11 +54,6 @@ typedef uvc_error_t (*convFunc_t)(uvc_frame_t *in, uvc_frame_t *out);
 #define PIXEL_FORMAT_YUV20SP 4
 #define PIXEL_FORMAT_NV21 5		// YVU420SemiPlanar
 
-// for callback to Java object
-typedef struct {
-	jmethodID onFrame;
-} Fields_iframecallback;
-
 class UVCPreviewBase {
 protected:
 	uvc_device_handle_t *mDeviceHandle;
@@ -70,23 +68,13 @@ protected:
 	pthread_mutex_t preview_mutex;
 	pthread_cond_t preview_sync;
 	std::list<uvc_frame_t *> previewFrames;
-	size_t previewBytes;
-//	volatile bool mIsCapturing;
-//	volatile bool mHasCapturing;
-
-//	pthread_t capture_thread;
-//	pthread_mutex_t capture_mutex;
-//	pthread_cond_t capture_sync;
-//	uvc_frame_t *captureQueu;			// keep latest frame
+//	size_t previewBytes;
 	convFunc_t mFrameCallbackFunc;
-	Fields_iframecallback iframecallback_fields;
 	int mPixelFormat;
-	size_t callbackPixelBytes;
+//	size_t callbackPixelBytes;
 	pthread_mutex_t pool_mutex;
     std::list<uvc_frame_t *> mFramePool;
     volatile uint16_t allocatedFramesCounter = 0;
-//    std::function<void(const UVCPreviewBase *,
-//                       std::chrono::time_point<std::chrono::steady_clock>)> mPreviewReceiver = nullptr;
 private:
 	void clear_pool();
 	static void uvc_preview_frame_callback(uvc_frame_t *frame, void *vptr_args);
@@ -95,14 +83,6 @@ private:
 	static void *preview_thread_func(void *vptr_args);
 	int prepare_preview(uvc_stream_ctrl_t *ctrl);
 	void do_preview(uvc_stream_ctrl_t *ctrl);
-//	void addCaptureFrame(uvc_frame_t *frame);
-//	uvc_frame_t *waitCaptureFrame();
-//	void clearCaptureFrame();
-//	static void *capture_thread_func(void *vptr_args);
-//	void do_capture(JNIEnv *env);
-//	void do_capture_surface(JNIEnv *env);
-//	void do_capture_idle_loop(JNIEnv *env);
-//	void do_capture_callback(JNIEnv *env, uvc_frame_t *frame);
 protected:
     uvc_frame_t *get_frame(size_t data_bytes);
     void recycle_frame(uvc_frame_t *frame);
@@ -112,7 +92,7 @@ protected:
     virtual void onPreviewPrepared(uint16_t frameWidth, uint16_t  frameHeight) = 0;
 public:
 	UVCPreviewBase(uvc_device_handle_t *devh);
-	~UVCPreviewBase();
+	virtual ~UVCPreviewBase();
 
 	inline const bool isRunning() const;
 	int setPreviewSize(int width, int height, int min_fps, int max_fps, int mode, float bandwidth = 1.0f);

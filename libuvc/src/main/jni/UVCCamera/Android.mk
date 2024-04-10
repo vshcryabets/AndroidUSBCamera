@@ -38,7 +38,8 @@ LOCAL_C_INCLUDES := \
 		$(LOCAL_PATH)/../ \
 		$(LOCAL_PATH)/../rapidjson/include \
 
-LOCAL_CFLAGS := -std=gnu++11
+LOCAL_CFLAGS := -std=c++14
+LOCAL_CPP_FEATURES := rtti exceptions
 LOCAL_CFLAGS := $(LOCAL_C_INCLUDES:%=-I%)
 LOCAL_CFLAGS += -DANDROID_NDK -DUSE_LOGD -D__ANDROID__
 # LOCAL_CFLAGS += -DLOG_NDEBUG
@@ -59,10 +60,8 @@ LOCAL_SRC_FILES := \
 		UVCCamera.cpp \
 		UVCPreviewBase.cpp \
 		UVCPreviewJni.cpp \
-		UVCButtonCallback.cpp \
-		UVCStatusCallback.cpp \
 		UVCCameraAdjustments.cpp \
-		serenegiant_usb_UVCCamera.cpp
+		JniUVCCamera.cpp
 
 LOCAL_MODULE    := UVCCamera
 include $(BUILD_SHARED_LIBRARY)
