@@ -423,7 +423,7 @@ class CameraUVC(ctx: Context, device: UsbDevice) : MultiCameraClient.ICamera(ctx
      * @param brightness brightness value, 0 means reset
      */
     fun setBrightness(brightness: Int) {
-        mUvcCamera?.brightness = brightness
+        mUvcCamera?.setBrightness(brightness)
     }
 
     /**
@@ -431,16 +431,16 @@ class CameraUVC(ctx: Context, device: UsbDevice) : MultiCameraClient.ICamera(ctx
      */
     fun getBrightness() = mUvcCamera?.brightness
     
-    fun getBrightnessMax() = mUvcCamera?.brightnessMax
-
-    fun getBrightnessMin() = mUvcCamera?.brightnessMin
+//    fun getBrightnessMax() = mUvcCamera?.brightnessMax
+//
+//    fun getBrightnessMin() = mUvcCamera?.brightnessMin
     
     /**
      * Reset brightnes
      */
-    fun resetBrightness() {
-        mUvcCamera?.resetBrightness()
-    }
+//    fun resetBrightness() {
+//        mUvcCamera?.resetBrightness()
+//    }
 
     /**
      * Set contrast

@@ -810,7 +810,11 @@ int UVCCameraAdjustments::getFocusRel() {
 
 UVCCameraAdjustments::UVCCameraAdjustments(uvc_device_handle_t *deviceHandle)
         : mDeviceHandle(deviceHandle) {
+    mPuMask[uvc::BRIGHTNESS] = PU_BRIGHTNESS;
+    mPuMask[uvc::CONTRAST] = PU_CONTRAST;
+    mPuMask[uvc::HUE] = PU_HUE;
 
+    mCtrlMask[uvc::PANTILT] = CTRL_PANTILT_ABS;
 }
 
 //======================================================================
@@ -2006,4 +2010,26 @@ int UVCCameraAdjustments::internalSetCtrlValue(control_value_t &values, uint32_t
 int UVCCameraAdjustments::internalSetCtrlValue(int32_t value, paramset_func_u16 set_func) {
     int ret = set_func(mDeviceHandle, value);
     RETURN(ret, int);
+}
+
+float UVCCameraAdjustments::getAdjustmentNormalized(uvc::UvcAdjustements adjustment) const {
+    if (isAdjustementSupported(adjustment)) {
+        int16_t value;
+        uvc_get_brightness(mDeviceHandle, &value, UVC_GET_CUR);
+    }
+    return 0;
+}
+
+bool UVCCameraAdjustments::isAdjustementSupported(uvc::UvcAdjustements adjustment) const {
+    auto bitMaskIt = mPuMask.find(adjustment);
+    if (bitMaskIt == mPuMask.end())
+        return false;
+    return  (mPUSupports & bitMaskIt->second) != 0;
+}
+
+void UVCCameraAdjustments::setAdjustmentNormalized(uvc::UvcAdjustements adjustment, float value) const {
+    if (isAdjustementSupported(adjustment)) {
+        // TODO
+    }
+    return;
 }
