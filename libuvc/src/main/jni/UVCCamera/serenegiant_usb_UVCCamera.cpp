@@ -676,30 +676,29 @@ static jint nativeUpdateBrightnessLimit(JNIEnv *env, jobject thiz,
     RETURN(result, jint);
 }
 
-static jint nativeSetBrightness(JNIEnv *env,
-                                jobject thiz,
-                                ID_TYPE id_camera,
-                                jint brightness) {
-    jint result = JNI_ERR;
-    UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
-    if (LIKELY(camera)) {
-        LOGE("ASD nativeSetBrightness  %d", brightness);
-        result = camera->getAdjustments()->setBrightness(brightness);
-    }
-    return result;
-}
+//static jint nativeSetBrightness(JNIEnv *env,
+//                                jobject thiz,
+//                                ID_TYPE id_camera,
+//                                jint brightness) {
+//    jint result = JNI_ERR;
+//    UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
+//    if (LIKELY(camera)) {
+//        LOGE("ASD nativeSetBrightness  %d", brightness);
+//        result = camera->getAdjustments()->setBrightness(brightness);
+//    }
+//    return result;
+//}
 
-static jint nativeGetBrightness(JNIEnv *env, jobject thiz,
-                                ID_TYPE id_camera) {
-
-    jint result = 0;
-
-    UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
-    if (LIKELY(camera)) {
-        result = camera->getAdjustments()->getBrightness();
-    }
-    RETURN(result, jint);
-}
+//static jint nativeGetBrightness(JNIEnv *env,
+//                                jobject thiz,
+//                                ID_TYPE id_camera) {
+//    jint result = 0;
+//    UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
+//    if (LIKELY(camera)) {
+//        result = camera->getAdjustments()->getBrightness();
+//    }
+//    RETURN(result, jint);
+//}
 
 //======================================================================
 // Java mnethod correspond to this function should not be a static mathod
@@ -2118,8 +2117,8 @@ static JNINativeMethod methods[] = {
         {"nativeGetBacklightComp",                  "(J)I",                                  (void *) nativeGetBacklightComp},
 
         {"nativeUpdateBrightnessLimit",             "(J)I",                                  (void *) nativeUpdateBrightnessLimit},
-        {"nativeSetBrightness",                     "(JI)I",                                 (void *) nativeSetBrightness},
-        {"nativeGetBrightness",                     "(J)I",                                  (void *) nativeGetBrightness},
+//        {"nativeSetBrightness",                     "(JI)I",                                 (void *) nativeSetBrightness},
+//        {"nativeGetBrightness",                     "(J)I",                                  (void *) nativeGetBrightness},
 
         {"nativeUpdateContrastLimit",               "(J)I",                                  (void *) nativeUpdateContrastLimit},
         {"nativeSetContrast",                       "(JI)I",                                 (void *) nativeSetContrast},
@@ -2226,6 +2225,30 @@ Java_com_jiangdg_uvc_UVCCamera_nativeGetSupportedSize(JNIEnv *env, jclass clazz,
     env->DeleteLocalRef(uvcCameraResolutionCls);
     env->DeleteLocalRef(arrayListCls);
     return result;
+}
+
+JNIEXPORT jfloat JNICALL
+Java_com_jiangdg_uvc_UVCCamera_nativeGetAdjustment(JNIEnv *env,
+                                                   jobject thiz,
+                                                   ID_TYPE id_camera,
+                                                   jint adjustement) {
+    UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
+    if (LIKELY(camera)) {
+        return camera->getAdjustments()->getAdjustmentNormalized(static_cast<uvc::UvcAdjustements>(adjustement));
+    }
+    return -1.f;
+}
+
+JNIEXPORT void JNICALL
+Java_com_jiangdg_uvc_UVCCamera_nativeSetAdjustment(JNIEnv *env,
+                                                   jobject thiz,
+                                                   ID_TYPE id_camera,
+                                                   jint adjustement,
+                                                   jfloat value) {
+    UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
+    if (LIKELY(camera)) {
+        return camera->getAdjustments()->setAdjustmentNormalized(static_cast<uvc::UvcAdjustements>(adjustement), value);
+    }
 }
 
 }

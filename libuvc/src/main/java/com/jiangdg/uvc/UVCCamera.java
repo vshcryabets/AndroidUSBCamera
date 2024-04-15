@@ -31,7 +31,7 @@ import android.view.SurfaceHolder;
 
 import com.jiangdg.usb.USBMonitor;
 import com.jiangdg.usb.USBMonitor.UsbControlBlock;
-import com.jiangdg.utils.Size;
+import com.vsh.uvc.UvcAdjustements;
 import com.vsh.uvc.UvcCameraResolution;
 
 import java.util.ArrayList;
@@ -154,7 +154,7 @@ public class UVCCamera {
     protected int mWhiteBlanceCompoMin, mWhiteBlanceCompoMax, mWhiteBlanceCompoDef;
     protected int mWhiteBlanceRelMin, mWhiteBlanceRelMax, mWhiteBlanceRelDef;
     protected int mBacklightCompMin, mBacklightCompMax, mBacklightCompDef;
-    protected int mBrightnessMin, mBrightnessMax, mBrightnessDef;
+//    protected int mBrightnessMin, mBrightnessMax, mBrightnessDef;
     protected int mContrastMin, mContrastMax, mContrastDef;
     protected int mSharpnessMin, mSharpnessMax, mSharpnessDef;
     protected int mGainMin, mGainMax, mGainDef;
@@ -553,50 +553,49 @@ public class UVCCamera {
      * @param brightness [%]
      */
 	public synchronized void setBrightness(final int brightness) {
-    	if (mNativePtr != 0) {
- 		   final float range = Math.abs(mBrightnessMax - mBrightnessMin);
-			Timber.d("ASD setBrightness " + mBrightnessMax + " " + mBrightnessMin + " " + brightness);
- 		   if (range > 0)
- 			   nativeSetBrightness(mNativePtr, (int)(brightness / 100.f * range) + mBrightnessMin);
-    	}
-    }
+		if (mNativePtr != 0) {
+			Timber.d("ASD setBrightness " + brightness);
+			nativeSetAdjustment(mNativePtr, UvcAdjustements.BRIGHTNESS.getRawValue(), brightness / 100.f);
+		}
+	}
 
     /**
      * @param brightness_abs
      * @return brightness[%]
      */
-	public synchronized int getBrightness(final int brightness_abs) {
-	   int result = 0;
-	   if (mNativePtr != 0) {
-		   nativeUpdateBrightnessLimit(mNativePtr);
-		   final float range = Math.abs(mBrightnessMax - mBrightnessMin);
-		   if (range > 0) {
-			   result = (int)((brightness_abs - mBrightnessMin) * 100.f / range);
-		   }
-	   }
-	   return result;
-	}
+//	public synchronized int getBrightness(final int brightness_abs) {
+//	   int result = 0;
+//	   if (mNativePtr != 0) {
+//		   nativeUpdateBrightnessLimit(mNativePtr);
+//		   final float range = Math.abs(mBrightnessMax - mBrightnessMin);
+//		   if (range > 0) {
+//			   result = (int)((brightness_abs - mBrightnessMin) * 100.f / range);
+//		   }
+//	   }
+//	   return result;
+//	}
 
     /**
      * @return brightness[%]
      */
-	public synchronized int getBrightness() {
-    	return getBrightness(nativeGetBrightness(mNativePtr));
+	public synchronized float getBrightness() {
+		return nativeGetAdjustment(mNativePtr, UvcAdjustements.BRIGHTNESS.getRawValue());
+//    	return getBrightness(nativeGetBrightness(mNativePtr));
     }
 
-	public synchronized void resetBrightness() {
-    	if (mNativePtr != 0) {
-    		nativeSetBrightness(mNativePtr, mBrightnessDef);
-    	}
-    }
+//	public synchronized void resetBrightness() {
+//    	if (mNativePtr != 0) {
+//    		nativeSetBrightness(mNativePtr, mBrightnessDef);
+//    	}
+//    }
 
-	public synchronized int getBrightnessMax() {
-		return mBrightnessMax;
-	}
-
-	public synchronized int getBrightnessMin() {
-		return mBrightnessMin;
-	}
+//	public synchronized int getBrightnessMax() {
+//		return mBrightnessMax;
+//	}
+//
+//	public synchronized int getBrightnessMin() {
+//		return mBrightnessMin;
+//	}
 
 //================================================================================
     /**
@@ -936,7 +935,7 @@ public class UVCCamera {
     	    	if (false) {
 					dumpControls(mControlSupports);
 					dumpProc(mProcSupports);
-					Timber.v(String.format("Brightness:min=%d,max=%d,def=%d", mBrightnessMin, mBrightnessMax, mBrightnessDef));
+//					Timber.v(String.format("Brightness:min=%d,max=%d,def=%d", mBrightnessMin, mBrightnessMax, mBrightnessDef));
 					Timber.v(String.format("Contrast:min=%d,max=%d,def=%d", mContrastMin, mContrastMax, mContrastDef));
 					Timber.v(String.format("Sharpness:min=%d,max=%d,def=%d", mSharpnessMin, mSharpnessMax, mSharpnessDef));
 					Timber.v(String.format("Gain:min=%d,max=%d,def=%d", mGainMin, mGainMax, mGainDef));
@@ -1050,6 +1049,8 @@ public class UVCCamera {
 
 	private static final native int nativeSetPreviewSize(final long id_camera, final int width, final int height, final int min_fps, final int max_fps, final int mode, final float bandwidth);
 	private static native List<UvcCameraResolution> nativeGetSupportedSize(final long id_camera);
+	private static native float nativeGetAdjustment(final long id_camera, int adjustementId);
+	private static native void nativeSetAdjustment(final long id_camera, int adjustementId, float value);
 	private static final native int nativeStartPreview(final long id_camera);
 	private static final native int nativeStopPreview(final long id_camera);
 	private static final native int nativeSetPreviewDisplay(final long id_camera, final Surface surface);
@@ -1165,8 +1166,8 @@ public class UVCCamera {
 	private static final native int nativeGetBacklightComp(final long id_camera);
 
 	private final native int nativeUpdateBrightnessLimit(final long id_camera);
-	private static final native int nativeSetBrightness(final long id_camera, final int brightness);
-	private static final native int nativeGetBrightness(final long id_camera);
+//	private static final native int nativeSetBrightness(final long id_camera, final int brightness);
+//	private static final native int nativeGetBrightness(final long id_camera);
 
 	private final native int nativeUpdateContrastLimit(final long id_camera);
 	private static final native int nativeSetContrast(final long id_camera, final int contrast);

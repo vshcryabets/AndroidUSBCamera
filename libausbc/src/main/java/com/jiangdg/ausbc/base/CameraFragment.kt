@@ -556,7 +556,7 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
      *
      * @return current brightness value
      */
-    protected fun getBrightness(): Int? {
+    protected fun getBrightness(): Float? {
         return getCurrentCamera()?.let { camera ->
             if (camera !is CameraUVC) {
                 return@let null
@@ -565,17 +565,17 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
         }
     }
 
-    /**
-     * Reset brightness
-     */
-    protected fun resetBrightness() {
-        getCurrentCamera()?.let { camera ->
-            if (camera !is CameraUVC) {
-                return
-            }
-            camera.resetBrightness()
-        }
-    }
+//    /**
+//     * Reset brightness
+//     */
+//    protected fun resetBrightness() {
+//        getCurrentCamera()?.let { camera ->
+//            if (camera !is CameraUVC) {
+//                return
+//            }
+//            camera.resetBrightness()
+//        }
+//    }
 
     /**
      * Set contrast

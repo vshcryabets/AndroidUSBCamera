@@ -682,7 +682,7 @@ class CameraUvcStrategy(ctx: Context) : ICameraStrategy(ctx) {
      * @param brightness brightness value, 0 means reset
      */
     fun setBrightness(brightness: Int) {
-        mUVCCamera?.brightness = brightness
+        mUVCCamera?.setBrightness(brightness)
     }
 
     /**

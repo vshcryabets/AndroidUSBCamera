@@ -24,6 +24,8 @@
 #pragma once
 
 #include <stdint.h>
+#include <map>
+#include "UvcAdjustements.h"
 
 typedef struct control_value {
 	int res;	// unused
@@ -55,10 +57,13 @@ typedef uvc_error_t (*paramset_func_i8u8)(uvc_device_handle_t *devh, int8_t valu
 typedef uvc_error_t (*paramset_func_i8u8u8)(uvc_device_handle_t *devh, int8_t value1, uint8_t value2, uint8_t value3);
 typedef uvc_error_t (*paramset_func_i32i32)(uvc_device_handle_t *devh, int32_t value1, int32_t value2);
 
-
 class UVCCameraAdjustments {
 private:
     uvc_device_handle_t *mDeviceHandle;
+    std::map<uvc::UvcAdjustements,uint64_t> mPuMask;
+    std::map<uvc::UvcAdjustements,uint64_t> mCtrlMask;
+    std::map<uvc::UvcAdjustements,control_value_t> mValues;
+//    std::map<uvc::UvcAdjustements,control_value_t> mValues;
 
     control_value_t mScanningMode;
     control_value_t mExposureMode;
@@ -123,6 +128,13 @@ public:
     uint64_t mPUSupports = 0;
 
     UVCCameraAdjustments(uvc_device_handle_t *deviceHandle);
+
+    bool isAdjustementSupported(uvc::UvcAdjustements adjustment) const;
+//    control_value_t getAdjustment(uvc::UvcAdjustements adjustment) const;
+//    void setAdjustment(uvc::UvcAdjustements adjustment, control_value_t value) const;
+
+    float getAdjustmentNormalized(uvc::UvcAdjustements adjustment) const;
+    void setAdjustmentNormalized(uvc::UvcAdjustements adjustment, float value) const;
 
     void clearCameraParams();
     int updatePanLimit(int &min, int &max, int &def);
@@ -215,7 +227,6 @@ public:
 
     int updateBrightnessLimit(int &min, int &max, int &def);
     int setBrightness(int brightness);
-    int getBrightness();
 
     int updateContrastLimit(int &min, int &max, int &def);
     int setContrast(uint16_t contrast);
