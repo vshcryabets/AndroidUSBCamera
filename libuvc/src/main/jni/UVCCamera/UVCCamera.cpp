@@ -228,11 +228,11 @@ int UVCCamera::getProcSupports(uint64_t *supports) {
     RETURN(ret, int);
 }
 
-std::shared_ptr<UVCPreviewBase> UVCCamera::getPreview() {
+std::shared_ptr<UVCPreviewBase> UVCCamera::getPreview() const {
     return mPreview;
 }
 
-std::shared_ptr<UVCCameraAdjustments> UVCCamera::getAdjustments() {
+std::shared_ptr<UVCCameraAdjustments> UVCCamera::getAdjustments() const {
     return mCameraConfig;
 }
 

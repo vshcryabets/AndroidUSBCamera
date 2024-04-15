@@ -3,6 +3,7 @@
  * library and sample to access to UVC web camera on non-rooted Android device
  *
  * Copyright (c) 2014-2017 saki t_saki@serenegiant.com
+ * Copyright (c) 2024 vshcryabets@gmail.com
  *
  * File name: UVCCamera.h
  *
@@ -59,14 +60,14 @@ public:
 	UVCCamera();
 	virtual ~UVCCamera();
 
-	int connect(int vid, int pid, int fd, int busnum, int devaddr, std::string usbfs);
-	int release();
+	virtual int connect(int vid, int pid, int fd, int busnum, int devaddr, std::string usbfs);
+    virtual int release();
 
 	std::vector<UvcCameraResolution> getSupportedSize();
 	int getCtrlSupports(uint64_t *supports);
 	int getProcSupports(uint64_t *supports);
-    std::shared_ptr<UVCPreviewBase> getPreview();
-    std::shared_ptr<UVCCameraAdjustments> getAdjustments();
+    std::shared_ptr<UVCPreviewBase> getPreview() const;
+    std::shared_ptr<UVCCameraAdjustments> getAdjustments() const;
 };
 
 class UVCCameraJniImpl : public UVCCamera {
