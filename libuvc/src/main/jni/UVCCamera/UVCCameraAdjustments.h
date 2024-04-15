@@ -62,6 +62,8 @@ private:
     uvc_device_handle_t *mDeviceHandle;
     std::map<uvc::UvcAdjustements,uint64_t> mPuMask;
     std::map<uvc::UvcAdjustements,uint64_t> mCtrlMask;
+    std::map<uvc::UvcAdjustements,control_value_t> mValues;
+//    std::map<uvc::UvcAdjustements,control_value_t> mValues;
 
     control_value_t mScanningMode;
     control_value_t mExposureMode;

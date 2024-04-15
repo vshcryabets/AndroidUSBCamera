@@ -2014,8 +2014,10 @@ int UVCCameraAdjustments::internalSetCtrlValue(int32_t value, paramset_func_u16 
 
 float UVCCameraAdjustments::getAdjustmentNormalized(uvc::UvcAdjustements adjustment) const {
     if (isAdjustementSupported(adjustment)) {
-        int16_t value;
-        uvc_get_brightness(mDeviceHandle, &value, UVC_GET_CUR);
+        int16_t i16;
+        uvc_get_brightness(mDeviceHandle, &i16, UVC_GET_CUR);
+        uvc_get_brightness(mDeviceHandle, &i16, UVC_GET_CUR);
+        uvc_get_brightness(mDeviceHandle, &i16, UVC_GET_CUR);
     }
     return 0;
 }
