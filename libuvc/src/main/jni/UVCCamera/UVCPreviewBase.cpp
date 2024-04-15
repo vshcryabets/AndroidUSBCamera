@@ -43,8 +43,7 @@ UVCPreviewBase::UVCPreviewBase(uvc_device_handle_t *devh)
           frameHeight(DEFAULT_PREVIEW_HEIGHT),
           frameBytes(DEFAULT_PREVIEW_WIDTH * DEFAULT_PREVIEW_HEIGHT * 2),    // YUYV
           frameMode(0),
-          mIsRunning(false),
-          mFrameCallbackFunc(NULL) {
+          mIsRunning(false) {
     pthread_mutex_init(&pool_mutex, NULL);
 }
 
@@ -121,41 +120,6 @@ int UVCPreviewBase::setPreviewSize(int width, int height, int min_fps, int max_f
     }
 
     RETURN(result, int);
-}
-
-void UVCPreviewBase::callbackPixelFormatChanged() {
-    mFrameCallbackFunc = NULL;
-    const size_t sz = requestWidth * requestHeight;
-    switch (mPixelFormat) {
-        case PIXEL_FORMAT_RAW:
-            LOGI("PIXEL_FORMAT_RAW:");
-//            callbackPixelBytes = sz * 2;
-            break;
-        case PIXEL_FORMAT_YUV:
-            LOGI("PIXEL_FORMAT_YUV:");
-//            callbackPixelBytes = sz * 2;
-            break;
-        case PIXEL_FORMAT_RGB565:
-            LOGI("PIXEL_FORMAT_RGB565:");
-            mFrameCallbackFunc = uvc_any2rgb565;
-//            callbackPixelBytes = sz * 2;
-            break;
-        case PIXEL_FORMAT_RGBX:
-            LOGI("PIXEL_FORMAT_RGBX:");
-            mFrameCallbackFunc = uvc_any2rgbx;
-//            callbackPixelBytes = sz * 4;
-            break;
-        case PIXEL_FORMAT_YUV20SP:
-            LOGI("PIXEL_FORMAT_YUV20SP:");
-            mFrameCallbackFunc = uvc_yuyv2iyuv420SP;
-//            callbackPixelBytes = (sz * 3) / 2;
-            break;
-        case PIXEL_FORMAT_NV21:
-            LOGI("PIXEL_FORMAT_NV21:");
-            mFrameCallbackFunc = uvc_yuyv2yuv420SP;
-//            callbackPixelBytes = (sz * 3) / 2;
-            break;
-    }
 }
 
 int UVCPreviewBase::startPreview() {
@@ -265,11 +229,10 @@ void UVCPreviewBase::clearPreviewFramesQueue() {
 }
 
 void *UVCPreviewBase::preview_thread_func(void *vptr_args) {
-    int result;
     UVCPreviewBase *preview = reinterpret_cast<UVCPreviewBase *>(vptr_args);
     if (LIKELY(preview)) {
         uvc_stream_ctrl_t ctrl;
-        result = preview->prepare_preview(&ctrl);
+        int result = preview->prepare_preview(&ctrl);
         if (LIKELY(!result)) {
             preview->do_preview(&ctrl);
         }
@@ -314,7 +277,7 @@ void UVCPreviewBase::do_preview(uvc_stream_ctrl_t *ctrl) {
             (void *) this, requestBandwidth, 0);
     if (LIKELY(!result)) {
         clearPreviewFramesQueue();
-        for (; LIKELY(isRunning());) {
+        while (LIKELY(isRunning())) {
             auto frame = waitPreviewFrame();
             handleFrame(frame);
             recycle_frame(frame);

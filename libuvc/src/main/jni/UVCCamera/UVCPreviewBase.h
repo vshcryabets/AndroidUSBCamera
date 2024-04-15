@@ -69,8 +69,8 @@ protected:
 	pthread_cond_t preview_sync;
 	std::list<uvc_frame_t *> previewFrames;
 //	size_t previewBytes;
-	convFunc_t mFrameCallbackFunc;
-	int mPixelFormat;
+//	convFunc_t mFrameCallbackFunc;
+//	int mPixelFormat;
 //	size_t callbackPixelBytes;
 	pthread_mutex_t pool_mutex;
     std::list<uvc_frame_t *> mFramePool;
@@ -86,10 +86,14 @@ private:
 protected:
     uvc_frame_t *get_frame(size_t data_bytes);
     void recycle_frame(uvc_frame_t *frame);
-    void callbackPixelFormatChanged();
     uvc_frame_t *waitPreviewFrame();
+
+    // will be called on each frame from UVC
     virtual void handleFrame(uvc_frame_t *frame) = 0;
+
+    // will be called once from worker thread of the UVCPreviewBase
     virtual void onPreviewPrepared(uint16_t frameWidth, uint16_t  frameHeight) = 0;
+    
 public:
 	UVCPreviewBase(uvc_device_handle_t *devh);
 	virtual ~UVCPreviewBase();
