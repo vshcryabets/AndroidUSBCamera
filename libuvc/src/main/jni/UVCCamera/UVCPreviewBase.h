@@ -33,6 +33,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <list>
+#include <thread>
 
 #define DEFAULT_PREVIEW_WIDTH 640
 #define DEFAULT_PREVIEW_HEIGHT 480
@@ -68,21 +69,17 @@ protected:
 	pthread_mutex_t preview_mutex;
 	pthread_cond_t preview_sync;
 	std::list<uvc_frame_t *> previewFrames;
-//	size_t previewBytes;
-//	convFunc_t mFrameCallbackFunc;
-//	int mPixelFormat;
-//	size_t callbackPixelBytes;
 	pthread_mutex_t pool_mutex;
     std::list<uvc_frame_t *> mFramePool;
     volatile uint16_t allocatedFramesCounter = 0;
+    std::thread mPreviewThread;
 private:
 	void clear_pool();
 	static void uvc_preview_frame_callback(uvc_frame_t *frame, void *vptr_args);
 	void addPreviewFrame(uvc_frame_t *frame);
 	void clearPreviewFramesQueue();
-	static void *preview_thread_func(void *vptr_args);
+    void previewThreadFunc();
 	int prepare_preview(uvc_stream_ctrl_t *ctrl);
-	void do_preview(uvc_stream_ctrl_t *ctrl);
 protected:
     uvc_frame_t *get_frame(size_t data_bytes);
     void recycle_frame(uvc_frame_t *frame);

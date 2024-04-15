@@ -128,8 +128,10 @@ int UVCPreviewBase::startPreview() {
         mIsRunning = true;
         pthread_mutex_lock(&preview_mutex);
         {
-            result = pthread_create(&preview_thread, NULL, preview_thread_func, (void *) this);
+            mPreviewThread = std::thread(&UVCPreviewBase::previewThreadFunc, this);
+            result = EXIT_SUCCESS;
         }
+
         pthread_mutex_unlock(&preview_mutex);
         if (UNLIKELY(result != EXIT_SUCCESS)) {
             LOGW("UVCCamera::window does not exist/already running/could not create thread etc.");
@@ -228,18 +230,6 @@ void UVCPreviewBase::clearPreviewFramesQueue() {
     pthread_mutex_unlock(&preview_mutex);
 }
 
-void *UVCPreviewBase::preview_thread_func(void *vptr_args) {
-    UVCPreviewBase *preview = reinterpret_cast<UVCPreviewBase *>(vptr_args);
-    if (LIKELY(preview)) {
-        uvc_stream_ctrl_t ctrl;
-        int result = preview->prepare_preview(&ctrl);
-        if (LIKELY(!result)) {
-            preview->do_preview(&ctrl);
-        }
-    }
-    pthread_exit(NULL);
-}
-
 int UVCPreviewBase::prepare_preview(uvc_stream_ctrl_t *ctrl) {
     uvc_error_t result = uvc_get_stream_ctrl_format_size_fps(mDeviceHandle, ctrl,
                                                              !requestMode ? UVC_FRAME_FORMAT_YUYV
@@ -269,21 +259,25 @@ int UVCPreviewBase::prepare_preview(uvc_stream_ctrl_t *ctrl) {
     return result;
 }
 
-void UVCPreviewBase::do_preview(uvc_stream_ctrl_t *ctrl) {
-    uvc_error_t result = uvc_start_streaming_bandwidth(
-            mDeviceHandle,
-            ctrl,
-            uvc_preview_frame_callback,
-            (void *) this, requestBandwidth, 0);
-    if (LIKELY(!result)) {
-        clearPreviewFramesQueue();
-        while (LIKELY(isRunning())) {
-            auto frame = waitPreviewFrame();
-            handleFrame(frame);
-            recycle_frame(frame);
+void UVCPreviewBase::previewThreadFunc() {
+    uvc_stream_ctrl_t ctrl;
+    int resultPrepare = prepare_preview(&ctrl);
+    if (LIKELY(!resultPrepare)) {
+        uvc_error_t result = uvc_start_streaming_bandwidth(
+                mDeviceHandle,
+                &ctrl,
+                uvc_preview_frame_callback,
+                (void *) this, requestBandwidth, 0);
+        if (LIKELY(!result)) {
+            clearPreviewFramesQueue();
+            while (LIKELY(isRunning())) {
+                auto frame = waitPreviewFrame();
+                handleFrame(frame);
+                recycle_frame(frame);
+            }
+            uvc_stop_streaming(mDeviceHandle);
+        } else {
+            uvc_perror(result, "failed start_streaming");
         }
-        uvc_stop_streaming(mDeviceHandle);
-    } else {
-        uvc_perror(result, "failed start_streaming");
     }
 }
