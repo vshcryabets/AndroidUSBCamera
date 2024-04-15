@@ -44,7 +44,7 @@ struct UvcCameraResolution {
 
 class UVCCamera {
 private:
-	char *mUsbFs;
+	std::string mUsbFs;
 	uvc_context_t *mContext;
 	int mFd;
 	uvc_device_t *mDevice;
@@ -59,7 +59,7 @@ public:
 	UVCCamera();
 	virtual ~UVCCamera();
 
-	int connect(int vid, int pid, int fd, int busnum, int devaddr, const char *usbfs);
+	int connect(int vid, int pid, int fd, int busnum, int devaddr, std::string usbfs);
 	int release();
 
 	std::vector<UvcCameraResolution> getSupportedSize();

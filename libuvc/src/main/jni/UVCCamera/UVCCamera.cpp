@@ -45,7 +45,7 @@
 
 UVCCamera::UVCCamera()
         : mFd(0),
-          mUsbFs(NULL),
+          mUsbFs(""),
           mContext(NULL),
           mDevice(NULL),
           mDeviceHandle(NULL),
@@ -59,10 +59,6 @@ UVCCamera::~UVCCamera() {
         uvc_exit(mContext);
         mContext = NULL;
     }
-    if (mUsbFs) {
-        free(mUsbFs);
-        mUsbFs = NULL;
-    }
 }
 
 void UVCCamera::clearCameraParams() {
@@ -75,14 +71,12 @@ void UVCCamera::clearCameraParams() {
 /**
  * カメラへ接続する
  */
-int UVCCamera::connect(int vid, int pid, int fd, int busnum, int devaddr, const char *usbfs) {
+int UVCCamera::connect(int vid, int pid, int fd, int busnum, int devaddr, std::string usbfs) {
     uvc_error_t result = UVC_ERROR_BUSY;
     if (!mDeviceHandle && fd) {
-        if (mUsbFs)
-            free(mUsbFs);
-        mUsbFs = strdup(usbfs);
+        mUsbFs = usbfs;
         if (UNLIKELY(!mContext)) {
-            result = uvc_init2(&mContext, NULL, mUsbFs);
+            result = uvc_init2(&mContext, NULL, mUsbFs.c_str());
 //			libusb_set_debug(mContext->usb_ctx, LIBUSB_LOG_LEVEL_DEBUG);
             if (UNLIKELY(result < 0)) {
                 LOGD("failed to init libuvc");
@@ -135,11 +129,10 @@ int UVCCamera::release() {
     }
     // カメラ機能フラグをクリア
     clearCameraParams();
-    if (mUsbFs) {
+    mUsbFs = "";
+    if (mFd != 0) {
         close(mFd);
         mFd = 0;
-        free(mUsbFs);
-        mUsbFs = NULL;
     }
     return 0;
 }
