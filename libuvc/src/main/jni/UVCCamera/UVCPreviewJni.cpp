@@ -5,7 +5,7 @@
  * Copyright (c) 2014-2017 saki t_saki@serenegiant.com
  * Copyright (c) 2024 vschryabets@gmail.com
  *
- * File name: UVCPreview.cpp
+ * File name: UVCPreviewJni.cpp
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
  *  limitations under the License.
  *
  * All files in the folder are under this Apache License, Version 2.0.
- * Files in the jni/libjpeg, jni/libusb, jin/libuvc, jni/rapidjson folder may have a different license, see the respective files.
+ * Files in the jni/libjpeg, jni/libusb, jin/libuvc folder may have a different license, see the respective files.
 */
 
 #include <stdlib.h>
@@ -195,23 +195,32 @@ void UVCPreviewJni::clearDisplay() {
 }
 
 void UVCPreviewJni::handleFrame(uvc_frame_t *pFrame) {
+    uvc_error_t result;
+    uvc_frame_t *rgbxFrame;
     if (frameMode) {
         // MJPEG mode
-//        LOGD("ASD got frame_mjpeg");
         if (LIKELY(pFrame)) {
-            auto frame = get_frame(pFrame->width * pFrame->height * 2);
-            auto result = uvc_mjpeg2yuyv(pFrame, frame);   // MJPEG => yuyv
+            // TODO remove double convert MJPEG->YUYV->RGB
+            auto yuvFrame = get_frame(pFrame->width * pFrame->height * 2);
+            result = uvc_mjpeg2yuyv(pFrame, yuvFrame);   // MJPEG => yuyv
             if (LIKELY(!result)) {
-                frame = draw_preview_one(frame, &mPreviewWindow, uvc_any2rgbx, 4);
+                rgbxFrame = get_frame(pFrame->width * pFrame->height * 4);
+                result = uvc_yuyv2rgbx(yuvFrame, rgbxFrame); // yuyv => rgbx
+                if (LIKELY(!result)) {
+                    draw_preview_rgbx(rgbxFrame);
+                }
+                recycle_frame(rgbxFrame);
             }
-            recycle_frame(frame);
+            recycle_frame(yuvFrame);
         }
     } else {
         // yuvyv mode
-        auto frame = pFrame;
-        if (LIKELY(frame)) {
-            frame = draw_preview_one(frame, &mPreviewWindow, uvc_any2rgbx, 4);
+        rgbxFrame = get_frame(pFrame->width * pFrame->height * 4);
+        result = uvc_yuyv2rgbx(pFrame, rgbxFrame); // yuyv => rgbx
+        if (LIKELY(!result)) {
+            draw_preview_rgbx(rgbxFrame);
         }
+        recycle_frame(rgbxFrame);
     }
 }
 
@@ -267,15 +276,18 @@ copyFrame(
     }
 }
 
-// transfer specific frame data to the Surface(ANativeWindow)
-int copyToSurface(uvc_frame_t *frame, ANativeWindow **window) {
-    if (LIKELY(*window)) {
-        ANativeWindow_Buffer buffer;
-        if (LIKELY(ANativeWindow_lock(*window, &buffer, NULL) == 0)) {
-            // source = frame data
-            const uint8_t *src = (uint8_t *) frame->data;
-            const int src_w = frame->width * PREVIEW_PIXEL_BYTES;
-            const int src_step = frame->width * PREVIEW_PIXEL_BYTES;
+// changed to return original frame instead of returning converted frame even if convert_func is not null.
+void UVCPreviewJni::draw_preview_rgbx(
+        uvc_frame_t *frame) {
+    ANativeWindow_Buffer buffer;
+    // source = frame data
+    const uint8_t *src = (uint8_t *) frame->data;
+    const int src_w = frame->width * PREVIEW_PIXEL_BYTES;
+    const int src_step = frame->width * PREVIEW_PIXEL_BYTES;
+
+    pthread_mutex_lock(&preview_mutex);
+    if (mPreviewWindow != nullptr) {
+        if (LIKELY(ANativeWindow_lock(mPreviewWindow, &buffer, NULL) == 0)) {
             // destination = Surface(ANativeWindow)
             uint8_t *dest = (uint8_t *) buffer.bits;
             const int dest_w = buffer.width * PREVIEW_PIXEL_BYTES;
@@ -286,46 +298,8 @@ int copyToSurface(uvc_frame_t *frame, ANativeWindow **window) {
             const int h = frame->height < buffer.height ? frame->height : buffer.height;
             // transfer from frame data to the Surface
             copyFrame(src, dest, w, h, src_step, dest_step);
-            ANativeWindow_unlockAndPost(*window);
-            return 0;
+            ANativeWindow_unlockAndPost(mPreviewWindow);
         }
-    }
-    return -1;
-}
-
-// changed to return original frame instead of returning converted frame even if convert_func is not null.
-uvc_frame_t *UVCPreviewJni::draw_preview_one(
-        uvc_frame_t *frame,
-        ANativeWindow **window,
-        convFunc_t convert_func,
-        int pixcelBytes) {
-    int b = 0;
-    pthread_mutex_lock(&preview_mutex);
-    {
-        b = *window != NULL;
     }
     pthread_mutex_unlock(&preview_mutex);
-    if (LIKELY(b)) {
-        uvc_frame_t *converted;
-        if (convert_func) {
-            converted = get_frame(frame->width * frame->height * pixcelBytes);
-            if LIKELY(converted)
-            {
-                b = convert_func(frame, converted);
-                if (!b) {
-                    pthread_mutex_lock(&preview_mutex);
-                    copyToSurface(converted, window);
-                    pthread_mutex_unlock(&preview_mutex);
-                } else {
-                    LOGE("failed converting");
-                }
-                recycle_frame(converted);
-            }
-        } else {
-            pthread_mutex_lock(&preview_mutex);
-            copyToSurface(frame, window);
-            pthread_mutex_unlock(&preview_mutex);
-        }
-    }
-    return frame; //RETURN(frame, uvc_frame_t *);
 }
