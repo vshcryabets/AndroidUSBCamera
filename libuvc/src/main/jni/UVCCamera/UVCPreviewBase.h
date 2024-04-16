@@ -55,6 +55,18 @@ typedef uvc_error_t (*convFunc_t)(uvc_frame_t *in, uvc_frame_t *out);
 #define PIXEL_FORMAT_YUV20SP 4
 #define PIXEL_FORMAT_NV21 5		// YVU420SemiPlanar
 
+class UvcPreviewListener{
+public:
+    // will be called on each frame from UVC
+    virtual void handleFrame(uint16_t deviceId, uvc_frame_t *frame) = 0;
+
+    // will be called once from worker thread of the UVCPreviewBase
+    virtual void onPreviewPrepared(uint16_t deviceId,
+                                   uint16_t frameWidth,
+                                   uint16_t  frameHeight) = 0;
+
+};
+
 class UVCPreviewBase {
 protected:
 	uvc_device_handle_t *mDeviceHandle;
@@ -73,6 +85,8 @@ protected:
     std::list<uvc_frame_t *> mFramePool;
     volatile uint16_t allocatedFramesCounter = 0;
     std::thread mPreviewThread;
+    uint16_t mDeviceId;
+    UvcPreviewListener* mPreviewListener;
 private:
 	void clear_pool();
 	static void uvc_preview_frame_callback(uvc_frame_t *frame, void *vptr_args);
@@ -85,14 +99,10 @@ protected:
     void recycle_frame(uvc_frame_t *frame);
     uvc_frame_t *waitPreviewFrame();
 
-    // will be called on each frame from UVC
-    virtual void handleFrame(uvc_frame_t *frame) = 0;
-
-    // will be called once from worker thread of the UVCPreviewBase
-    virtual void onPreviewPrepared(uint16_t frameWidth, uint16_t  frameHeight) = 0;
-    
 public:
-	UVCPreviewBase(uvc_device_handle_t *devh);
+	UVCPreviewBase(uvc_device_handle_t *devh,
+                   uint16_t deviceId,
+                   UvcPreviewListener* previewListener);
 	virtual ~UVCPreviewBase();
 
 	inline const bool isRunning() const;

@@ -79,7 +79,7 @@ int UVCPreviewJni::setCaptureDisplay(ANativeWindow *capture_window) {
 }
 
 UVCPreviewJni::UVCPreviewJni(uvc_device_handle_t *devh)
-        : UVCPreviewBase(devh),
+        : UVCPreviewBase(devh, 1, this),
           mPreviewWindow(NULL),
           mCaptureWindow(NULL),
           mFrameCallbackObj(NULL) {
@@ -194,7 +194,8 @@ void UVCPreviewJni::clearDisplay() {
     pthread_mutex_unlock(&preview_mutex);
 }
 
-void UVCPreviewJni::handleFrame(uvc_frame_t *pFrame) {
+void UVCPreviewJni::handleFrame(uint16_t deviceId,
+                                uvc_frame_t *pFrame) {
     uvc_error_t result;
     uvc_frame_t *rgbxFrame;
     if (frameMode) {
@@ -224,7 +225,8 @@ void UVCPreviewJni::handleFrame(uvc_frame_t *pFrame) {
     }
 }
 
-void UVCPreviewJni::onPreviewPrepared(uint16_t frameWidth,
+void UVCPreviewJni::onPreviewPrepared(uint16_t deviceId,
+                                      uint16_t frameWidth,
                                       uint16_t frameHeight) {
     pthread_mutex_lock(&preview_mutex);
     if (LIKELY(mPreviewWindow)) {

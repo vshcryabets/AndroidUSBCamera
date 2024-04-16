@@ -31,7 +31,9 @@
 
 #define LOCAL_DEBUG 1
 
-UVCPreviewBase::UVCPreviewBase(uvc_device_handle_t *devh)
+UVCPreviewBase::UVCPreviewBase(uvc_device_handle_t *devh,
+                               uint16_t deviceId,
+                               UvcPreviewListener* previewListener)
         : mDeviceHandle(devh),
           requestWidth(DEFAULT_PREVIEW_WIDTH),
           requestHeight(DEFAULT_PREVIEW_HEIGHT),
@@ -43,7 +45,9 @@ UVCPreviewBase::UVCPreviewBase(uvc_device_handle_t *devh)
           frameHeight(DEFAULT_PREVIEW_HEIGHT),
           frameBytes(DEFAULT_PREVIEW_WIDTH * DEFAULT_PREVIEW_HEIGHT * 2),    // YUYV
           frameMode(0),
-          mIsRunning(false) {
+          mIsRunning(false),
+          mDeviceId(deviceId),
+          mPreviewListener(previewListener) {
     pthread_mutex_init(&pool_mutex, NULL);
 }
 
@@ -168,8 +172,8 @@ void UVCPreviewBase::uvc_preview_frame_callback(uvc_frame_t *frame, void *vptr_a
 
 #if LOCAL_DEBUG
         LOGD("broken frame!:format=%d,actual_bytes=%d/%d(%d,%d/%d,%d)",
-            frame->frame_format, frame->actual_bytes, preview->frameBytes,
-            frame->width, frame->height, preview->frameWidth, preview->frameHeight);
+             frame->frame_format, frame->actual_bytes, preview->frameBytes,
+             frame->width, frame->height, preview->frameWidth, preview->frameHeight);
 #endif
         return;
     }
@@ -245,7 +249,8 @@ int UVCPreviewBase::prepare_preview(uvc_stream_ctrl_t *ctrl) {
             frameWidth = frame_desc->wWidth;
             frameHeight = frame_desc->wHeight;
             LOGI("frameSize=(%d,%d)@%s", frameWidth, frameHeight, (!requestMode ? "YUYV" : "MJPEG"));
-            onPreviewPrepared(frameWidth, frameHeight);
+            if (mPreviewListener != nullptr)
+                mPreviewListener->onPreviewPrepared(mDeviceId, frameWidth, frameHeight);
         } else {
             frameWidth = requestWidth;
             frameHeight = requestHeight;
@@ -272,7 +277,8 @@ void UVCPreviewBase::previewThreadFunc() {
             clearPreviewFramesQueue();
             while (LIKELY(isRunning())) {
                 auto frame = waitPreviewFrame();
-                handleFrame(frame);
+                if (mPreviewListener != nullptr)
+                    mPreviewListener->handleFrame(mDeviceId, frame);
                 recycle_frame(frame);
             }
             uvc_stop_streaming(mDeviceHandle);
