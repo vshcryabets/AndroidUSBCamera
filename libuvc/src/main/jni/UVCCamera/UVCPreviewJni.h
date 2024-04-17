@@ -36,7 +36,7 @@ private:
     void clearDisplay();
     void draw_preview_rgbx(uvc_frame_t *frame);
 protected:
-    virtual void handleFrame(uint16_t deviceId, uvc_frame_t *pFrame) override;
+    virtual void handleFrame(uint16_t deviceId, const UvcPreviewFrame &frame) override;
     virtual void onPreviewPrepared(uint16_t deviceId, uint16_t frameWidth, uint16_t  frameHeight) override;
 public:
     UVCPreviewJni(uvc_device_handle_t *devh);

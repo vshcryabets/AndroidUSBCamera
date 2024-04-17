@@ -164,6 +164,7 @@ int UVCPreviewBase::stopPreview() {
 }
 
 void UVCPreviewBase::uvc_preview_frame_callback(uvc_frame_t *frame, void *vptr_args) {
+    std::chrono::steady_clock::time_point timestamp = std::chrono::steady_clock::now();
     UVCPreviewBase *preview = reinterpret_cast<UVCPreviewBase *>(vptr_args);
     if UNLIKELY(!preview->isRunning() || !frame || !frame->frame_format || !frame->data || !frame->data_bytes) return;
     if (UNLIKELY(
@@ -190,15 +191,20 @@ void UVCPreviewBase::uvc_preview_frame_callback(uvc_frame_t *frame, void *vptr_a
             preview->recycle_frame(copy);
             return;
         }
-        preview->addPreviewFrame(copy);
+        preview->addPreviewFrame(copy, timestamp);
     }
 }
 
-void UVCPreviewBase::addPreviewFrame(uvc_frame_t *frame) {
+void UVCPreviewBase::addPreviewFrame(uvc_frame_t *frame, std::chrono::steady_clock::time_point timestamp) {
     pthread_mutex_lock(&preview_mutex);
-    if (isRunning() && (previewFrames.size() < MAX_FRAME)) {
-        previewFrames.push_back(frame);
-        frame = NULL;
+    if (isRunning() && (mPreviewFrames.size() < MAX_FRAME)) {
+        mPreviewFrames.push_back(
+                {
+                        .mFrame = frame,
+                        .mTimestamp = timestamp
+                }
+                );
+        frame = nullptr;
         pthread_cond_signal(&preview_sync);
     }
     pthread_mutex_unlock(&preview_mutex);
@@ -207,16 +213,18 @@ void UVCPreviewBase::addPreviewFrame(uvc_frame_t *frame) {
     }
 }
 
-uvc_frame_t *UVCPreviewBase::waitPreviewFrame() {
-    uvc_frame_t *frame = NULL;
+const UvcPreviewFrame UVCPreviewBase::waitPreviewFrame() {
+    UvcPreviewFrame frame = {
+            .mFrame = nullptr
+    };
     pthread_mutex_lock(&preview_mutex);
     {
-        if (!previewFrames.size()) {
+        if (!mPreviewFrames.size()) {
             pthread_cond_wait(&preview_sync, &preview_mutex);
         }
-        if (LIKELY(isRunning() && !previewFrames.empty())) {
-            frame = previewFrames.front();
-            previewFrames.pop_front();
+        if (LIKELY(isRunning() && !mPreviewFrames.empty())) {
+            frame = mPreviewFrames.front();
+            mPreviewFrames.pop_front();
         }
     }
     pthread_mutex_unlock(&preview_mutex);
@@ -226,10 +234,10 @@ uvc_frame_t *UVCPreviewBase::waitPreviewFrame() {
 void UVCPreviewBase::clearPreviewFramesQueue() {
     pthread_mutex_lock(&preview_mutex);
     {
-        for (const auto &frame: previewFrames) {
-            recycle_frame(frame);
+        for (const auto &frame: mPreviewFrames) {
+            recycle_frame(frame.mFrame);
         }
-        previewFrames.clear();
+        mPreviewFrames.clear();
     }
     pthread_mutex_unlock(&preview_mutex);
 }
@@ -279,7 +287,7 @@ void UVCPreviewBase::previewThreadFunc() {
                 auto frame = waitPreviewFrame();
                 if (mPreviewListener != nullptr)
                     mPreviewListener->handleFrame(mDeviceId, frame);
-                recycle_frame(frame);
+                recycle_frame(frame.mFrame);
             }
             uvc_stop_streaming(mDeviceHandle);
         } else {
