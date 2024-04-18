@@ -79,7 +79,7 @@ int UVCPreviewJni::setCaptureDisplay(ANativeWindow *capture_window) {
 }
 
 UVCPreviewJni::UVCPreviewJni(uvc_device_handle_t *devh)
-        : UVCPreviewBase(devh),
+        : UVCPreviewBase(devh, 1, this),
           mPreviewWindow(NULL),
           mCaptureWindow(NULL),
           mFrameCallbackObj(NULL) {
@@ -194,17 +194,18 @@ void UVCPreviewJni::clearDisplay() {
     pthread_mutex_unlock(&preview_mutex);
 }
 
-void UVCPreviewJni::handleFrame(uvc_frame_t *pFrame) {
+void UVCPreviewJni::handleFrame(uint16_t deviceId,
+                                const UvcPreviewFrame &frame) {
     uvc_error_t result;
     uvc_frame_t *rgbxFrame;
     if (frameMode) {
         // MJPEG mode
-        if (LIKELY(pFrame)) {
+        if (LIKELY(frame.mFrame)) {
             // TODO remove double convert MJPEG->YUYV->RGB
-            auto yuvFrame = get_frame(pFrame->width * pFrame->height * 2);
-            result = uvc_mjpeg2yuyv(pFrame, yuvFrame);   // MJPEG => yuyv
+            auto yuvFrame = get_frame(frame.mFrame->width * frame.mFrame->height * 2);
+            result = uvc_mjpeg2yuyv(frame.mFrame, yuvFrame);   // MJPEG => yuyv
             if (LIKELY(!result)) {
-                rgbxFrame = get_frame(pFrame->width * pFrame->height * 4);
+                rgbxFrame = get_frame(frame.mFrame->width * frame.mFrame->height * 4);
                 result = uvc_yuyv2rgbx(yuvFrame, rgbxFrame); // yuyv => rgbx
                 if (LIKELY(!result)) {
                     draw_preview_rgbx(rgbxFrame);
@@ -215,8 +216,8 @@ void UVCPreviewJni::handleFrame(uvc_frame_t *pFrame) {
         }
     } else {
         // yuvyv mode
-        rgbxFrame = get_frame(pFrame->width * pFrame->height * 4);
-        result = uvc_yuyv2rgbx(pFrame, rgbxFrame); // yuyv => rgbx
+        rgbxFrame = get_frame(frame.mFrame->width * frame.mFrame->height * 4);
+        result = uvc_yuyv2rgbx(frame.mFrame, rgbxFrame); // yuyv => rgbx
         if (LIKELY(!result)) {
             draw_preview_rgbx(rgbxFrame);
         }
@@ -224,7 +225,8 @@ void UVCPreviewJni::handleFrame(uvc_frame_t *pFrame) {
     }
 }
 
-void UVCPreviewJni::onPreviewPrepared(uint16_t frameWidth,
+void UVCPreviewJni::onPreviewPrepared(uint16_t deviceId,
+                                      uint16_t frameWidth,
                                       uint16_t frameHeight) {
     pthread_mutex_lock(&preview_mutex);
     if (LIKELY(mPreviewWindow)) {
