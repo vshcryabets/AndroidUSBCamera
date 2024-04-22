@@ -48,7 +48,9 @@ UVCPreviewBase::UVCPreviewBase(uvc_device_handle_t *devh,
           mIsRunning(false),
           mDeviceId(deviceId),
           mPreviewListener(previewListener) {
-    pthread_mutex_init(&pool_mutex, NULL);
+    pthread_mutex_init(&pool_mutex, nullptr);
+    pthread_mutex_init(&preview_mutex, nullptr);
+    pthread_cond_init(&preview_sync, nullptr);
 }
 
 UVCPreviewBase::~UVCPreviewBase() {
@@ -57,6 +59,7 @@ UVCPreviewBase::~UVCPreviewBase() {
     pthread_mutex_lock(&preview_mutex);
     pthread_mutex_destroy(&preview_mutex);
     pthread_cond_destroy(&preview_sync);
+    pthread_mutex_lock(&pool_mutex);
     pthread_mutex_destroy(&pool_mutex);
 }
 
