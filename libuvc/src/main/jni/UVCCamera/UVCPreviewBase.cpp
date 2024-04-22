@@ -54,7 +54,7 @@ UVCPreviewBase::UVCPreviewBase(uvc_device_handle_t *devh,
 }
 
 UVCPreviewBase::~UVCPreviewBase() {
-    clearPreviewFramesQueue();
+    stopPreview();
     clear_pool();
     pthread_mutex_lock(&preview_mutex);
     pthread_mutex_destroy(&preview_mutex);
@@ -158,8 +158,8 @@ int UVCPreviewBase::stopPreview() {
     if (LIKELY(b)) {
         mIsRunning = false;
         pthread_cond_signal(&preview_sync);
-        if (preview_thread && pthread_join(preview_thread, NULL) != EXIT_SUCCESS) {
-            LOGW("UVCPreview::terminate preview thread: pthread_join failed");
+        if (mPreviewThread.joinable()) {
+            mPreviewThread.join();
         }
     }
     clearPreviewFramesQueue();
@@ -221,14 +221,12 @@ const UvcPreviewFrame UVCPreviewBase::waitPreviewFrame() {
             .mFrame = nullptr
     };
     pthread_mutex_lock(&preview_mutex);
-    {
-        if (!mPreviewFrames.size()) {
-            pthread_cond_wait(&preview_sync, &preview_mutex);
-        }
-        if (LIKELY(isRunning() && !mPreviewFrames.empty())) {
-            frame = mPreviewFrames.front();
-            mPreviewFrames.pop_front();
-        }
+    if (!mPreviewFrames.size()) {
+        pthread_cond_wait(&preview_sync, &preview_mutex);
+    }
+    if (LIKELY(isRunning() && !mPreviewFrames.empty())) {
+        frame = mPreviewFrames.front();
+        mPreviewFrames.pop_front();
     }
     pthread_mutex_unlock(&preview_mutex);
     return frame;
@@ -288,7 +286,9 @@ void UVCPreviewBase::previewThreadFunc() {
             clearPreviewFramesQueue();
             while (LIKELY(isRunning())) {
                 auto frame = waitPreviewFrame();
-                if (mPreviewListener != nullptr)
+                if (isRunning() &&
+                    mPreviewListener != nullptr &&
+                    frame.mFrame != nullptr)
                     mPreviewListener->handleFrame(mDeviceId, frame);
                 recycle_frame(frame.mFrame);
             }

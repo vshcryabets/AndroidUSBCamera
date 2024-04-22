@@ -28,7 +28,6 @@
 #include "libusb.h"
 #include "libuvc.h"
 #include "utilbase.h"
-#include <pthread.h>
 #include <stdint.h>
 #include <mutex>
 #include <condition_variable>
@@ -84,7 +83,6 @@ protected:
 	uint16_t frameWidth, frameHeight;
 	int frameMode;
 	size_t frameBytes;
-	pthread_t preview_thread;
 	pthread_mutex_t preview_mutex;
 	pthread_cond_t preview_sync;
 	std::list<UvcPreviewFrame> mPreviewFrames;
