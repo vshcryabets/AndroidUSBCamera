@@ -87,6 +87,9 @@ uvc_frame_t *UVCPreviewBase::get_frame(size_t data_bytes) {
 }
 
 void UVCPreviewBase::recycle_frame(uvc_frame_t *frame) {
+    if (frame == nullptr) {
+        return;
+    }
     pthread_mutex_lock(&pool_mutex);
     if (LIKELY(mFramePool.size() < FRAME_POOL_SZ)) {
         mFramePool.push_back(frame);
