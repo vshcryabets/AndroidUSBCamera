@@ -11,8 +11,6 @@ list(APPENS SOURCES
     ${UVCCAMERA}/UVCCamera.cpp
     ${UVCCAMERA}/UVCPreviewBase.cpp
     ${UVCCAMERA}/UVCPreviewJni.cpp
-    ${UVCCAMERA}/UVCButtonCallback.cpp
-    ${UVCCAMERA}/UVCStatusCallback.cpp
     ${UVCCAMERA}/UVCCameraAdjustments.cpp
-    ${UVCCAMERA}/serenegiant_usb_UVCCamera.cpp
+    ${UVCCAMERA}/JniUVCCamera.cpp
     )

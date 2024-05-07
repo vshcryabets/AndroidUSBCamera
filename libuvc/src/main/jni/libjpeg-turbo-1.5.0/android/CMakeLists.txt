@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10.2)
+cmake_minimum_required(VERSION 3.18)
 
 set(LIBJPEGTURBO ${CMAKE_CURRENT_LIST_DIR}/..)
 
@@ -6,6 +6,8 @@ include_directories(
 	${LIBJPEGTURBO}/
 	${LIBJPEGTURBO}/include/
 )
+
+add_compile_definitions(SIZEOF_SIZE_T=8)
 
 list(APPEND SOURCES
     ${LIBJPEGTURBO}/jcapimin.c
@@ -62,3 +64,9 @@ list(APPEND SOURCES
 	${LIBJPEGTURBO}/jdatadst-tj.c
 	${LIBJPEGTURBO}/jdatasrc-tj.c
     )
+
+
+## ARM64
+list(APPEND SOURCES
+	${LIBJPEGTURBO}/simd/jsimd_arm64.c
+	)
