@@ -3,7 +3,8 @@
 # * library and sample to access to UVC web camera on non-rooted Android device
 # * 
 # * Copyright (c) 2014-2017 saki t_saki@serenegiant.com
-# * 
+# * Copyright (c) 2024 vshcryabets@gmail.com
+# *
 # * File name: Android.mk
 # * 
 # * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,8 +36,7 @@ CFLAGS := -Werror
 
 LOCAL_C_INCLUDES := \
 		$(LOCAL_PATH)/ \
-		$(LOCAL_PATH)/../ \
-		$(LOCAL_PATH)/../rapidjson/include \
+		$(LOCAL_PATH)/../
 
 LOCAL_CFLAGS := -std=c++14
 LOCAL_CPP_FEATURES := rtti exceptions

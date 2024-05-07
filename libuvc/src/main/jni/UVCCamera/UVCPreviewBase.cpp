@@ -74,6 +74,7 @@ uvc_frame_t *UVCPreviewBase::get_frame(size_t data_bytes) {
     pthread_mutex_lock(&pool_mutex);
     {
         if (!mFramePool.empty()) {
+            // TODO we should check data_bytes here
             frame = mFramePool.back();
             mFramePool.pop_back();
         }
