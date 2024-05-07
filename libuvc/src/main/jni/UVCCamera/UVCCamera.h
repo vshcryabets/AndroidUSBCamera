@@ -3,6 +3,7 @@
  * library and sample to access to UVC web camera on non-rooted Android device
  *
  * Copyright (c) 2014-2017 saki t_saki@serenegiant.com
+ * Copyright (c) 2024 vshcryabets@gmail.com
  *
  * File name: UVCCamera.h
  *
@@ -28,8 +29,6 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <android/native_window.h>
-#include "UVCStatusCallback.h"
-#include "UVCButtonCallback.h"
 #include "UVCCameraAdjustments.h"
 #include "UVCPreviewJni.h"
 #include <memory>
@@ -46,32 +45,35 @@ struct UvcCameraResolution {
 
 class UVCCamera {
 private:
-	char *mUsbFs;
+	std::string mUsbFs;
 	uvc_context_t *mContext;
 	int mFd;
 	uvc_device_t *mDevice;
 	uvc_device_handle_t *mDeviceHandle;
-	UVCStatusCallback *mStatusCallback;
-	UVCButtonCallback *mButtonCallback;
-    std::shared_ptr<UVCPreviewJni> mPreviewOld;
+    std::shared_ptr<UVCPreviewBase> mPreview;
     std::shared_ptr<UVCCameraAdjustments> mCameraConfig;
+private:
 	void clearCameraParams();
+protected:
+    virtual std::shared_ptr<UVCPreviewBase> constructPreview(uvc_device_handle_t *deviceHandle) = 0;
 public:
 	UVCCamera();
-	~UVCCamera();
+	virtual ~UVCCamera();
 
-	int connect(int vid, int pid, int fd, int busnum, int devaddr, const char *usbfs);
-	int release();
-
-	int setStatusCallback(JNIEnv *env, jobject status_callback_obj);
-	int setButtonCallback(JNIEnv *env, jobject button_callback_obj);
+	virtual int connect(int vid, int pid, int fd, int busnum, int devaddr, std::string usbfs);
+    virtual int release();
 
 	std::vector<UvcCameraResolution> getSupportedSize();
-	int setFrameCallback(JNIEnv *env, jobject frame_callback_obj, int pixel_format);
-
 	int getCtrlSupports(uint64_t *supports);
 	int getProcSupports(uint64_t *supports);
+    std::shared_ptr<UVCPreviewBase> getPreview() const;
+    std::shared_ptr<UVCCameraAdjustments> getAdjustments() const;
+};
 
-    std::shared_ptr<UVCPreviewJni> getPreviewOldObject();
-    std::shared_ptr<UVCCameraAdjustments> getAdjustments();
+class UVCCameraJniImpl : public UVCCamera {
+protected:
+    virtual std::shared_ptr<UVCPreviewBase> constructPreview(uvc_device_handle_t *deviceHandle);
+public:
+    UVCCameraJniImpl();
+    virtual ~UVCCameraJniImpl(){};
 };

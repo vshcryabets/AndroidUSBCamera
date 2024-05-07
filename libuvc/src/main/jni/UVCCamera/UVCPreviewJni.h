@@ -5,7 +5,7 @@
  * Copyright (c) 2014-2017 saki t_saki@serenegiant.com
  * Copyright (c) 2024 vshcryabets@gmail.com
  *
- * File name: UVCPreview.h
+ * File name: UVCPreviewJni.h
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,30 +20,30 @@
  *  limitations under the License.
  *
  * All files in the folder are under this Apache License, Version 2.0.
- * Files in the jni/libjpeg, jni/libusb, jin/libuvc, jni/rapidjson folder may have a different license, see the respective files.
+ * Files in the jni/libjpeg, jni/libusb, jin/libuvc folder may have a different license, see the respective files.
 */
 #pragma once
 
 #include "UVCPreviewBase.h"
 #include <android/native_window.h>
 
-class UVCPreviewJni: public UVCPreviewBase {
+class UVCPreviewJni: public UVCPreviewBase, UvcPreviewListener {
 private:
     ANativeWindow *mPreviewWindow;
     ANativeWindow *mCaptureWindow;
     jobject mFrameCallbackObj;
 private:
     void clearDisplay();
-    uvc_frame_t *draw_preview_one(uvc_frame_t *frame, ANativeWindow **window, convFunc_t func, int pixelBytes);
+    void draw_preview_rgbx(uvc_frame_t *frame);
 protected:
-    virtual void handleFrame(uvc_frame_t *pFrame);
-    virtual void onPreviewPrepared(uint16_t frameWidth, uint16_t  frameHeight);
+    virtual void handleFrame(uint16_t deviceId, const UvcPreviewFrame &frame) override;
+    virtual void onPreviewPrepared(uint16_t deviceId, uint16_t frameWidth, uint16_t  frameHeight) override;
 public:
     UVCPreviewJni(uvc_device_handle_t *devh);
     ~UVCPreviewJni();
 
     int setPreviewDisplay(ANativeWindow *preview_window);
     int setCaptureDisplay(ANativeWindow *capture_window);
-    virtual int stopPreview();
+    virtual int stopPreview() override;
     int setFrameCallback(JNIEnv *env, jobject frame_callback_obj, int pixel_format);
 };

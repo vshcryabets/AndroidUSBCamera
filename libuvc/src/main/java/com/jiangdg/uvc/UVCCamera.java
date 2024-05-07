@@ -31,7 +31,6 @@ import android.view.SurfaceHolder;
 
 import com.jiangdg.usb.USBMonitor;
 import com.jiangdg.usb.USBMonitor.UsbControlBlock;
-import com.jiangdg.utils.Size;
 import com.vsh.uvc.UvcCameraResolution;
 
 import java.util.ArrayList;
@@ -185,25 +184,18 @@ public class UVCCamera {
      */
     public synchronized void open(final UsbControlBlock ctrlBlock) {
     	int result = -2;
-		StringBuilder sb = new StringBuilder();
 		close();
     	try {
 			mCtrlBlock = ctrlBlock.clone();
 			result = nativeConnect(mNativePtr,
-				mCtrlBlock.getVenderId(), mCtrlBlock.getProductId(),
+				mCtrlBlock.getVenderId(),
+				mCtrlBlock.getProductId(),
 				mCtrlBlock.getFileDescriptor(),
 				mCtrlBlock.getBusNum(),
 				mCtrlBlock.getDevNum(),
 				getUSBFSName(mCtrlBlock));
-			sb.append("调用nativeConnect返回值："+result);
-//			long id_camera, int venderId, int productId, int fileDescriptor, int busNum, int devAddr, String usbfs
 		} catch (final Exception e) {
 			Timber.e(e);
-			for(int i = 0; i< e.getStackTrace().length; i++){
-				sb.append(e.getStackTrace()[i].toString());
-				sb.append("\n");
-			}
-			sb.append("core message ->"+e.getLocalizedMessage());
 			result = -1;
 		}
 
@@ -212,7 +204,7 @@ public class UVCCamera {
 					"id_camera="+mNativePtr+";venderId="+(mCtrlBlock==null ? "": mCtrlBlock.getVenderId())
 					+";productId="+(mCtrlBlock==null ? "": mCtrlBlock.getProductId())+";fileDescriptor="+(mCtrlBlock==null ? "": mCtrlBlock.getFileDescriptor())
 					+";busNum="+(mCtrlBlock==null ? "": mCtrlBlock.getBusNum())+";devAddr="+(mCtrlBlock==null ? "": mCtrlBlock.getDevNum())
-					+";usbfs="+(mCtrlBlock==null ? "": getUSBFSName(mCtrlBlock))+"\n"+"Exception："+sb.toString());
+					+";usbfs="+(mCtrlBlock==null ? "": getUSBFSName(mCtrlBlock)));
 		}
 		mCurrentFrameFormat = FRAME_FORMAT_MJPEG;
     	if (mNativePtr != 0 && mSupportedSize.isEmpty()) {
@@ -230,25 +222,25 @@ public class UVCCamera {
 			DEFAULT_PREVIEW_MIN_FPS, DEFAULT_PREVIEW_MAX_FPS, DEFAULT_PREVIEW_MODE, DEFAULT_BANDWIDTH);
     }
 
-	/**
-	 * set status callback
-	 * @param callback
-	 */
-	public void setStatusCallback(final IStatusCallback callback) {
-		if (mNativePtr != 0) {
-			nativeSetStatusCallback(mNativePtr, callback);
-		}
-	}
-
-	/**
-	 * set button callback
-	 * @param callback
-	 */
-	public void setButtonCallback(final IButtonCallback callback) {
-		if (mNativePtr != 0) {
-			nativeSetButtonCallback(mNativePtr, callback);
-		}
-	}
+//	/**
+//	 * set status callback
+//	 * @param callback
+//	 */
+//	public void setStatusCallback(final IStatusCallback callback) {
+//		if (mNativePtr != 0) {
+//			nativeSetStatusCallback(mNativePtr, callback);
+//		}
+//	}
+//
+//	/**
+//	 * set button callback
+//	 * @param callback
+//	 */
+//	public void setButtonCallback(final IButtonCallback callback) {
+//		if (mNativePtr != 0) {
+//			nativeSetButtonCallback(mNativePtr, callback);
+//		}
+//	}
 
     /**
      * close and release UVC camera

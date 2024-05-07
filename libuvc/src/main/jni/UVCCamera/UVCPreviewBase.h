@@ -20,16 +20,19 @@
  *  limitations under the License.
  *
  * All files in the folder are under this Apache License, Version 2.0.
- * Files in the jni/libjpeg, jni/libusb, jin/libuvc, jni/rapidjson folder may have a different license, see the respective files.
+ * Files in the jni/libjpeg, jni/libusb, jin/libuvc folder may have a different license, see the respective files.
 */
 #pragma once
 
-#include "libUVCCamera.h"
-#include <pthread.h>
+#include <jni.h>
+#include "libusb.h"
+#include "libuvc.h"
+#include "utilbase.h"
 #include <stdint.h>
 #include <mutex>
 #include <condition_variable>
 #include <list>
+#include <thread>
 
 #define DEFAULT_PREVIEW_WIDTH 640
 #define DEFAULT_PREVIEW_HEIGHT 480
@@ -51,10 +54,24 @@ typedef uvc_error_t (*convFunc_t)(uvc_frame_t *in, uvc_frame_t *out);
 #define PIXEL_FORMAT_YUV20SP 4
 #define PIXEL_FORMAT_NV21 5		// YVU420SemiPlanar
 
-// for callback to Java object
-typedef struct {
-	jmethodID onFrame;
-} Fields_iframecallback;
+struct UvcPreviewFrame {
+    uvc_frame_t *mFrame;
+    std::chrono::steady_clock::time_point mTimestamp;
+};
+
+class UvcPreviewListener{
+public:
+    // will be called on each frame from UVC
+    virtual void handleFrame(uint16_t deviceId,
+                             const UvcPreviewFrame &frame) = 0;
+
+    // will be called once from worker thread of the UVCPreviewBase
+    virtual void onPreviewPrepared(uint16_t deviceId,
+                                   uint16_t frameWidth,
+                                   uint16_t  frameHeight) = 0;
+};
+
+
 
 class UVCPreviewBase {
 protected:
@@ -66,53 +83,31 @@ protected:
 	uint16_t frameWidth, frameHeight;
 	int frameMode;
 	size_t frameBytes;
-	pthread_t preview_thread;
 	pthread_mutex_t preview_mutex;
 	pthread_cond_t preview_sync;
-	std::list<uvc_frame_t *> previewFrames;
-	size_t previewBytes;
-//	volatile bool mIsCapturing;
-//	volatile bool mHasCapturing;
-
-//	pthread_t capture_thread;
-//	pthread_mutex_t capture_mutex;
-//	pthread_cond_t capture_sync;
-//	uvc_frame_t *captureQueu;			// keep latest frame
-	convFunc_t mFrameCallbackFunc;
-	Fields_iframecallback iframecallback_fields;
-	int mPixelFormat;
-	size_t callbackPixelBytes;
+	std::list<UvcPreviewFrame> mPreviewFrames;
 	pthread_mutex_t pool_mutex;
     std::list<uvc_frame_t *> mFramePool;
     volatile uint16_t allocatedFramesCounter = 0;
-//    std::function<void(const UVCPreviewBase *,
-//                       std::chrono::time_point<std::chrono::steady_clock>)> mPreviewReceiver = nullptr;
+    std::thread mPreviewThread;
+    uint16_t mDeviceId;
+    UvcPreviewListener* mPreviewListener;
 private:
 	void clear_pool();
 	static void uvc_preview_frame_callback(uvc_frame_t *frame, void *vptr_args);
-	void addPreviewFrame(uvc_frame_t *frame);
+	void addPreviewFrame(uvc_frame_t *frame, std::chrono::steady_clock::time_point timestamp);
 	void clearPreviewFramesQueue();
-	static void *preview_thread_func(void *vptr_args);
+    void previewThreadFunc();
 	int prepare_preview(uvc_stream_ctrl_t *ctrl);
-	void do_preview(uvc_stream_ctrl_t *ctrl);
-//	void addCaptureFrame(uvc_frame_t *frame);
-//	uvc_frame_t *waitCaptureFrame();
-//	void clearCaptureFrame();
-//	static void *capture_thread_func(void *vptr_args);
-//	void do_capture(JNIEnv *env);
-//	void do_capture_surface(JNIEnv *env);
-//	void do_capture_idle_loop(JNIEnv *env);
-//	void do_capture_callback(JNIEnv *env, uvc_frame_t *frame);
 protected:
     uvc_frame_t *get_frame(size_t data_bytes);
     void recycle_frame(uvc_frame_t *frame);
-    void callbackPixelFormatChanged();
-    uvc_frame_t *waitPreviewFrame();
-    virtual void handleFrame(uvc_frame_t *frame) = 0;
-    virtual void onPreviewPrepared(uint16_t frameWidth, uint16_t  frameHeight) = 0;
+    const UvcPreviewFrame waitPreviewFrame();
 public:
-	UVCPreviewBase(uvc_device_handle_t *devh);
-	~UVCPreviewBase();
+	UVCPreviewBase(uvc_device_handle_t *devh,
+                   uint16_t deviceId,
+                   UvcPreviewListener* previewListener);
+	virtual ~UVCPreviewBase();
 
 	inline const bool isRunning() const;
 	int setPreviewSize(int width, int height, int min_fps, int max_fps, int mode, float bandwidth = 1.0f);
