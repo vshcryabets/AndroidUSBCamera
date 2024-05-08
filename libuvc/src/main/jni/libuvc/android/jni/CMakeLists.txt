@@ -1,11 +1,11 @@
-cmake_minimum_required(VERSION 3.10.2)
+cmake_minimum_required(VERSION 3.22)
 
-set(LIBUVC ${CMAKE_CURRENT_LIST_DIR}/../)
+set(LIBUVC ${CMAKE_CURRENT_LIST_DIR}/../../)
 include_directories(
-    $LIBUVC/include/
+    ${LIBUVC}/include/
 )
 
-list(APPENS SOURCES
+list(APPEND SOURCES
 	${LIBUVC}/src/ctrl.c
     ${LIBUVC}/src/device.c
     ${LIBUVC}/src/diag.c
@@ -15,5 +15,5 @@ list(APPENS SOURCES
     ${LIBUVC}/src/stream.c
     )
 
-add_libraray(libuvc STATIC ${SOURCES})
-target_link_libraries(libuvc log libjpegturbo)
+#add_libraray(libuvc STATIC ${SOURCES})
+#target_link_libraries(libuvc log libjpegturbo)
