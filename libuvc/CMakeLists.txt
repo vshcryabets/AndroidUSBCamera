@@ -2,9 +2,34 @@ cmake_minimum_required(VERSION 3.22)
 
 project(libuvc)
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COMPILATION_FLAGS} -std=c++17")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} ${COMPILATION_RELEASE_FLAGS}")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} ${COMPILATION_DEBUG_FLAGS}")
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${COMPILATION_FLAGS} -std=c99")
+set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} ${COMPILATION_RELEASE_FLAGS}")
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} ${COMPILATION_DEBUG_FLAGS}")
+
 #include(./src/main/jni/libjpeg-turbo-1.5.0/android/CMakeLists.txt)
 #include(./src/main/jni/libjpeg-turbo-2.1.1/CMakeLists.txt)
+
+
+
+#"-DJAVA_AWT_LIBRARY:STRING=NotNeeded",
+#"-DJAVA_JVM_LIBRARY:STRING=NotNeeded",
+#"-DJAVA_INCLUDE_PATH2:STRING=NotNeeded",
+#"-DJAVA_AWT_INCLUDE_PATH:STRING=NotNeeded",
+#"-DREQUIRE_SIMD=1"
+
+set(ANDROID_ARM_NEON TRUE)
+set(REQUIRE_SIMD ON)
+set(ENABLE_SHARED FALSE)
+set(ENABLE_STATIC TRUE)
 add_subdirectory(./src/main/jni/libjpeg-turbo-2.1.1/)
+
+include_directories(./src/main/jni/libjpeg-turbo-2.1.1/)
+message(${CMAKE_CURRENT_BINARY_DIR}/src/main/jni/libjpeg-turbo-2.1.1/)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/src/main/jni/libjpeg-turbo-2.1.1/)
 
 include(./src/main/jni/common/CMakeLists.txt)
 include(./src/main/jni/libusb/android/jni/CMakeLists.txt)

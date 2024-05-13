@@ -6,6 +6,8 @@ include_directories(
     ${LIBUSB}/libusb/
 )
 
+add_compile_definitions(ACCESS_RAW_DESCRIPTORS)
+
 list(APPEND SOURCES
     ${LIBUSB}/libusb/core.c
     ${LIBUSB}/libusb/descriptor.c
