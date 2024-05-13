@@ -6,6 +6,7 @@ plugins {
 android {
     compileSdk = libs.versions.compileSdk.get().toInt()
     namespace = "com.jiangdg.natives"
+    ndkVersion = libs.versions.ndk.get()
 
     defaultConfig {
         minSdk = libs.versions.minSdk.get().toInt()
