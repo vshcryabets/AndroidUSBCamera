@@ -23,6 +23,7 @@ lifecycleLivedataKtx = "2.7.0"
 material = "1.11.0"
 mmkv = "1.2.12"
 jvmTarget = "17"
+ndk = "25.2.9519653"
 
 [libraries]
 android-maven-gradle-plugin = { module = "com.github.dcendents:android-maven-gradle-plugin", version.ref = "androidMavenGradlePlugin" }
