@@ -202,11 +202,15 @@ void UVCPreviewJni::handleFrame(uint16_t deviceId,
         // MJPEG mode
         if (LIKELY(frame.mFrame)) {
             // TODO remove double convert MJPEG->YUYV->RGB
-            auto yuvFrame = get_frame(frame.mFrame->width * frame.mFrame->height * 2);
+//            LOGE("uvc_mjpeg2yuyv++ %llu", frame.mTimestamp.time_since_epoch().count());
+            auto yuvFrame = get_frame(frame.mFrame->width * frame.mFrame->height * 4);
             result = uvc_mjpeg2yuyv(frame.mFrame, yuvFrame);   // MJPEG => yuyv
+//            LOGE("uvc_mjpeg2yuyv-- %llu", frame.mTimestamp.time_since_epoch().count());
             if (LIKELY(!result)) {
+//                LOGE("uvc_yuyv2rgbx++ %llu", frame.mTimestamp.time_since_epoch().count());
                 rgbxFrame = get_frame(frame.mFrame->width * frame.mFrame->height * 4);
                 result = uvc_yuyv2rgbx(yuvFrame, rgbxFrame); // yuyv => rgbx
+//                LOGE("uvc_yuyv2rgbx-- %llu", frame.mTimestamp.time_since_epoch().count());
                 if (LIKELY(!result)) {
                     draw_preview_rgbx(rgbxFrame);
                 }
