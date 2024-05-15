@@ -15,8 +15,7 @@ set(REQUIRE_SIMD ON)
 set(ENABLE_SHARED FALSE)
 set(ENABLE_STATIC TRUE)
 
-set(LIBJPEG_PATH src/main/jni/libjpeg-turbo-2.1.1/)
-
+#set(LIBJPEG_PATH src/main/jni/libjpeg-turbo-2.1.1/)
 #add_subdirectory(./${LIBJPEG_PATH})
 #include_directories(./${LIBJPEG_PATH})
 #include_directories(${CMAKE_CURRENT_BINARY_DIR}/${LIBJPEG_PATH})
