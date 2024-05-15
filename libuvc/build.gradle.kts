@@ -12,6 +12,11 @@ android {
 		minSdk = libs.versions.minSdk.get().toInt()
 		targetSdk = libs.versions.targetSdk.get().toInt()
 		ndk.abiFilters.addAll(listOf("armeabi-v7a","arm64-v8a", "x86", "x86_64"))
+//		externalNativeBuild {
+//			cmake {
+//				arguments("-DCMAKE_BUILD_TYPE=Release")
+//			}
+//		}
 	}
 
     compileOptions {

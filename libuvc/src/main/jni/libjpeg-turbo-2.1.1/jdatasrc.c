@@ -263,6 +263,7 @@ GLOBAL(void)
 jpeg_mem_src(j_decompress_ptr cinfo, const unsigned char *inbuffer,
              unsigned long insize)
 {
+  printf("ASD qwe 2.1.1");
   struct jpeg_source_mgr *src;
 
   if (inbuffer == NULL || insize == 0)  /* Treat empty input as fatal error */

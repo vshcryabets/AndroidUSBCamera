@@ -260,9 +260,10 @@ jpeg_stdio_src (j_decompress_ptr cinfo, FILE *infile)
  */
 
 GLOBAL(void)
-jpeg_mem_src (j_decompress_ptr cinfo,
+jpeg_mem_src(j_decompress_ptr cinfo,
               const unsigned char *inbuffer, unsigned long insize)
 {
+    printf("ASD qwe 1.5.0");
   struct jpeg_source_mgr *src;
 
   if (inbuffer == NULL || insize == 0)  /* Treat empty input as fatal error */
