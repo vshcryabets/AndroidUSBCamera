@@ -40,26 +40,24 @@
 #define DEFAULT_PREVIEW_FPS_MAX 30
 #define DEFAULT_PREVIEW_MODE 0
 #define DEFAULT_BANDWIDTH 1.0f
-#define MAX_FRAME 4
 #define PREVIEW_PIXEL_BYTES 4    // RGBA/RGBX
-#define FRAME_POOL_SZ MAX_FRAME + 2
 
 
 typedef uvc_error_t (*convFunc_t)(uvc_frame_t *in, uvc_frame_t *out);
 
-#define PIXEL_FORMAT_RAW 0		// same as PIXEL_FORMAT_YUV
+#define PIXEL_FORMAT_RAW 0        // same as PIXEL_FORMAT_YUV
 #define PIXEL_FORMAT_YUV 1
 #define PIXEL_FORMAT_RGB565 2
 #define PIXEL_FORMAT_RGBX 3
 #define PIXEL_FORMAT_YUV20SP 4
-#define PIXEL_FORMAT_NV21 5		// YVU420SemiPlanar
+#define PIXEL_FORMAT_NV21 5        // YVU420SemiPlanar
 
 struct UvcPreviewFrame {
     uvc_frame_t *mFrame;
     std::chrono::steady_clock::time_point mTimestamp;
 };
 
-class UvcPreviewListener{
+class UvcPreviewListener {
 public:
     // will be called on each frame from UVC
     virtual void handleFrame(uint16_t deviceId,
@@ -68,49 +66,70 @@ public:
     // will be called once from worker thread of the UVCPreviewBase
     virtual void onPreviewPrepared(uint16_t deviceId,
                                    uint16_t frameWidth,
-                                   uint16_t  frameHeight) = 0;
-};
+                                   uint16_t frameHeight) = 0;
 
+    // will be called once before worker thread finishing
+    virtual void onPreviewFinished(uint16_t deviceId) = 0;
+
+    virtual void onFrameDropped(uint16_t deviceId, std::chrono::steady_clock::time_point timestamp) = 0;
+};
 
 
 class UVCPreviewBase {
 protected:
-	uvc_device_handle_t *mDeviceHandle;
-	volatile bool mIsRunning;
-	int requestWidth, requestHeight, requestMode;
-	int requestMinFps, requestMaxFps;
-	float requestBandwidth;
-	uint16_t frameWidth, frameHeight;
-	int frameMode;
-	size_t frameBytes;
-	pthread_mutex_t preview_mutex;
-	pthread_cond_t preview_sync;
-	std::list<UvcPreviewFrame> mPreviewFrames;
-	pthread_mutex_t pool_mutex;
+    uvc_device_handle_t *mDeviceHandle;
+    volatile bool mIsRunning;
+    int requestWidth, requestHeight, requestMode;
+    int requestMinFps, requestMaxFps;
+    float requestBandwidth;
+    uint16_t frameWidth, frameHeight;
+    int frameMode;
+    size_t frameBytes;
+    pthread_mutex_t preview_mutex;
+    pthread_cond_t preview_sync;
+    std::list<UvcPreviewFrame> mPreviewFrames;
+    pthread_mutex_t pool_mutex;
     std::list<uvc_frame_t *> mFramePool;
     volatile uint16_t allocatedFramesCounter = 0;
     std::thread mPreviewThread;
     uint16_t mDeviceId;
-    UvcPreviewListener* mPreviewListener;
+    UvcPreviewListener *mPreviewListener;
+    int16_t mFramePoolSize;
+    int16_t mMaxFramesQueue;
 private:
-	void clear_pool();
-	static void uvc_preview_frame_callback(uvc_frame_t *frame, void *vptr_args);
-	void addPreviewFrame(uvc_frame_t *frame, std::chrono::steady_clock::time_point timestamp);
-	void clearPreviewFramesQueue();
+    void clear_pool();
+
+    static void uvc_preview_frame_callback(uvc_frame_t *frame, void *vptr_args);
+
+    void addPreviewFrame(uvc_frame_t *frame, std::chrono::steady_clock::time_point timestamp);
+
+    void clearPreviewFramesQueue();
+
     void previewThreadFunc();
-	int prepare_preview(uvc_stream_ctrl_t *ctrl);
+
+    int prepare_preview(uvc_stream_ctrl_t *ctrl);
+
 protected:
     uvc_frame_t *get_frame(size_t data_bytes);
-    void recycle_frame(uvc_frame_t *frame);
-    const UvcPreviewFrame waitPreviewFrame();
-public:
-	UVCPreviewBase(uvc_device_handle_t *devh,
-                   uint16_t deviceId,
-                   UvcPreviewListener* previewListener);
-	virtual ~UVCPreviewBase();
 
-	inline const bool isRunning() const;
-	int setPreviewSize(int width, int height, int min_fps, int max_fps, int mode, float bandwidth = 1.0f);
-	int startPreview();
-	virtual int stopPreview();
+    void recycle_frame(uvc_frame_t *frame);
+
+    const UvcPreviewFrame waitPreviewFrame();
+
+public:
+    UVCPreviewBase(uvc_device_handle_t *devh,
+                   uint16_t deviceId,
+                   UvcPreviewListener *previewListener,
+                   int16_t framePoolSize = 8,
+                   int16_t maxFramesQueue = 4);
+
+    virtual ~UVCPreviewBase();
+
+    inline const bool isRunning() const;
+
+    int setPreviewSize(int width, int height, int min_fps, int max_fps, int mode, float bandwidth = 1.0f);
+
+    int startPreview();
+
+    virtual int stopPreview();
 };
