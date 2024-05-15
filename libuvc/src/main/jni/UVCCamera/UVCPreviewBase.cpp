@@ -33,7 +33,9 @@
 
 UVCPreviewBase::UVCPreviewBase(uvc_device_handle_t *devh,
                                uint16_t deviceId,
-                               UvcPreviewListener* previewListener)
+                               UvcPreviewListener* previewListener,
+                               int16_t framePoolSize,
+                               int16_t maxFramesQueue)
         : mDeviceHandle(devh),
           requestWidth(DEFAULT_PREVIEW_WIDTH),
           requestHeight(DEFAULT_PREVIEW_HEIGHT),
@@ -47,7 +49,9 @@ UVCPreviewBase::UVCPreviewBase(uvc_device_handle_t *devh,
           frameMode(0),
           mIsRunning(false),
           mDeviceId(deviceId),
-          mPreviewListener(previewListener) {
+          mPreviewListener(previewListener),
+          mFramePoolSize(framePoolSize),
+          mMaxFramesQueue(maxFramesQueue) {
     pthread_mutex_init(&pool_mutex, nullptr);
     pthread_mutex_init(&preview_mutex, nullptr);
     pthread_cond_init(&preview_sync, nullptr);
@@ -91,7 +95,7 @@ void UVCPreviewBase::recycle_frame(uvc_frame_t *frame) {
         return;
     }
     pthread_mutex_lock(&pool_mutex);
-    if (LIKELY(mFramePool.size() < FRAME_POOL_SZ)) {
+    if (LIKELY(mFramePool.size() < mFramePoolSize)) {
         mFramePool.push_back(frame);
         frame = nullptr;
     }
@@ -202,18 +206,23 @@ void UVCPreviewBase::uvc_preview_frame_callback(uvc_frame_t *frame, void *vptr_a
 }
 
 void UVCPreviewBase::addPreviewFrame(uvc_frame_t *frame, std::chrono::steady_clock::time_point timestamp) {
-    pthread_mutex_lock(&preview_mutex);
-    if (isRunning() && (mPreviewFrames.size() < MAX_FRAME)) {
-        mPreviewFrames.push_back(
-                {
-                        .mFrame = frame,
-                        .mTimestamp = timestamp
-                }
-                );
-        frame = nullptr;
-        pthread_cond_signal(&preview_sync);
+
+    if (isRunning()) {
+        pthread_mutex_lock(&preview_mutex);
+        if (mPreviewFrames.size() < mMaxFramesQueue) {
+            mPreviewFrames.push_back(
+                    {
+                            .mFrame = frame,
+                            .mTimestamp = timestamp
+                    }
+            );
+            frame = nullptr;
+            pthread_cond_signal(&preview_sync);
+        } else if (mPreviewListener != nullptr) {
+            mPreviewListener->onFrameDropped(mDeviceId, timestamp);
+        }
+        pthread_mutex_unlock(&preview_mutex);
     }
-    pthread_mutex_unlock(&preview_mutex);
     if (frame) {
         recycle_frame(frame);
     }
@@ -294,6 +303,9 @@ void UVCPreviewBase::previewThreadFunc() {
                     frame.mFrame != nullptr)
                     mPreviewListener->handleFrame(mDeviceId, frame);
                 recycle_frame(frame.mFrame);
+            }
+            if (mPreviewListener != nullptr) {
+                mPreviewListener->onPreviewFinished(mDeviceId);
             }
             uvc_stop_streaming(mDeviceHandle);
         } else {

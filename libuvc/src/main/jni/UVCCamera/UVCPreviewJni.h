@@ -36,8 +36,10 @@ private:
     void clearDisplay();
     void draw_preview_rgbx(uvc_frame_t *frame);
 protected:
-    virtual void handleFrame(uint16_t deviceId, const UvcPreviewFrame &frame) override;
-    virtual void onPreviewPrepared(uint16_t deviceId, uint16_t frameWidth, uint16_t  frameHeight) override;
+    void handleFrame(uint16_t deviceId, const UvcPreviewFrame &frame) override;
+    void onPreviewPrepared(uint16_t deviceId, uint16_t frameWidth, uint16_t  frameHeight) override;
+    void onPreviewFinished(uint16_t deviceId) override;
+    void onFrameDropped(uint16_t deviceId, std::chrono::steady_clock::time_point timestamp) override;
 public:
     UVCPreviewJni(uvc_device_handle_t *devh);
     ~UVCPreviewJni();

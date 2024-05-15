@@ -79,7 +79,7 @@ int UVCPreviewJni::setCaptureDisplay(ANativeWindow *capture_window) {
 }
 
 UVCPreviewJni::UVCPreviewJni(uvc_device_handle_t *devh)
-        : UVCPreviewBase(devh, 1, this),
+        : UVCPreviewBase(devh, 1, this, 8, 4),
           mPreviewWindow(NULL),
           mCaptureWindow(NULL),
           mFrameCallbackObj(NULL) {
@@ -308,4 +308,12 @@ void UVCPreviewJni::draw_preview_rgbx(
         }
     }
     pthread_mutex_unlock(&preview_mutex);
+}
+
+void UVCPreviewJni::onPreviewFinished(uint16_t deviceId) {
+    LOGD("onPreviewFinished");
+}
+
+void UVCPreviewJni::onFrameDropped(uint16_t deviceId, std::chrono::steady_clock::time_point timestamp) {
+    LOGD("onFrameDropped %lld", timestamp.time_since_epoch());
 }
