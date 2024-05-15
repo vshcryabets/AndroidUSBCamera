@@ -39,7 +39,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "UVCCamera.h"
-#include "libuvc_internal.h"
+#include "libuvc/libuvc_internal.h"
 
 #define    LOCAL_DEBUG 0
 

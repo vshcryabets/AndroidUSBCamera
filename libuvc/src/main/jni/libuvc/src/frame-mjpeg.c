@@ -391,7 +391,6 @@ uvc_error_t uvc_mjpeg2rgbx(uvc_frame_t *in, uvc_frame_t *out) {
 	size_t lines_read;
 	// local copy
 	uint8_t *data = out->data;
-	const int out_step = out->step;
 
 	int num_scanlines, i;
 	lines_read = 0;
@@ -408,6 +407,7 @@ uvc_error_t uvc_mjpeg2rgbx(uvc_frame_t *in, uvc_frame_t *out) {
 	out->height = in->height;
 	out->frame_format = UVC_FRAME_FORMAT_RGBX;	// XXX
 	out->step = in->width * 4;
+    const int out_step = out->step;
 	out->sequence = in->sequence;
 	out->capture_time = in->capture_time;
 	out->source = in->source;

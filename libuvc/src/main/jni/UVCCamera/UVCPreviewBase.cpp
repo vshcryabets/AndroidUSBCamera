@@ -27,7 +27,7 @@
 #include <unistd.h>
 #include "utilbase.h"
 #include "UVCPreviewBase.h"
-#include "libuvc_internal.h"
+#include "libuvc/libuvc_internal.h"
 
 #define LOCAL_DEBUG 1
 

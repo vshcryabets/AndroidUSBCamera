@@ -22,7 +22,7 @@
  * Files in the jni/libjpeg, jni/libusb, jin/libuvc, jni/rapidjson folder may have a different license, see the respective files.
 */
 
-#include "libuvc.h"
+#include "libuvc/libuvc.h"
 #include "UVCCameraAdjustments.h"
 #include "UVCConstants.h"
 

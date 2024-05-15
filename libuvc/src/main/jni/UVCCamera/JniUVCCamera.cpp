@@ -39,7 +39,7 @@
 
 #include <jni.h>
 #include "libusb.h"
-#include "libuvc.h"
+#include "libuvc/libuvc.h"
 #include "utilbase.h"
 #include "UVCCamera.h"
 
