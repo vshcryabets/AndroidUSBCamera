@@ -25,6 +25,7 @@
 #include "libuvc/libuvc.h"
 #include "UVCCameraAdjustments.h"
 #include "UVCConstants.h"
+#include "utilbase.h"
 
 //======================================================================
 //#define CTRL_BRIGHTNESS        0
