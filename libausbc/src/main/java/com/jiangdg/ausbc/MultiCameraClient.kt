@@ -18,7 +18,6 @@ import com.jiangdg.ausbc.encode.audio.IAudioStrategy
 import com.jiangdg.ausbc.encode.bean.RawData
 import com.jiangdg.ausbc.encode.muxer.Mp4Muxer
 import com.jiangdg.ausbc.render.RenderManager
-import com.jiangdg.ausbc.render.effect.AbstractEffect
 import com.jiangdg.ausbc.render.env.RotateType
 import com.jiangdg.ausbc.utils.CameraUtils
 import com.jiangdg.ausbc.utils.CameraUtils.isFilterDevice
@@ -272,9 +271,6 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
         protected var isNeedGLESRender: Boolean = false
         protected var mCtrlBlock: USBMonitor.UsbControlBlock? = null
         protected var mPreviewDataCbList = CopyOnWriteArrayList<IPreviewDataCallBack>()
-        private val mCacheEffectList by lazy {
-            arrayListOf<AbstractEffect>()
-        }
         protected val mMainHandler: Handler by lazy {
             Handler(Looper.getMainLooper())
         }
@@ -346,15 +342,6 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
                             }
                         })
                         mRenderManager?.setRotateType(mCameraRequest!!.defaultRotateType)
-                        if (mCacheEffectList.isNotEmpty()) {
-                            mCacheEffectList.forEach { effect ->
-                                mRenderManager?.addRenderEffect(effect)
-                            }
-                            return@also
-                        }
-                        mCameraRequest?.defaultEffect?.apply {
-                            mRenderManager?.addRenderEffect(this)
-                        }
                     }
                 }
                 MSG_STOP_PREVIEW -> {
@@ -365,10 +352,6 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
                         e.printStackTrace()
                     }
                     closeCameraInternal()
-                    mRenderManager?.getCacheEffectList()?.apply {
-                        mCacheEffectList.clear()
-                        mCacheEffectList.addAll(this)
-                    }
                     mRenderManager?.stopRenderScreen()
                     mRenderManager = null
                 }
@@ -571,58 +554,6 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
          */
         fun setRenderSize(width: Int, height: Int) {
             mSizeChangedFuture?.set(Pair(width, height))
-        }
-
-        /**
-         * Add render effect.There is only one setting in the same category
-         * <p>
-         * The default effects:
-         * @see [com.jiangdg.ausbc.render.effect.EffectBlackWhite]
-         * @see [com.jiangdg.ausbc.render.effect.EffectZoom]
-         * @see [com.jiangdg.ausbc.render.effect.EffectSoul]
-         * <p>
-         * Of course, you can also realize a custom effect by extending from [AbstractEffect]
-         *
-         * @param effect a effect
-         */
-        fun addRenderEffect(effect: AbstractEffect) {
-            mRenderManager?.addRenderEffect(effect)
-        }
-
-        /**
-         * Remove render effect
-         *
-         * @param effect a effect, extending from [AbstractEffect]
-         */
-        fun removeRenderEffect(effect: AbstractEffect) {
-            val defaultId =  mCameraRequest?.defaultEffect?.getId()
-            if (effect.getId() == defaultId) {
-                mCameraRequest?.defaultEffect = null
-            }
-            mRenderManager?.removeRenderEffect(effect)
-        }
-
-        /**
-         * Get default effect
-         *
-         * @return  default effect, extending from [AbstractEffect]
-         */
-        fun getDefaultEffect() = mCameraRequest?.defaultEffect
-
-        /**
-         * Update render effect
-         *
-         * @param classifyId effect classify id
-         * @param effect new effect, null means set none
-         */
-        fun updateRenderEffect(classifyId: Int, effect: AbstractEffect?) {
-            mRenderManager?.getCacheEffectList()?.find {
-                it.getClassifyId() == classifyId
-            }?.also {
-                removeRenderEffect(it)
-            }
-            effect ?: return
-            addRenderEffect(effect)
         }
 
         /**
@@ -834,7 +765,7 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
 
         fun getSuitableSize(maxWidth: Int, maxHeight: Int): PreviewSize {
             val sizeList = getAllPreviewSizes()
-            if (sizeList.isNullOrEmpty()) {
+            if (sizeList.isEmpty()) {
                 return PreviewSize(DEFAULT_PREVIEW_WIDTH, DEFAULT_PREVIEW_HEIGHT)
             }
             // find it

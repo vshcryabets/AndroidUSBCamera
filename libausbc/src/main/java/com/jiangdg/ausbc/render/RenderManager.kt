@@ -26,7 +26,6 @@ import android.view.Surface
 import com.jiangdg.ausbc.callback.ICaptureCallBack
 import com.jiangdg.ausbc.callback.IPreviewDataCallBack
 import com.jiangdg.ausbc.render.env.RotateType
-import com.jiangdg.ausbc.render.effect.AbstractEffect
 import com.jiangdg.ausbc.render.internal.*
 import com.jiangdg.ausbc.utils.*
 import com.jiangdg.ausbc.utils.bus.BusKey
@@ -74,8 +73,6 @@ class RenderManager(
     private var mHeight: Int = 0
     private var mFBOBufferId: Int = 0
     private var mContext: Context = context
-    private var mEffectList = arrayListOf<AbstractEffect>()
-    private var mCacheEffectList = arrayListOf<AbstractEffect>()
     private var mCaptureDataCb: ICaptureCallBack? = null
     private var mFrameRate = 0
     private var mEndTime: Long = 0L
@@ -163,48 +160,15 @@ class RenderManager(
                 mCameraRender?.setTransformMatrix(mTransformMatrix)
                 val textureId = mEOSTextureId?.let { mCameraRender?.drawFrame(it) }
                 //Filter FBO and rendering
-                textureId?.let { fboId ->
-                    var effectId = fboId
-                    mEffectList.forEach { effectRender ->
-                        effectId = effectRender.drawFrame(effectId)
-                    }
-                    effectId
-                }?.also { id ->
+                textureId?.let { id ->
                     mScreenRender?.drawFrame(id)
                     drawFrame2Capture(id)
                     drawFrame2Codec(id, mCameraSurfaceTexture?.timestamp ?: 0)
                 }
                 mScreenRender?.swapBuffers(mCameraSurfaceTexture?.timestamp ?: 0)
             }
-            MSG_GL_ADD_EFFECT -> {
-                (msg.obj as? AbstractEffect)?.let { effect->
-                    if (mEffectList.contains(effect)) {
-                        return@let
-                    }
-                    effect.initGLES()
-                    effect.setSize(mWidth, mHeight)
-                    mEffectList.add(effect)
-                    mCacheEffectList.add(effect)
-                    Logger.i(TAG, "add effect, name = ${effect.javaClass.simpleName}, size = ${mEffectList.size}")
-                }
-            }
-            MSG_GL_REMOVE_EFFECT -> {
-                (msg.obj as? AbstractEffect)?.let {
-                    if (! mEffectList.contains(it)) {
-                        return@let
-                    }
-                    it.releaseGLES()
-                    mEffectList.remove(it)
-                    mCacheEffectList.remove(it)
-                    Logger.i(TAG, "remove effect, name = ${it.javaClass.simpleName}, size = ${mEffectList.size}")
-                }
-            }
             MSG_GL_RELEASE -> {
                 EventBus.with<Boolean>(BusKey.KEY_RENDER_READY).postMessage(false)
-                mEffectList.forEach { effect ->
-                    effect.releaseGLES()
-                }
-                mEffectList.clear()
                 mCameraRender?.releaseGLES()
                 mScreenRender?.releaseGLES()
                 mCaptureRender?.releaseGLES()
@@ -311,24 +275,6 @@ class RenderManager(
     }
 
     /**
-     * Add render effect
-     *
-     * @param effect add a effect, see [AbstractEffect]
-     */
-    fun addRenderEffect(effect: AbstractEffect?) {
-        mRenderHandler?.obtainMessage(MSG_GL_ADD_EFFECT, effect)?.sendToTarget()
-    }
-
-    /**
-     * Remove render effect
-     *
-     * @param effect a effect removed, see [AbstractEffect]
-     */
-    fun removeRenderEffect(effect: AbstractEffect?) {
-        mRenderHandler?.obtainMessage(MSG_GL_REMOVE_EFFECT, effect)?.sendToTarget()
-    }
-
-    /**
      * Rotate camera render angle
      *
      * @param type rotate angle, null means rotating nothing
@@ -337,12 +283,6 @@ class RenderManager(
     fun setRotateType(type: RotateType?) {
         mRenderHandler?.obtainMessage(MSG_GL_ROUTE_ANGLE, type)?.sendToTarget()
     }
-
-    /**
-     * Get cache render effect list
-     * @return current effects
-     */
-    fun getCacheEffectList() = mCacheEffectList
 
     /**
      * Save image
@@ -520,8 +460,6 @@ class RenderManager(
         private const val MSG_GL_START_RENDER_CODEC = 0x03
         private const val MSG_GL_STOP_RENDER_CODEC = 0x04
         private const val MSG_GL_CHANGED_SIZE = 0x05
-        private const val MSG_GL_ADD_EFFECT = 0x06
-        private const val MSG_GL_REMOVE_EFFECT = 0x07
         private const val MSG_GL_SAVE_IMAGE = 0x08
         private const val MSG_GL_ROUTE_ANGLE = 0x09
 

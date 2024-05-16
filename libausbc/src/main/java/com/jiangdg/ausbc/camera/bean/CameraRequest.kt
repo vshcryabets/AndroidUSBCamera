@@ -1,5 +1,6 @@
 /*
  * Copyright 2017-2023 Jiangdg
+ * Copyright 2024 vshcryabets@gmail.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +17,6 @@
 package com.jiangdg.ausbc.camera.bean
 
 import androidx.annotation.Keep
-import com.jiangdg.ausbc.render.effect.AbstractEffect
 import com.jiangdg.ausbc.render.env.RotateType
 
 
@@ -32,7 +32,6 @@ class CameraRequest private constructor() {
     var isAspectRatioShow: Boolean = true
     var isRawPreviewData: Boolean = false
     var isCaptureRawImage: Boolean = false
-    var defaultEffect: AbstractEffect? = null
     var defaultRotateType: RotateType = RotateType.ANGLE_0
     var audioSource: AudioSource = AudioSource.SOURCE_AUTO
     var previewFormat: PreviewFormat = PreviewFormat.FORMAT_MJPEG
@@ -141,17 +140,6 @@ class CameraRequest private constructor() {
          */
         fun setCaptureRawImage(isCaptureRawImage: Boolean): Builder {
             mRequest.isCaptureRawImage = isCaptureRawImage
-            return this
-        }
-
-        /**
-         * Set default effect, only OPENGL mode effect
-         *
-         * @param defaultEffect default is null
-         * @return  see [Builder]
-         */
-        fun setDefaultEffect(defaultEffect: AbstractEffect): Builder {
-            mRequest.defaultEffect = defaultEffect
             return this
         }
 
