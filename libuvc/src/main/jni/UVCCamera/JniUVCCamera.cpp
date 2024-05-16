@@ -122,7 +122,7 @@ jint setField_int(JNIEnv *env, jobject java_obj, const char *field_name, jint va
 }
 
 static jlong nativeCreate(JNIEnv *env, jobject thiz) {
-    return (jlong)new UVCCameraJniImpl();
+    return (jlong) new UVCCameraJniImpl();
 }
 
 // native側のカメラオブジェクトを破棄
@@ -134,25 +134,6 @@ static void nativeDestroy(JNIEnv *env, jobject thiz,
         SAFE_DELETE(camera);
     }
     EXIT();
-}
-
-//======================================================================
-// カメラへ接続
-static jint nativeConnect(JNIEnv *env, jobject thiz,
-                          ID_TYPE id_camera,
-                          jint vid, jint pid, jint fd,
-                          jint busNum, jint devAddr, jstring usbfs_str) {
-
-
-    int result = JNI_ERR;
-    UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
-    const char *c_usbfs = env->GetStringUTFChars(usbfs_str, JNI_FALSE);
-    if (LIKELY(camera && (fd > 0))) {
-//		libusb_set_debug(NULL, LIBUSB_LOG_LEVEL_DEBUG);
-        result = camera->connect(vid, pid, fd, busNum, devAddr, c_usbfs);
-    }
-    env->ReleaseStringUTFChars(usbfs_str, c_usbfs);
-    RETURN(result, jint);
 }
 
 // カメラとの接続を解除
@@ -2019,7 +2000,6 @@ static JNINativeMethod methods[] = {
         {"nativeCreate",                            "()J",                                   (void *) nativeCreate},
         {"nativeDestroy",                           "(J)V",                                  (void *) nativeDestroy},
         //
-        {"nativeConnect",                           "(JIIIIILjava/lang/String;)I",           (void *) nativeConnect},
         {"nativeRelease",                           "(J)I",                                  (void *) nativeRelease},
 
 //        {"nativeSetStatusCallback",                 "(JLcom/jiangdg/uvc/IStatusCallback;)I", (void *) nativeSetStatusCallback},
@@ -2216,8 +2196,11 @@ Java_com_jiangdg_uvc_UVCCamera_nativeGetSupportedSize(JNIEnv *env, jclass clazz,
     jmethodID uvcCameraResolutionInit = env->GetMethodID(uvcCameraResolutionCls, "<init>", "(IIIII)V");
     jobject result = env->NewObject(arrayListCls, arrayListInit);
     UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
+    LOGE("ASD nativeGetSupportedSize A01");
     if (LIKELY(camera)) {
+        LOGE("ASD nativeGetSupportedSize A02");
         auto supportedSized = camera->getSupportedSize();
+        LOGE("ASD nativeGetSupportedSize A03 %d", supportedSized.size());
         for (const auto &it: supportedSized) {
             auto resolution = env->NewObject(uvcCameraResolutionCls,
                                              uvcCameraResolutionInit,
@@ -2232,6 +2215,28 @@ Java_com_jiangdg_uvc_UVCCamera_nativeGetSupportedSize(JNIEnv *env, jclass clazz,
     }
     env->DeleteLocalRef(uvcCameraResolutionCls);
     env->DeleteLocalRef(arrayListCls);
+    LOGE("ASD nativeGetSupportedSize A04");
+    return result;
+}
+
+JNIEXPORT jint JNICALL
+Java_com_jiangdg_uvc_UVCCamera_nativeConnect(JNIEnv *env, jobject thiz,
+                                             jlong id_camera,
+                                             jint vid,
+                                             jint pid,
+                                             jint file_descriptor,
+                                             jint bus_num,
+                                             jint dev_addr,
+                                             jstring usbfs) {
+    int result = JNI_ERR;
+    UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
+    const char *c_usbfs = env->GetStringUTFChars(usbfs, JNI_FALSE);
+    LOGE("ASD connect to %d:%d %s", vid, pid, c_usbfs);
+    if (LIKELY(camera && (file_descriptor > 0))) {
+//		libusb_set_debug(NULL, LIBUSB_LOG_LEVEL_DEBUG);
+        result = camera->connect(vid, pid, file_descriptor, bus_num, dev_addr, c_usbfs);
+    }
+    env->ReleaseStringUTFChars(usbfs, c_usbfs);
     return result;
 }
 

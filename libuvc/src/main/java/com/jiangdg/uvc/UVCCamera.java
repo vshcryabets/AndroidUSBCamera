@@ -215,29 +215,7 @@ public class UVCCamera {
 			mCurrentWidth = supportedSizes.get(0).getWidth();
 			mCurrentHeight = supportedSizes.get(0).getHeight();
 		}
-		nativeSetPreviewSize(mNativePtr, mCurrentWidth, mCurrentHeight,
-			DEFAULT_PREVIEW_MIN_FPS, DEFAULT_PREVIEW_MAX_FPS, DEFAULT_PREVIEW_MODE, DEFAULT_BANDWIDTH);
     }
-
-//	/**
-//	 * set status callback
-//	 * @param callback
-//	 */
-//	public void setStatusCallback(final IStatusCallback callback) {
-//		if (mNativePtr != 0) {
-//			nativeSetStatusCallback(mNativePtr, callback);
-//		}
-//	}
-//
-//	/**
-//	 * set button callback
-//	 * @param callback
-//	 */
-//	public void setButtonCallback(final IButtonCallback callback) {
-//		if (mNativePtr != 0) {
-//			nativeSetButtonCallback(mNativePtr, callback);
-//		}
-//	}
 
     /**
      * close and release UVC camera
@@ -318,9 +296,10 @@ public class UVCCamera {
 		if ((width == 0) || (height == 0))
 			throw new IllegalArgumentException("invalid preview size");
 		if (mNativePtr != 0) {
+			Timber.d("ASD nativeSetPreviewSize 2 " + mCurrentWidth + " " + mCurrentHeight);
 			final int result = nativeSetPreviewSize(mNativePtr, width, height, min_fps, max_fps, frameFormat, bandwidthFactor);
 			if (result != 0)
-				throw new IllegalArgumentException("Failed to set preview size");
+				throw new IllegalArgumentException("Failed to set preview size " + width + "x" + height);
 			mCurrentFrameFormat = frameFormat;
 			mCurrentWidth = width;
 			mCurrentHeight = height;
@@ -1013,6 +992,7 @@ public class UVCCamera {
 	private final String getUSBFSName(final UsbControlBlock ctrlBlock) {
 		String result = null;
 		final String name = ctrlBlock.getDeviceName();
+		Timber.d("ASD getUSBFSName = " + name);
 		final String[] v = !TextUtils.isEmpty(name) ? name.split("/") : null;
 		if ((v != null) && (v.length > 2)) {
 			final StringBuilder sb = new StringBuilder(v[0]);
@@ -1020,11 +1000,12 @@ public class UVCCamera {
 				sb.append("/").append(v[i]);
 			result = sb.toString();
 		}
+		Timber.d("ASD getUSBFSName 2 = " + result + " - " + v.length);
 		if (TextUtils.isEmpty(result)) {
-			Timber.w("failed to get USBFS path, try to use default path:" + name);
+			Timber.w("ASD failed to get USBFS path, try to use default path:" + DEFAULT_USBFS);
 			result = DEFAULT_USBFS;
 		}
-		return result;
+		return name;
 	}
 
 	// #nativeCreate and #nativeDestroy are not static methods.

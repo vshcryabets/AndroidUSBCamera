@@ -119,6 +119,8 @@ inline const bool UVCPreviewBase::isRunning() const { return mIsRunning; }
 
 int UVCPreviewBase::setPreviewSize(int width, int height, int min_fps, int max_fps, int mode, float bandwidth) {
     int result = 0;
+    LOGE("ASD setPreviewSize %d %d %d bandwidth=%f minfps=%d maxfps=%d", width, height, mode, bandwidth,
+         min_fps, max_fps);
     if ((requestWidth != width) || (requestHeight != height) || (requestMode != mode)) {
         requestWidth = width;
         requestHeight = height;
@@ -128,12 +130,15 @@ int UVCPreviewBase::setPreviewSize(int width, int height, int min_fps, int max_f
         requestBandwidth = bandwidth;
 
         uvc_stream_ctrl_t ctrl;
-        result = uvc_get_stream_ctrl_format_size_fps(mDeviceHandle, &ctrl,
+        result = uvc_get_stream_ctrl_format_size_fps(mDeviceHandle,
+                                                     &ctrl,
                                                      !requestMode ? UVC_FRAME_FORMAT_YUYV : UVC_FRAME_FORMAT_MJPEG,
-                                                     requestWidth, requestHeight, requestMinFps, requestMaxFps);
+                                                     requestWidth,
+                                                     requestHeight,
+                                                     requestMinFps,
+                                                     requestMaxFps);
     }
-
-    RETURN(result, int);
+    return result;
 }
 
 int UVCPreviewBase::startPreview() {
@@ -157,7 +162,7 @@ int UVCPreviewBase::startPreview() {
             pthread_mutex_unlock(&preview_mutex);
         }
     }
-    RETURN(result, int);
+    return result;
 }
 
 int UVCPreviewBase::stopPreview() {

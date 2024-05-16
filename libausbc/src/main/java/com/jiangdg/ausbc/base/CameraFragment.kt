@@ -39,7 +39,6 @@ import com.jiangdg.ausbc.callback.IPreviewDataCallBack
 import com.jiangdg.ausbc.camera.CameraUVC
 import com.jiangdg.ausbc.camera.bean.CameraRequest
 import com.jiangdg.ausbc.camera.bean.PreviewSize
-import com.jiangdg.ausbc.render.effect.AbstractEffect
 import com.jiangdg.ausbc.render.env.RotateType
 import com.jiangdg.ausbc.utils.SettableFuture
 import com.jiangdg.ausbc.widget.IAspectRatio
@@ -70,10 +69,12 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
                 handleTextureView(cameraView)
                 cameraView
             }
+
             is SurfaceView -> {
                 handleSurfaceView(cameraView)
                 cameraView
             }
+
             else -> {
                 null
             }
@@ -84,7 +85,7 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
                 registerMultiCamera(getSelectedDeviceId())
                 return
             }
-        }?.also { view->
+        }?.also { view ->
             getCameraViewContainer()?.apply {
                 removeAllViews()
                 addView(view, getViewLayoutParams(this))
@@ -291,12 +292,6 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
         getCurrentCamera()?.captureImage(callBack, savePath)
     }
 
-
-    /**
-     * Get default effect
-     */
-    protected fun getDefaultEffect() = getCurrentCamera()?.getDefaultEffect()
-
     /**
      * Switch camera
      *
@@ -317,7 +312,7 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
      *
      * @return camera open status
      */
-    protected fun isCameraOpened() = getCurrentCamera()?.isCameraOpened()  ?: false
+    protected fun isCameraOpened() = getCurrentCamera()?.isCameraOpened() ?: false
 
     /**
      * Update resolution
@@ -335,34 +330,11 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
      * @param aspectRatio preview size aspect ratio,
      *                      null means getting all preview sizes
      */
-    protected fun getAllPreviewSizes(aspectRatio: Double? = null) = getCurrentCamera()?.getAllPreviewSizes(aspectRatio)
-
-    /**
-     * Add render effect
-     *
-     * @param effect a effect will be added, only enable opengl render worked, see [AbstractEffect]
-     */
-    protected fun addRenderEffect(effect: AbstractEffect) {
-        getCurrentCamera()?.addRenderEffect(effect)
-    }
-
-    /**
-     * Remove render effect
-     *
-     * @param effect a effect will be removed, only enable opengl render worked, see [AbstractEffect]
-     */
-    protected fun removeRenderEffect(effect: AbstractEffect) {
-        getCurrentCamera()?.removeRenderEffect(effect)
-    }
-
-    /**
-     * Update render effect
-     *
-     * @param classifyId effect classify id
-     * @param effect new effect, null means set none
-     */
-    protected fun updateRenderEffect(classifyId: Int, effect: AbstractEffect?) {
-        getCurrentCamera()?.updateRenderEffect(classifyId, effect)
+    protected fun getAllPreviewSizes(aspectRatio: Double? = null): MutableList<PreviewSize>? {
+        if (getCurrentCamera() == null) {
+            Timber.e("ASD getAllPreviewSizes camera is null")
+        }
+        return getCurrentCamera()?.getAllPreviewSizes(aspectRatio)
     }
 
     /**
@@ -413,7 +385,7 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
      * @param path custom save path
      * @param durationInSec divided record duration time in seconds
      */
-    protected fun captureVideoStart(callBack: ICaptureCallBack, path: String ?= null, durationInSec: Long = 0L) {
+    protected fun captureVideoStart(callBack: ICaptureCallBack, path: String? = null, durationInSec: Long = 0L) {
         getCurrentCamera()?.captureVideoStart(callBack, path, durationInSec)
     }
 
@@ -430,7 +402,7 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
      * @param callBack capture status, see [ICaptureCallBack]
      * @param path custom save path
      */
-    protected fun captureAudioStart(callBack: ICaptureCallBack, path: String ?= null) {
+    protected fun captureAudioStart(callBack: ICaptureCallBack, path: String? = null) {
         getCurrentCamera()?.captureAudioStart(callBack, path)
     }
 
@@ -534,7 +506,6 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
             camera.resetAutoFocus()
         }
     }
-
 
 
     /**
@@ -862,6 +833,7 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
             is TextureView, is SurfaceView -> {
                 st
             }
+
             else -> {
                 null
             }
@@ -880,7 +852,7 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
     }
 
     private fun getViewLayoutParams(viewGroup: ViewGroup): ViewGroup.LayoutParams {
-        return when(viewGroup) {
+        return when (viewGroup) {
             is FrameLayout -> {
                 FrameLayout.LayoutParams(
                     FrameLayout.LayoutParams.MATCH_PARENT,
@@ -888,6 +860,7 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
                     getGravity()
                 )
             }
+
             is LinearLayout -> {
                 LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
@@ -896,18 +869,21 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
                     gravity = getGravity()
                 }
             }
+
             is RelativeLayout -> {
                 RelativeLayout.LayoutParams(
                     RelativeLayout.LayoutParams.MATCH_PARENT,
                     RelativeLayout.LayoutParams.MATCH_PARENT
-                ).apply{
-                    when(getGravity()) {
+                ).apply {
+                    when (getGravity()) {
                         Gravity.TOP -> {
                             addRule(RelativeLayout.ALIGN_PARENT_TOP, RelativeLayout.TRUE)
                         }
+
                         Gravity.BOTTOM -> {
                             addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE)
                         }
+
                         else -> {
                             addRule(RelativeLayout.CENTER_HORIZONTAL, RelativeLayout.TRUE)
                             addRule(RelativeLayout.CENTER_VERTICAL, RelativeLayout.TRUE)
@@ -915,8 +891,11 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
                     }
                 }
             }
-            else -> throw IllegalArgumentException("Unsupported container view, " +
-                    "you can use FrameLayout or LinearLayout or RelativeLayout")
+
+            else -> throw IllegalArgumentException(
+                "Unsupported container view, " +
+                        "you can use FrameLayout or LinearLayout or RelativeLayout"
+            )
         }
     }
 

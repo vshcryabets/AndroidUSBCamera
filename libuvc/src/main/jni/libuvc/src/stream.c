@@ -413,10 +413,10 @@ static uvc_error_t _uvc_get_stream_ctrl_format(uvc_device_handle_t *devh,
 	const int width, const int height,
 	const int min_fps, const int max_fps) {
 
-	
-
 	int i;
 	uvc_frame_desc_t *frame;
+
+    LOGE("ASD _uvc_get_stream_ctrl_format 01");
 
 	ctrl->bInterfaceNumber = stream_if->bInterfaceNumber;
 	uvc_error_t result = uvc_claim_if(devh, ctrl->bInterfaceNumber);
@@ -427,10 +427,12 @@ static uvc_error_t _uvc_get_stream_ctrl_format(uvc_device_handle_t *devh,
 	for (i = 0; i < 2; i++) {
 		result = _prepare_stream_ctrl(devh, ctrl);
 	}
+    LOGE("ASD _uvc_get_stream_ctrl_format 02");
 	if (UNLIKELY(result)) {
 		LOGE("_prepare_stream_ctrl:err=%d", result);
 		goto fail;
 	}
+    LOGE("ASD _uvc_get_stream_ctrl_format 03");
 #if 0
 	// XXX add check ctrl values
 	uint64_t bmaControl = stream_if->bmaControls[format->bFormatIndex - 1];
@@ -459,15 +461,20 @@ static uvc_error_t _uvc_get_stream_ctrl_format(uvc_device_handle_t *devh,
 		}
 	}
 #endif
+    LOGE("ASD _uvc_get_stream_ctrl_format 04");
 	DL_FOREACH(format->frame_descs, frame)
 	{
+        LOGE("ASD _uvc_get_stream_ctrl_format 05");
 		if (frame->wWidth != width || frame->wHeight != height)
 			continue;
 
+        LOGE("ASD _uvc_get_stream_ctrl_format 06");
 		uint32_t *interval;
 
 		if (frame->intervals) {
+            LOGE("ASD _uvc_get_stream_ctrl_format 07");
 			for (interval = frame->intervals; *interval; ++interval) {
+                LOGE("ASD _uvc_get_stream_ctrl_format 08");
 				if (UNLIKELY(!(*interval))) continue;
 				uint32_t it = 10000000 / *interval;
 				LOGV("it:%d", it);
@@ -482,7 +489,9 @@ static uvc_error_t _uvc_get_stream_ctrl_format(uvc_device_handle_t *devh,
 			}
 		} else {
 			int32_t fps;
+            LOGE("ASD _uvc_get_stream_ctrl_format 09");
 			for (fps = max_fps; fps >= min_fps; fps--) {
+                LOGE("ASD _uvc_get_stream_ctrl_format 10");
 				if (UNLIKELY(!fps)) continue;
 				uint32_t interval_100ns = 10000000 / fps;
 				uint32_t interval_offset = interval_100ns - frame->dwMinFrameInterval;
@@ -491,6 +500,7 @@ static uvc_error_t _uvc_get_stream_ctrl_format(uvc_device_handle_t *devh,
 					&& interval_100ns <= frame->dwMaxFrameInterval
 					&& !(interval_offset
 						&& (interval_offset % frame->dwFrameIntervalStep) ) ) {
+                    LOGE("ASD _uvc_get_stream_ctrl_format 11");
 					ctrl->bmHint = (1 << 0); /* don't negotiate interval */
 					ctrl->bFormatIndex = format->bFormatIndex;
 					ctrl->bFrameIndex = frame->bFrameIndex;
@@ -501,12 +511,15 @@ static uvc_error_t _uvc_get_stream_ctrl_format(uvc_device_handle_t *devh,
 			}
 		}
 	}
+    LOGE("ASD _uvc_get_stream_ctrl_format 12");
 	result = UVC_ERROR_INVALID_MODE;
 fail:
+    LOGE("ASD _uvc_get_stream_ctrl_format 13");
 	uvc_release_if(devh, ctrl->bInterfaceNumber);
 	RETURN(result, uvc_error_t);
 
 found:
+    LOGE("ASD _uvc_get_stream_ctrl_format 14");
 	RETURN(UVC_SUCCESS, uvc_error_t);
 }
 
@@ -540,26 +553,27 @@ uvc_error_t uvc_get_stream_ctrl_format_size(uvc_device_handle_t *devh,
 uvc_error_t uvc_get_stream_ctrl_format_size_fps(uvc_device_handle_t *devh,
 		uvc_stream_ctrl_t *ctrl, enum uvc_frame_format cf, int width,
 		int height, int min_fps, int max_fps) {
-
-	
-
 	uvc_streaming_interface_t *stream_if;
 	uvc_error_t result;
 
 	memset(ctrl, 0, sizeof(*ctrl));	// XXX add
 	/* find a matching frame descriptor and interval */
 	uvc_format_desc_t *format;
+    LOGE("ASD uvc_get_stream_ctrl_format_size_fps");
 	DL_FOREACH(devh->info->stream_ifs, stream_if)
 	{
 		DL_FOREACH(stream_if->format_descs, format)
 		{
+            LOGE("ASD uvc_get_stream_ctrl_format_size_fps 02");
 			if (!_uvc_frame_format_matches_guid(cf, format->guidFormat))
 				continue;
-
+            LOGE("ASD uvc_get_stream_ctrl_format_size_fps 03");
 			result = _uvc_get_stream_ctrl_format(devh, stream_if, ctrl, format, width, height, min_fps, max_fps);
 			if (!result) {	// UVC_SUCCESS
+                LOGE("ASD uvc_get_stream_ctrl_format_size_fps 04");
 				goto found;
 			}
+            LOGE("ASD uvc_get_stream_ctrl_format_size_fps 05 %d", result);
 		}
 	}
 
