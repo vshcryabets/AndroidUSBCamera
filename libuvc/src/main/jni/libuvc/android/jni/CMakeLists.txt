@@ -7,6 +7,8 @@ configure_file(${LIBUVC}/include/libuvc/libuvc_config.h.in
         @ONLY
 )
 
+add_compile_definitions(LIBUVC_HAS_JPEG)
+
 include_directories(
     ${LIBUVC}/include/
 )

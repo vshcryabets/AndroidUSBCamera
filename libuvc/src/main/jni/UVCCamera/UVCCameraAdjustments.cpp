@@ -658,7 +658,7 @@ int UVCCameraAdjustments::setExposure(int ae_abs) {
 int UVCCameraAdjustments::getExposure() {
     int r = UVC_ERROR_ACCESS;
     if LIKELY((mDeviceHandle) && (mCtrlSupports & CTRL_AE_ABS)) {
-        int ae_abs;
+        uint32_t ae_abs;
         r = uvc_get_exposure_abs(mDeviceHandle, &ae_abs, UVC_GET_CUR);
 //		LOGI("ae_abs:%d", ae_abs);
         if (LIKELY(!r)) {
@@ -693,7 +693,7 @@ int UVCCameraAdjustments::setExposureRel(int ae_rel) {
 int UVCCameraAdjustments::getExposureRel() {
     int r = UVC_ERROR_ACCESS;
     if LIKELY((mDeviceHandle) && (mCtrlSupports & CTRL_AE_REL)) {
-        int ae_rel;
+        int8_t ae_rel;
         r = uvc_get_exposure_rel(mDeviceHandle, &ae_rel, UVC_GET_CUR);
 //		LOGI("ae_rel:%d", ae_rel);
         if (LIKELY(!r)) {
@@ -758,7 +758,7 @@ int UVCCameraAdjustments::getFocus() {
     if (mCtrlSupports & CTRL_FOCUS_ABS) {
         int ret = update_ctrl_values(mDeviceHandle, mFocus, uvc_get_focus_abs);
         if (LIKELY(!ret)) {    // 正常に最小・最大値を取得出来た時
-            int16_t value;
+            uint16_t value;
             ret = uvc_get_focus_abs(mDeviceHandle, &value, UVC_GET_CUR);
             if (LIKELY(!ret))
                 return value;
@@ -1091,7 +1091,7 @@ int UVCCameraAdjustments::getBacklightComp() {
     if (mPUSupports & PU_BACKLIGHT) {
         int ret = update_ctrl_values(mDeviceHandle, mBacklightComp, uvc_get_backlight_compensation);
         if (LIKELY(!ret)) {    // 正常に最小・最大値を取得出来た時
-            int16_t value;
+            uint16_t value;
             ret = uvc_get_backlight_compensation(mDeviceHandle, &value, UVC_GET_CUR);
             if (LIKELY(!ret))
                 return value;
@@ -1394,7 +1394,8 @@ int UVCCameraAdjustments::updateWhiteBlanceCompoLimit(int &min, int &max, int &d
 
     int ret = UVC_ERROR_IO;
     if (mPUSupports & PU_WB_COMPO) {
-        UPDATE_CTRL_VALUES(mWhiteBlanceCompo, uvc_get_white_balance_component)
+        // TODO not implemented
+        //UPDATE_CTRL_VALUES(mWhiteBlanceCompo, uvc_get_white_balance_component)
     }
     RETURN(ret, int);
 }
@@ -1404,8 +1405,9 @@ int UVCCameraAdjustments::setWhiteBlanceCompo(int white_blance_compo) {
 
     int ret = UVC_ERROR_IO;
     if (mPUSupports & PU_WB_COMPO) {
-        ret = internalSetCtrlValue(mWhiteBlanceCompo, white_blance_compo,
-                                   uvc_get_white_balance_component, uvc_set_white_balance_component);
+        // TODO not implemented
+//        ret = internalSetCtrlValue(mWhiteBlanceCompo, white_blance_compo,
+//                                   uvc_get_white_balance_component, uvc_set_white_balance_component);
     }
     RETURN(ret, int);
 }
@@ -1414,13 +1416,15 @@ int UVCCameraAdjustments::setWhiteBlanceCompo(int white_blance_compo) {
 int UVCCameraAdjustments::getWhiteBlanceCompo() {
 
     if (mPUSupports & PU_WB_COMPO) {
-        int ret = update_ctrl_values(mDeviceHandle, mWhiteBlanceCompo, uvc_get_white_balance_component);
-        if (LIKELY(!ret)) {    // 正常に最小・最大値を取得出来た時
-            uint32_t white_blance_compo;
-            ret = uvc_get_white_balance_component(mDeviceHandle, &white_blance_compo, UVC_GET_CUR);
-            if (LIKELY(!ret))
-                return white_blance_compo;
-        }
+        // TODO not implemented
+//        int ret = update_ctrl_values(mDeviceHandle, mWhiteBlanceCompo, uvc_get_white_balance_component);
+//        if (LIKELY(!ret)) {    // 正常に最小・最大値を取得出来た時
+//            uint16_t blue;
+//            uint16_t red;
+//            ret = uvc_get_white_balance_component(mDeviceHandle, &blue, &red, UVC_GET_CUR);
+//            if (LIKELY(!ret))
+//                return 0;
+//        }
     }
     RETURN(0, int);
 }
@@ -1577,7 +1581,7 @@ int UVCCameraAdjustments::updatePowerlineFrequencyLimit(int &min, int &max, int 
 
     int ret = UVC_ERROR_IO;
     if (mCtrlSupports & PU_POWER_LF) {
-        UPDATE_CTRL_VALUES(mPowerlineFrequency, uvc_get_powerline_freqency)
+        UPDATE_CTRL_VALUES(mPowerlineFrequency, uvc_get_power_line_frequency)
     }
     RETURN(ret, int);
 }
@@ -1589,13 +1593,13 @@ int UVCCameraAdjustments::setPowerlineFrequency(int frequency) {
     if (mPUSupports & PU_POWER_LF) {
         if (frequency < 0) {
             uint8_t value;
-            ret = uvc_get_powerline_freqency(mDeviceHandle, &value, UVC_GET_DEF);
+            ret = uvc_get_power_line_frequency(mDeviceHandle, &value, UVC_GET_DEF);
             if LIKELY(ret)
                 frequency = value;
             else RETURN(ret, int);
         }
         LOGD("frequency:%d", frequency);
-        ret = uvc_set_powerline_freqency(mDeviceHandle, frequency);
+        ret = uvc_set_power_line_frequency(mDeviceHandle, frequency);
     }
 
     RETURN(ret, int);
@@ -1606,7 +1610,7 @@ int UVCCameraAdjustments::getPowerlineFrequency() {
 
     if (mPUSupports & PU_POWER_LF) {
         uint8_t value;
-        int ret = uvc_get_powerline_freqency(mDeviceHandle, &value, UVC_GET_CUR);
+        int ret = uvc_get_power_line_frequency(mDeviceHandle, &value, UVC_GET_CUR);
         LOGD("frequency:%d", ret);
         if (LIKELY(!ret))
             return value;
@@ -1819,7 +1823,7 @@ int UVCCameraAdjustments::getAnalogVideoStandard() {
 int UVCCameraAdjustments::updateAnalogVideoLockStateLimit(int &min, int &max, int &def) {
     int ret = UVC_ERROR_IO;
     if (mPUSupports & PU_AVIDEO_LOCK) {
-        UPDATE_CTRL_VALUES(mAnalogVideoLockState, uvc_get_analog_video_lockstate)
+        UPDATE_CTRL_VALUES(mAnalogVideoLockState, uvc_get_analog_video_lock_status)
     }
     RETURN(ret, int);
 }
@@ -1828,18 +1832,18 @@ int UVCCameraAdjustments::setAnalogVideoLockState(int state) {
     int ret = UVC_ERROR_IO;
     if (mPUSupports & PU_AVIDEO_LOCK) {
 //		LOGI("status:%d", status);
-        ret = internalSetCtrlValue(mAnalogVideoLockState, state, uvc_get_analog_video_lockstate,
-                                   uvc_set_analog_video_lockstate);
+        ret = internalSetCtrlValue(mAnalogVideoLockState, state, uvc_get_analog_video_lock_status,
+                                   uvc_set_analog_video_lock_status);
     }
     RETURN(ret, int);
 }
 
 int UVCCameraAdjustments::getAnalogVideoLockState() {
     if (mPUSupports & PU_AVIDEO_LOCK) {
-        int ret = update_ctrl_values(mDeviceHandle, mAnalogVideoLockState, uvc_get_analog_video_lockstate);
+        int ret = update_ctrl_values(mDeviceHandle, mAnalogVideoLockState, uvc_get_analog_video_lock_status);
         if (LIKELY(!ret)) {    // 正常に最小・最大値を取得出来た時
             uint8_t status;
-            ret = uvc_get_analog_video_lockstate(mDeviceHandle, &status, UVC_GET_CUR);
+            ret = uvc_get_analog_video_lock_status(mDeviceHandle, &status, UVC_GET_CUR);
 //			LOGI("status:%d", status);
             if (LIKELY(!ret))
                 return status;

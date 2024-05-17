@@ -197,35 +197,36 @@ void UVCPreviewJni::clearDisplay() {
 void UVCPreviewJni::handleFrame(uint16_t deviceId,
                                 const UvcPreviewFrame &frame) {
     uvc_error_t result;
-    uvc_frame_t *rgbxFrame;
+//    uvc_frame_t *rgbxFrame;
     if (frameMode) {
         // MJPEG mode
         if (LIKELY(frame.mFrame)) {
             // TODO remove double convert MJPEG->YUYV->RGB
 //            LOGE("uvc_mjpeg2yuyv++ %llu", frame.mTimestamp.time_since_epoch().count());
             auto yuvFrame = get_frame(frame.mFrame->width * frame.mFrame->height * 4);
-            result = uvc_mjpeg2yuyv(frame.mFrame, yuvFrame);   // MJPEG => yuyv
+            result = uvc_mjpeg2rgb(frame.mFrame, yuvFrame);   // MJPEG => rgb
 //            LOGE("uvc_mjpeg2yuyv-- %llu", frame.mTimestamp.time_since_epoch().count());
             if (LIKELY(!result)) {
 //                LOGE("uvc_yuyv2rgbx++ %llu", frame.mTimestamp.time_since_epoch().count());
-                rgbxFrame = get_frame(frame.mFrame->width * frame.mFrame->height * 4);
-                result = uvc_yuyv2rgbx(yuvFrame, rgbxFrame); // yuyv => rgbx
+//                rgbxFrame = get_frame(frame.mFrame->width * frame.mFrame->height * 4);
+//                result = uvc_yuyv2rgbx(yuvFrame, rgbxFrame); // yuyv => rgbx
 //                LOGE("uvc_yuyv2rgbx-- %llu", frame.mTimestamp.time_since_epoch().count());
-                if (LIKELY(!result)) {
-                    draw_preview_rgbx(rgbxFrame);
-                }
-                recycle_frame(rgbxFrame);
+//                if (LIKELY(!result)) {
+                    draw_preview_rgbx(yuvFrame);
+//                }
+                recycle_frame(yuvFrame);
             }
             recycle_frame(yuvFrame);
         }
     } else {
-        // yuvyv mode
-        rgbxFrame = get_frame(frame.mFrame->width * frame.mFrame->height * 4);
-        result = uvc_yuyv2rgbx(frame.mFrame, rgbxFrame); // yuyv => rgbx
-        if (LIKELY(!result)) {
-            draw_preview_rgbx(rgbxFrame);
-        }
-        recycle_frame(rgbxFrame);
+        // yuvyv
+        // TODO not implemented
+//        uvc_frame_t rgbxFrame = get_frame(frame.mFrame->width * frame.mFrame->height * 4);
+//        result = uvc_yuyv2rgb(frame.mFrame, rgbxFrame); // yuyv => rgbx
+//        if (LIKELY(!result)) {
+//            draw_preview_rgbx(rgbxFrame);
+//        }
+//        recycle_frame(rgbxFrame);
     }
 }
 
