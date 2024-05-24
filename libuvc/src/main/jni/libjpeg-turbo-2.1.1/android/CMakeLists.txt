@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.18)
+cmake_minimum_required(VERSION 3.22)
 
 set(LIBJPEGTURBO ${CMAKE_CURRENT_LIST_DIR}/..)
 
@@ -14,8 +14,7 @@ set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS} ${CMAKE_ASM_FLAGS}")
 message(${ANDROID_ABI})
 if (ANDROID_ABI STREQUAL "arm64-v8a")
 	set(CPU_TYPE arm64)
-elseif (ANDROID_ABI STREQUAL "armeabi-v7a")
-	set(CPU_TYPE arm)
+elseif (ANDROID_ABI STREQUAL "arm64-v8a")
 elseif (ANDROID_ABI STREQUAL "arm64-v8a")
 elseif (ANDROID_ABI STREQUAL "x86")
 	set(CPU_TYPE x86)
