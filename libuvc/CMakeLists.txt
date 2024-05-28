@@ -23,6 +23,7 @@ set(ENABLE_STATIC TRUE)
 add_compile_definitions(LIBUVC_HAS_JPEG)
 
 include(./src/main/jni/libjpeg-turbo-1.5.0/android/CMakeLists.txt)
+include(./src/main/jni/hacks/CMakeLists.txt)
 include(./src/main/jni/common/CMakeLists.txt)
 include(./src/main/jni/libusb/android/jni/CMakeLists.txt)
 include(./src/main/jni/libuvc/android/jni/CMakeLists.txt)

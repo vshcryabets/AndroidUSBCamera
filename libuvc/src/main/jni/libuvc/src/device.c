@@ -222,9 +222,6 @@ uvc_error_t uvc_find_device2(uvc_context_t *ctx, uvc_device_t **device, int vid,
  */
 uvc_error_t uvc_get_device_with_fd(uvc_context_t *ctx, uvc_device_t **device,
 		int vid, int pid, const char *serial, int fd, int busnum, int devaddr) {
-
-	
-
 	LOGD("call libusb_get_device_with_fd");
 	struct libusb_device *usb_dev = libusb_get_device_with_fd(ctx->usb_ctx, vid, pid, serial, fd, busnum, devaddr);
 
