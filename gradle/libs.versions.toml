@@ -1,27 +1,26 @@
 [versions]
-activityCompose = "1.8.2"
+activityCompose = "1.9.0"
 compileSdk = "34"
-composeBom = "2024.04.00"
+composeBom = "2024.05.00"
 minSdk = "25"
 targetSdk = "29"
 androidMavenGradlePlugin = "2.1"
-appcompat = "1.6.1"
+appcompat = "1.7.0"
 baserecyclerviewadapterhelper = "2.9.50"
 constraintlayout = "2.1.4"
 core = "3.2.1"
-coreKtx = "1.12.0"
+coreKtx = "1.13.1"
 espressoCore = "3.5.1"
 glide = "4.16.0"
-gradle = "8.4.0"
+gradle = "8.4.1"
 junit = "4.13.2"
 junitVersion = "1.1.5"
 kotlinGradlePlugin = "1.9.20"
-lifecycleRuntimeKtx = "2.7.0"
-lifecycleViewmodelKtx = "2.7.0"
+lifecycleRuntimeKtx = "2.8.1"
+lifecycleViewmodelKtx = "2.8.1"
 kotlinxCoroutinesAndroid = "1.8.0"
-lifecycleLivedataKtx = "2.7.0"
+lifecycleLivedataKtx = "2.8.1"
 material = "1.11.0"
-mmkv = "1.2.12"
 jvmTarget = "17"
 ndk = "25.2.9519653"
 
@@ -33,9 +32,12 @@ androidx-compose-bom = { module = "androidx.compose:compose-bom", version.ref = 
 androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
 androidx-espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "espressoCore" }
+androidx-foundation = { module = "androidx.compose.foundation:foundation" }
 androidx-junit = { module = "androidx.test.ext:junit", version.ref = "junitVersion" }
 androidx-lifecycle-livedata-ktx = { module = "androidx.lifecycle:lifecycle-livedata-ktx", version.ref = "lifecycleLivedataKtx" }
 androidx-lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycleViewmodelKtx" }
+androidx-material = { module = "androidx.compose.material:material" }
+androidx-ui = { module = "androidx.compose.ui:ui" }
 core = { module = "com.afollestad.material-dialogs:core", version.ref = "core" }
 baseRecyclerViewAdapterHelper = { module = "com.github.CymChad:BaseRecyclerViewAdapterHelper", version.ref = "baserecyclerviewadapterhelper" }
 glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
@@ -45,7 +47,6 @@ kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", v
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesAndroid" }
 lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 material = { module = "com.google.android.material:material", version.ref = "material" }
-mmkv = { module = "com.tencent:mmkv", version.ref = "mmkv" }
 timber = "com.jakewharton.timber:timber:5.0.1"
 
 [plugins]

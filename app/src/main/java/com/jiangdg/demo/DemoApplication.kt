@@ -16,7 +16,6 @@
 package com.jiangdg.demo
 
 import com.jiangdg.ausbc.base.BaseApplication
-import com.jiangdg.utils.MMKVUtils
 import timber.log.Timber
 
 /**
@@ -28,6 +27,5 @@ class DemoApplication: BaseApplication() {
     override fun onCreate() {
         super.onCreate()
         Timber.plant(Timber.DebugTree())
-        MMKVUtils.init(this)
     }
 }
