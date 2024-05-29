@@ -30,5 +30,5 @@ uvc_error_t uvc_get_device_with_fd(uvc_context_t *ctx, uvc_device_t **device,
         *device = NULL;
         RETURN(UVC_ERROR_NO_DEVICE, uvc_error_t);
     }
-
 }
+

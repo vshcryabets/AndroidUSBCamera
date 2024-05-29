@@ -992,7 +992,6 @@ public class UVCCamera {
 	private final String getUSBFSName(final UsbControlBlock ctrlBlock) {
 		String result = null;
 		final String name = ctrlBlock.getDeviceName();
-		Timber.d("ASD getUSBFSName = " + name);
 		final String[] v = !TextUtils.isEmpty(name) ? name.split("/") : null;
 		if ((v != null) && (v.length > 2)) {
 			final StringBuilder sb = new StringBuilder(v[0]);
@@ -1000,7 +999,6 @@ public class UVCCamera {
 				sb.append("/").append(v[i]);
 			result = sb.toString();
 		}
-		Timber.d("ASD getUSBFSName 2 = " + result + " - " + v.length);
 		if (TextUtils.isEmpty(result)) {
 			Timber.w("ASD failed to get USBFS path, try to use default path:" + DEFAULT_USBFS);
 			result = DEFAULT_USBFS;
@@ -1018,7 +1016,13 @@ public class UVCCamera {
 	private static final native int nativeSetStatusCallback(final long mNativePtr, final IStatusCallback callback);
 	private static final native int nativeSetButtonCallback(final long mNativePtr, final IButtonCallback callback);
 
-	private static final native int nativeSetPreviewSize(final long id_camera, final int width, final int height, final int min_fps, final int max_fps, final int mode, final float bandwidth);
+	private static native int nativeSetPreviewSize(final long id_camera,
+                                                   final int width,
+                                                   final int height,
+                                                   final int min_fps,
+                                                   final int max_fps,
+                                                   final int mode,
+                                                   final float bandwidth);
 	private static native List<UvcCameraResolution> nativeGetSupportedSize(final long id_camera);
 	private static final native int nativeStartPreview(final long id_camera);
 	private static final native int nativeStopPreview(final long id_camera);

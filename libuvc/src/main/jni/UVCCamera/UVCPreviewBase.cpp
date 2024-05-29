@@ -135,7 +135,8 @@ int UVCPreviewBase::setPreviewSize(int width, int height, int min_fps, int max_f
                                                      !requestMode ? UVC_FRAME_FORMAT_YUYV : UVC_FRAME_FORMAT_MJPEG,
                                                      requestWidth,
                                                      requestHeight,
-                                                     requestMaxFps);
+                                                     0);
+        LOGE("ASD uvc_get_stream_ctrl_format_size = %d", result);
     }
     return result;
 }
@@ -180,6 +181,7 @@ int UVCPreviewBase::stopPreview() {
 void UVCPreviewBase::uvc_preview_frame_callback(uvc_frame_t *frame, void *vptr_args) {
     std::chrono::steady_clock::time_point timestamp = std::chrono::steady_clock::now();
     UVCPreviewBase *preview = reinterpret_cast<UVCPreviewBase *>(vptr_args);
+    LOGD("ASD uvc_preview_frame_callback A1");
     if UNLIKELY(!preview->isRunning() || !frame || !frame->frame_format || !frame->data || !frame->data_bytes) return;
     if (UNLIKELY(
             ((frame->frame_format != UVC_FRAME_FORMAT_MJPEG) && (frame->data_bytes < preview->frameBytes))
@@ -265,7 +267,7 @@ int UVCPreviewBase::prepare_preview(uvc_stream_ctrl_t *ctrl) {
                                                                           : UVC_FRAME_FORMAT_MJPEG,
                                                              requestWidth,
                                                              requestHeight,
-                                                             requestMaxFps);
+                                                             0);
     if (LIKELY(!result)) {
         const uvc_format_desc_t *format_desc = uvc_get_format_descs(mDeviceHandle);
 
@@ -298,9 +300,10 @@ void UVCPreviewBase::previewThreadFunc() {
                 &ctrl,
                 uvc_preview_frame_callback,
                 (void *) this, 0);
-        if (LIKELY(!result)) {
+        if (result == UVC_SUCCESS) {
             clearPreviewFramesQueue();
             while (LIKELY(isRunning())) {
+                LOGD("ASD wait");
                 auto frame = waitPreviewFrame();
                 if (isRunning() &&
                     mPreviewListener != nullptr &&
@@ -313,7 +316,7 @@ void UVCPreviewBase::previewThreadFunc() {
             }
             uvc_stop_streaming(mDeviceHandle);
         } else {
-            uvc_perror(result, "failed start_streaming");
+            LOGE("failed start_streaming %d", result);
         }
     }
 }

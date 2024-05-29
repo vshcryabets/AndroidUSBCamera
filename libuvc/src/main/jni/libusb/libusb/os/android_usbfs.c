@@ -421,8 +421,6 @@ static int kernel_version_ge(int major, int minor, int sublevel) {
 static int op_init2(struct libusb_context *ctx, const char *usbfs) {	// XXX
 	struct stat statbuf;
 	int r;
-
-	
 	if (!usbfs || !strlen(usbfs)) {
 		usbfs_path = find_usbfs_path();
 	} else {
@@ -1980,6 +1978,7 @@ static int op_detach_kernel_driver(struct libusb_device_handle *handle, int inte
 }
 
 static int op_attach_kernel_driver(struct libusb_device_handle *handle, int interface) {
+    LOGE("ASB handle_events 0");
 	const int fd = _device_handle_priv(handle)->fd;
 	struct usbfs_ioctl command;
 	int r;
@@ -2717,6 +2716,7 @@ completed:
 static int handle_iso_completion(struct libusb_device_handle *handle,	// XXX added saki
 		struct usbi_transfer *itransfer,
 		struct usbfs_urb *urb) {
+    LOGE("ASB handle_iso_completion 0");
 	struct libusb_transfer *transfer = USBI_TRANSFER_TO_LIBUSB_TRANSFER(itransfer);
 	struct android_transfer_priv *tpriv = usbi_transfer_get_os_priv(itransfer);
 	int num_urbs = tpriv->num_urbs;
@@ -2909,6 +2909,7 @@ static int handle_control_completion(struct libusb_device_handle *handle,	// XXX
 }
 
 static int reap_for_handle(struct libusb_device_handle *handle) {
+    LOGE("ASB reap_for_handle 0");
 	struct android_device_handle_priv *hpriv = _device_handle_priv(handle);
 	int r;
 	struct usbfs_urb *urb;
@@ -2950,6 +2951,7 @@ static int reap_for_handle(struct libusb_device_handle *handle) {
 
 static int op_handle_events(struct libusb_context *ctx, struct pollfd *fds,
 		POLL_NFDS_TYPE nfds, int num_ready) {
+    LOGE("ASB op_handle_events 0 %d", num_ready);
 	int r;
 	unsigned int i = 0;
 

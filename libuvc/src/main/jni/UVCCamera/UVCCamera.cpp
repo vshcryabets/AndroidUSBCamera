@@ -77,9 +77,16 @@ int UVCCamera::connect(int vid, int pid, int fd, int busnum, int devaddr, std::s
     if (!mDeviceHandle && fd) {
         mUsbFs = usbfs;
         if (UNLIKELY(!mContext)) {
-            result = uvc_init(&mContext, NULL);
+            struct libusb_context *libusb_context;
+            int res = libusb_init2(&libusb_context, usbfs.c_str());
+            if (res != LIBUSB_SUCCESS) {
+                LOGE("failed to init USB context");
+                RETURN(result, int);
+            }
+
+            result = uvc_init(&mContext, libusb_context);
             if (UNLIKELY(result < 0)) {
-                LOGD("failed to init libuvc");
+                LOGE("failed to init libuvc");
                 RETURN(result, int);
             }
         }
