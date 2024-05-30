@@ -177,21 +177,6 @@ static jint nativeRelease(JNIEnv *env, jobject thiz,
 //    RETURN(result, jint);
 //}
 
-static jint nativeSetPreviewSize(JNIEnv *env, jobject thiz,
-                                 ID_TYPE id_camera,
-                                 jint width,
-                                 jint height,
-                                 jint min_fps,
-                                 jint max_fps,
-                                 jint mode,
-                                 jfloat bandwidth) {
-    UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
-    if (LIKELY(camera)) {
-        return camera->getPreview()->setPreviewSize(width, height, min_fps, max_fps, mode, bandwidth);
-    }
-    return JNI_ERR;
-}
-
 static jint nativeStartPreview(JNIEnv *env,
                                jobject thiz,
                                ID_TYPE id_camera) {
@@ -671,7 +656,7 @@ static jint nativeSetBrightness(JNIEnv *env,
     jint result = JNI_ERR;
     UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
     if (LIKELY(camera)) {
-        LOGE("ASD nativeSetBrightness  %d", brightness);
+        LOGE("nativeSetBrightness  %d", brightness);
         result = camera->getAdjustments()->setBrightness(brightness);
     }
     return result;
@@ -2002,10 +1987,6 @@ static JNINativeMethod methods[] = {
         //
         {"nativeRelease",                           "(J)I",                                  (void *) nativeRelease},
 
-//        {"nativeSetStatusCallback",                 "(JLcom/jiangdg/uvc/IStatusCallback;)I", (void *) nativeSetStatusCallback},
-//        {"nativeSetButtonCallback",                 "(JLcom/jiangdg/uvc/IButtonCallback;)I", (void *) nativeSetButtonCallback},
-
-        {"nativeSetPreviewSize",                    "(JIIIIIF)I",                            (void *) nativeSetPreviewSize},
         {"nativeStartPreview",                      "(J)I",                                  (void *) nativeStartPreview},
         {"nativeStopPreview",                       "(J)I",                                  (void *) nativeStopPreview},
         {"nativeSetPreviewDisplay",                 "(JLandroid/view/Surface;)I",            (void *) nativeSetPreviewDisplay},
@@ -2196,11 +2177,8 @@ Java_com_jiangdg_uvc_UVCCamera_nativeGetSupportedSize(JNIEnv *env, jclass clazz,
     jmethodID uvcCameraResolutionInit = env->GetMethodID(uvcCameraResolutionCls, "<init>", "(IIIII)V");
     jobject result = env->NewObject(arrayListCls, arrayListInit);
     UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
-    LOGE("ASD nativeGetSupportedSize A01");
     if (LIKELY(camera)) {
-        LOGE("ASD nativeGetSupportedSize A02");
         auto supportedSized = camera->getSupportedSize();
-        LOGE("ASD nativeGetSupportedSize A03 %d", supportedSized.size());
         for (const auto &it: supportedSized) {
             auto resolution = env->NewObject(uvcCameraResolutionCls,
                                              uvcCameraResolutionInit,
@@ -2215,7 +2193,6 @@ Java_com_jiangdg_uvc_UVCCamera_nativeGetSupportedSize(JNIEnv *env, jclass clazz,
     }
     env->DeleteLocalRef(uvcCameraResolutionCls);
     env->DeleteLocalRef(arrayListCls);
-    LOGE("ASD nativeGetSupportedSize A04");
     return result;
 }
 
@@ -2231,7 +2208,7 @@ Java_com_jiangdg_uvc_UVCCamera_nativeConnect(JNIEnv *env, jobject thiz,
     int result = JNI_ERR;
     UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
     const char *c_usbfs = env->GetStringUTFChars(usbfs, JNI_FALSE);
-    LOGE("ASD connect to %d:%d %s", vid, pid, c_usbfs);
+    LOGI("connect to %d:%d %s", vid, pid, c_usbfs);
     if (LIKELY(camera && (file_descriptor > 0))) {
 //		libusb_set_debug(NULL, LIBUSB_LOG_LEVEL_DEBUG);
         result = camera->connect(vid, pid, file_descriptor, bus_num, dev_addr, c_usbfs);
@@ -2240,4 +2217,21 @@ Java_com_jiangdg_uvc_UVCCamera_nativeConnect(JNIEnv *env, jobject thiz,
     return result;
 }
 
+JNIEXPORT jint JNICALL
+Java_com_jiangdg_uvc_UVCCamera_nativeSetPreviewSize(JNIEnv *env,
+                                                    jobject thiz,
+                                                    ID_TYPE id_camera,
+                                                    jint width,
+                                                    jint height,
+                                                    jint min_fps,
+                                                    jint max_fps,
+                                                    jint mode,
+                                                    jfloat bandwidth) {
+    UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
+    if (LIKELY(camera)) {
+        return camera->getPreview()->setPreviewSize(width, height, min_fps, max_fps, mode,
+                                                    bandwidth);
+    }
+    return JNI_ERR;
+}
 }

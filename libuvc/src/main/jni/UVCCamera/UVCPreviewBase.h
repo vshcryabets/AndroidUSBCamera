@@ -57,6 +57,23 @@ struct UvcPreviewFrame {
     std::chrono::steady_clock::time_point mTimestamp;
 };
 
+class UvcPreviewFailed: public std::exception {
+public:
+    enum Type {
+        OK = 0,
+        NO_FORMAT,
+        START_STREAM_FAILED,
+    };
+private:
+    Type error;
+    std::string description;
+public:
+    UvcPreviewFailed(Type error, std::string description);
+    UvcPreviewFailed(UvcPreviewFailed&);
+    virtual ~UvcPreviewFailed() noexcept {};
+    virtual const char *what() noexcept;
+};
+
 class UvcPreviewListener {
 public:
     // will be called on each frame from UVC
@@ -70,6 +87,7 @@ public:
 
     // will be called once before worker thread finishing
     virtual void onPreviewFinished(uint16_t deviceId) = 0;
+    virtual void onPreviewFailed(uint16_t deviceId, UvcPreviewFailed error) = 0;
 
     virtual void onFrameDropped(uint16_t deviceId, std::chrono::steady_clock::time_point timestamp) = 0;
 };
@@ -106,8 +124,6 @@ private:
     void clearPreviewFramesQueue();
 
     void previewThreadFunc();
-
-    int prepare_preview(uvc_stream_ctrl_t *ctrl);
 
 protected:
     uvc_frame_t *get_frame(size_t data_bytes);

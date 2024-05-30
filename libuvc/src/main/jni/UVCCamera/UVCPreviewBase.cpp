@@ -119,8 +119,6 @@ inline const bool UVCPreviewBase::isRunning() const { return mIsRunning; }
 
 int UVCPreviewBase::setPreviewSize(int width, int height, int min_fps, int max_fps, int mode, float bandwidth) {
     int result = 0;
-    LOGE("ASD setPreviewSize %d %d %d bandwidth=%f minfps=%d maxfps=%d", width, height, mode, bandwidth,
-         min_fps, max_fps);
     if ((requestWidth != width) || (requestHeight != height) || (requestMode != mode)) {
         requestWidth = width;
         requestHeight = height;
@@ -130,14 +128,17 @@ int UVCPreviewBase::setPreviewSize(int width, int height, int min_fps, int max_f
         requestBandwidth = bandwidth;
 
         uvc_stream_ctrl_t ctrl;
-        result = uvc_get_stream_ctrl_format_size_fps(mDeviceHandle,
+        result = uvc_get_stream_ctrl_format_size(mDeviceHandle,
                                                      &ctrl,
                                                      !requestMode ? UVC_FRAME_FORMAT_YUYV : UVC_FRAME_FORMAT_MJPEG,
                                                      requestWidth,
                                                      requestHeight,
-                                                     requestMinFps,
-                                                     requestMaxFps);
+                                                     0);
     }
+    LOGD("setPreviewSize %dx%d@%d bandwidth=%f minfps=%d maxfps=%d res=%d", width, height,
+         mode, bandwidth,
+         min_fps, max_fps,
+         result);
     return result;
 }
 
@@ -183,12 +184,13 @@ void UVCPreviewBase::uvc_preview_frame_callback(uvc_frame_t *frame, void *vptr_a
     UVCPreviewBase *preview = reinterpret_cast<UVCPreviewBase *>(vptr_args);
     if UNLIKELY(!preview->isRunning() || !frame || !frame->frame_format || !frame->data || !frame->data_bytes) return;
     if (UNLIKELY(
-            ((frame->frame_format != UVC_FRAME_FORMAT_MJPEG) && (frame->actual_bytes < preview->frameBytes))
-            || (frame->width != preview->frameWidth) || (frame->height != preview->frameHeight))) {
+            ((frame->frame_format != UVC_FRAME_FORMAT_MJPEG) && (frame->data_bytes < preview->frameBytes)) ||
+            (frame->width != preview->frameWidth) ||
+            (frame->height != preview->frameHeight))) {
 
 #if LOCAL_DEBUG
-        LOGD("broken frame!:format=%d,actual_bytes=%d/%d(%d,%d/%d,%d)",
-             frame->frame_format, frame->actual_bytes, preview->frameBytes,
+        LOGE("broken frame!:format=%d,actual_bytes=%d/%d(%d,%d/%d,%d)",
+             frame->frame_format, frame->data_bytes, preview->frameBytes,
              frame->width, frame->height, preview->frameWidth, preview->frameHeight);
 #endif
         return;
@@ -260,61 +262,83 @@ void UVCPreviewBase::clearPreviewFramesQueue() {
     pthread_mutex_unlock(&preview_mutex);
 }
 
-int UVCPreviewBase::prepare_preview(uvc_stream_ctrl_t *ctrl) {
-    uvc_error_t result = uvc_get_stream_ctrl_format_size_fps(mDeviceHandle, ctrl,
-                                                             !requestMode ? UVC_FRAME_FORMAT_YUYV
-                                                                          : UVC_FRAME_FORMAT_MJPEG,
-                                                             requestWidth,
-                                                             requestHeight,
-                                                             requestMinFps,
-                                                             requestMaxFps);
-    if (LIKELY(!result)) {
-        uvc_frame_desc_t *frame_desc;
-        result = uvc_get_frame_desc(mDeviceHandle, ctrl, &frame_desc);
-        if (LIKELY(!result)) {
-            frameWidth = frame_desc->wWidth;
-            frameHeight = frame_desc->wHeight;
-            LOGI("frameSize=(%d,%d)@%s", frameWidth, frameHeight, (!requestMode ? "YUYV" : "MJPEG"));
-            if (mPreviewListener != nullptr)
-                mPreviewListener->onPreviewPrepared(mDeviceId, frameWidth, frameHeight);
-        } else {
-            frameWidth = requestWidth;
-            frameHeight = requestHeight;
-        }
-        frameMode = requestMode;
-        frameBytes = frameWidth * frameHeight * (!requestMode ? 2 : 4);
-//        previewBytes = frameWidth * frameHeight * PREVIEW_PIXEL_BYTES;
-    } else {
-        LOGE("could not negotiate with camera:err=%d", result);
-    }
-    return result;
-}
-
 void UVCPreviewBase::previewThreadFunc() {
     uvc_stream_ctrl_t ctrl;
-    int resultPrepare = prepare_preview(&ctrl);
-    if (LIKELY(!resultPrepare)) {
-        uvc_error_t result = uvc_start_streaming_bandwidth(
+
+    LOGI("previewThreadFunc frameSize=%dx%d@%s", requestWidth, requestHeight,
+         (!requestMode ? "YUYV" : "MJPEG"));
+
+    try {
+        uvc_error_t result = uvc_get_stream_ctrl_format_size(
+                mDeviceHandle,
+                &ctrl,
+                !requestMode ? UVC_FRAME_FORMAT_YUYV : UVC_FRAME_FORMAT_MJPEG,
+                requestWidth,
+                requestHeight,
+                0);
+        if (result)
+            throw UvcPreviewFailed(UvcPreviewFailed::NO_FORMAT, "Can't find format");
+
+        result = uvc_start_streaming(
                 mDeviceHandle,
                 &ctrl,
                 uvc_preview_frame_callback,
-                (void *) this, requestBandwidth, 0);
-        if (LIKELY(!result)) {
-            clearPreviewFramesQueue();
-            while (LIKELY(isRunning())) {
-                auto frame = waitPreviewFrame();
-                if (isRunning() &&
-                    mPreviewListener != nullptr &&
-                    frame.mFrame != nullptr)
-                    mPreviewListener->handleFrame(mDeviceId, frame);
-                recycle_frame(frame.mFrame);
-            }
-            if (mPreviewListener != nullptr) {
-                mPreviewListener->onPreviewFinished(mDeviceId);
-            }
-            uvc_stop_streaming(mDeviceHandle);
-        } else {
-            uvc_perror(result, "failed start_streaming");
+                (void *) this, 0);
+
+        if (result)
+            throw UvcPreviewFailed(UvcPreviewFailed::START_STREAM_FAILED, "Can't start streaming");
+// TODO i've always got 640x480 here
+//        const uvc_format_desc_t *format_desc = uvc_get_format_descs(mDeviceHandle);
+//
+//        if (LIKELY(format_desc)) {
+//            const uvc_frame_desc_t *frame_desc = format_desc->frame_descs;
+//            frameWidth = frame_desc->wWidth;
+//            frameHeight = frame_desc->wHeight;
+//            LOGI("ASD prepare_preview got %dx%d@%s", frameWidth, frameHeight,
+//                 (!requestMode ? "YUYV" : "MJPEG"));
+//        } else {
+//            LOGE("Can't get current format");
+            frameWidth = requestWidth;
+            frameHeight = requestHeight;
+//        }
+        frameMode = requestMode;
+        frameBytes = frameWidth * frameHeight * (!requestMode ? 2 : 4);
+
+        clearPreviewFramesQueue();
+
+        if (mPreviewListener != nullptr)
+            mPreviewListener->onPreviewPrepared(mDeviceId, frameWidth, frameHeight);
+
+        while (LIKELY(isRunning())) {
+            auto frame = waitPreviewFrame();
+            if (isRunning() &&
+                mPreviewListener != nullptr &&
+                frame.mFrame != nullptr)
+                mPreviewListener->handleFrame(mDeviceId, frame);
+            recycle_frame(frame.mFrame);
         }
+        if (mPreviewListener != nullptr) {
+            mPreviewListener->onPreviewFinished(mDeviceId);
+        }
+        uvc_stop_streaming(mDeviceHandle);
+    } catch (UvcPreviewFailed err) {
+        if (mPreviewListener != nullptr) {
+            mPreviewListener->onPreviewFailed(mDeviceId, err);
+        }
+        LOGE("Exception %s", err.what());
     }
+
+}
+
+UvcPreviewFailed::UvcPreviewFailed(UvcPreviewFailed::Type error, std::string decsription):
+        error(error), description(decsription + " code " + std::to_string(error)) {
+}
+
+const char *UvcPreviewFailed::what() noexcept {
+    return description.c_str();
+}
+
+UvcPreviewFailed::UvcPreviewFailed(UvcPreviewFailed &src) {
+    this->error = src.error;
+    this->description = src.description;
 }

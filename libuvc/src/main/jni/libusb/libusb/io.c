@@ -1560,7 +1560,6 @@ uint32_t API_EXPORTED libusb_transfer_get_stream_id(
  * will attempt to take the lock. */
 int usbi_handle_transfer_completion(struct usbi_transfer *itransfer,
 	enum libusb_transfer_status status) {
-
 	struct libusb_transfer *transfer =
 		USBI_TRANSFER_TO_LIBUSB_TRANSFER(itransfer);
 	struct libusb_context *ctx = TRANSFER_CTX(transfer);
@@ -2105,7 +2104,6 @@ redo_poll:
 		}
 	}
 #endif
-
 	r = usbi_backend->handle_events(ctx, fds, nfds, r);
 	if (UNLIKELY(r))
 		usbi_err(ctx, "backend handle_events failed with error %d", r);
@@ -2175,7 +2173,6 @@ static int get_next_timeout(libusb_context *ctx, struct timeval *tv,
  */
 int API_EXPORTED libusb_handle_events_timeout_completed(libusb_context *ctx,
 	struct timeval *tv, int *completed) {
-	
 	int r;
 	struct timeval poll_timeout;
 

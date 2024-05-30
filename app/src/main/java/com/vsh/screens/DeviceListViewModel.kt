@@ -50,7 +50,7 @@ class DeviceListViewModelFactory(
 class DeviceListViewModel(
     private val usbManager: UsbManager
 ) : ViewModel() {
-    private val _state = MutableStateFlow<DeviceListViewState>(
+    private val _state = MutableStateFlow(
         DeviceListViewState()
     )
     val state: StateFlow<DeviceListViewState> = _state

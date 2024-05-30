@@ -332,7 +332,7 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
      */
     protected fun getAllPreviewSizes(aspectRatio: Double? = null): MutableList<PreviewSize>? {
         if (getCurrentCamera() == null) {
-            Timber.e("ASD getAllPreviewSizes camera is null")
+            Timber.e("getAllPreviewSizes camera is null")
         }
         return getCurrentCamera()?.getAllPreviewSizes(aspectRatio)
     }

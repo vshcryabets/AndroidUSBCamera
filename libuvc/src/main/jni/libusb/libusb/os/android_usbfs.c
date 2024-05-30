@@ -421,8 +421,6 @@ static int kernel_version_ge(int major, int minor, int sublevel) {
 static int op_init2(struct libusb_context *ctx, const char *usbfs) {	// XXX
 	struct stat statbuf;
 	int r;
-
-	
 	if (!usbfs || !strlen(usbfs)) {
 		usbfs_path = find_usbfs_path();
 	} else {

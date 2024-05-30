@@ -20,7 +20,10 @@ set(ENABLE_STATIC TRUE)
 #include_directories(./${LIBJPEG_PATH})
 #include_directories(${CMAKE_CURRENT_BINARY_DIR}/${LIBJPEG_PATH})
 
+add_compile_definitions(LIBUVC_HAS_JPEG)
+
 include(./src/main/jni/libjpeg-turbo-1.5.0/android/CMakeLists.txt)
+include(./src/main/jni/hacks/CMakeLists.txt)
 include(./src/main/jni/common/CMakeLists.txt)
 include(./src/main/jni/libusb/android/jni/CMakeLists.txt)
 include(./src/main/jni/libuvc/android/jni/CMakeLists.txt)

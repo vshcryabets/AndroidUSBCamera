@@ -40,6 +40,7 @@
 #include <unistd.h>
 #include "UVCCamera.h"
 #include "libuvc/libuvc_internal.h"
+#include "uvchacks.h"
 
 #define    LOCAL_DEBUG 0
 
@@ -76,10 +77,16 @@ int UVCCamera::connect(int vid, int pid, int fd, int busnum, int devaddr, std::s
     if (!mDeviceHandle && fd) {
         mUsbFs = usbfs;
         if (UNLIKELY(!mContext)) {
-            result = uvc_init2(&mContext, NULL, mUsbFs.c_str());
-//			libusb_set_debug(mContext->usb_ctx, LIBUSB_LOG_LEVEL_DEBUG);
+            struct libusb_context *libusb_context;
+            int res = libusb_init2(&libusb_context, usbfs.c_str());
+            if (res != LIBUSB_SUCCESS) {
+                LOGE("failed to init USB context");
+                RETURN(result, int);
+            }
+
+            result = uvc_init(&mContext, libusb_context);
             if (UNLIKELY(result < 0)) {
-                LOGD("failed to init libuvc");
+                LOGE("failed to init libuvc");
                 RETURN(result, int);
             }
         }
@@ -87,7 +94,7 @@ int UVCCamera::connect(int vid, int pid, int fd, int busnum, int devaddr, std::s
         clearCameraParams();
         fd = dup(fd);
         // 指定したvid,idを持つデバイスを検索, 見つかれば0を返してmDeviceに見つかったデバイスをセットする(既に1回uvc_ref_deviceを呼んである)
-//		result = uvc_find_device2(mContext, &mDevice, vid, pid, NULL, fd);
+//		result = uvc_find_device(mContext, &mDevice, vid, pid, NULL, fd);
         result = uvc_get_device_with_fd(mContext, &mDevice, vid, pid, NULL, fd, busnum, devaddr);
         if (LIKELY(!result)) {
             // カメラのopen処理
