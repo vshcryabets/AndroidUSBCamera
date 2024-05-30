@@ -292,11 +292,15 @@ public class UVCCamera {
 	 * @param frameFormat either FRAME_FORMAT_YUYV(0) or FRAME_FORMAT_MJPEG(1)
 	 * @param bandwidthFactor
 	 */
-	public void setPreviewSize(final int width, final int height, final int min_fps, final int max_fps, final int frameFormat, final float bandwidthFactor) {
+	public void setPreviewSize(final int width,
+							   final int height,
+							   final int min_fps,
+							   final int max_fps,
+							   final int frameFormat,
+							   final float bandwidthFactor) {
 		if ((width == 0) || (height == 0))
 			throw new IllegalArgumentException("invalid preview size");
 		if (mNativePtr != 0) {
-			Timber.d("ASD nativeSetPreviewSize 2 " + mCurrentWidth + " " + mCurrentHeight);
 			final int result = nativeSetPreviewSize(mNativePtr, width, height, min_fps, max_fps, frameFormat, bandwidthFactor);
 			if (result != 0)
 				throw new IllegalArgumentException("Failed to set preview size " + width + "x" + height);

@@ -1113,12 +1113,12 @@ int UVCCameraAdjustments::updateBrightnessLimit(int &min, int &max, int &def) {
 }
 
 int UVCCameraAdjustments::setBrightness(int brightness) {
-    LOGE("ASD setBrightness 1  %d", brightness);
+    LOGE("setBrightness 1  %d", brightness);
     int ret = UVC_ERROR_IO;
 //    if (mPUSupports & PU_BRIGHTNESS) {
 //        ret = internalSetCtrlValue(mBrightness, brightness, uvc_get_brightness, uvc_set_brightness);
 //    }
-    LOGE("ASD setBrightness %d = %d", brightness, ret);
+    LOGE("setBrightness %d = %d", brightness, ret);
     return ret;
 }
 

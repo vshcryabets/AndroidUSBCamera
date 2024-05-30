@@ -567,13 +567,10 @@ uvc_error_t uvc_get_stream_ctrl_format_size_fps(uvc_device_handle_t *devh,
             LOGE("ASD uvc_get_stream_ctrl_format_size_fps 02");
 			if (!_uvc_frame_format_matches_guid(cf, format->guidFormat))
 				continue;
-            LOGE("ASD uvc_get_stream_ctrl_format_size_fps 03");
 			result = _uvc_get_stream_ctrl_format(devh, stream_if, ctrl, format, width, height, min_fps, max_fps);
 			if (!result) {	// UVC_SUCCESS
-                LOGE("ASD uvc_get_stream_ctrl_format_size_fps 04");
 				goto found;
 			}
-            LOGE("ASD uvc_get_stream_ctrl_format_size_fps 05 %d", result);
 		}
 	}
 

@@ -197,26 +197,18 @@ void UVCPreviewJni::clearDisplay() {
 void UVCPreviewJni::handleFrame(uint16_t deviceId,
                                 const UvcPreviewFrame &frame) {
     uvc_error_t result;
-//    uvc_frame_t *rgbxFrame;
     if (frameMode) {
         // MJPEG mode
         if (LIKELY(frame.mFrame)) {
             // TODO remove double convert MJPEG->YUYV->RGB
 //            LOGE("uvc_mjpeg2yuyv++ %llu", frame.mTimestamp.time_since_epoch().count());
-            auto yuvFrame = get_frame(frame.mFrame->width * frame.mFrame->height * 4);
-            result = uvc_mjpeg2rgb(frame.mFrame, yuvFrame);   // MJPEG => rgb
+            auto rgbFrame = uvc_allocate_frame(frame.mFrame->width * frame.mFrame->height * 3);
+            result = uvc_mjpeg2rgb(frame.mFrame, rgbFrame);   // MJPEG => rgb
 //            LOGE("uvc_mjpeg2yuyv-- %llu", frame.mTimestamp.time_since_epoch().count());
             if (LIKELY(!result)) {
-//                LOGE("uvc_yuyv2rgbx++ %llu", frame.mTimestamp.time_since_epoch().count());
-//                rgbxFrame = get_frame(frame.mFrame->width * frame.mFrame->height * 4);
-//                result = uvc_yuyv2rgbx(yuvFrame, rgbxFrame); // yuyv => rgbx
-//                LOGE("uvc_yuyv2rgbx-- %llu", frame.mTimestamp.time_since_epoch().count());
-//                if (LIKELY(!result)) {
-                    draw_preview_rgbx(yuvFrame);
-//                }
-                recycle_frame(yuvFrame);
+                draw_preview_rgb(rgbFrame);
             }
-            recycle_frame(yuvFrame);
+            uvc_free_frame(rgbFrame);
         }
     } else {
         // yuvyv
@@ -224,7 +216,7 @@ void UVCPreviewJni::handleFrame(uint16_t deviceId,
 //        uvc_frame_t rgbxFrame = get_frame(frame.mFrame->width * frame.mFrame->height * 4);
 //        result = uvc_yuyv2rgb(frame.mFrame, rgbxFrame); // yuyv => rgbx
 //        if (LIKELY(!result)) {
-//            draw_preview_rgbx(rgbxFrame);
+//            draw_preview_rgb(rgbxFrame);
 //        }
 //        recycle_frame(rgbxFrame);
     }
@@ -233,6 +225,7 @@ void UVCPreviewJni::handleFrame(uint16_t deviceId,
 void UVCPreviewJni::onPreviewPrepared(uint16_t deviceId,
                                       uint16_t frameWidth,
                                       uint16_t frameHeight) {
+    LOGI("onPreviewPrepared %d %dx%d", deviceId, frameWidth, frameHeight);
     pthread_mutex_lock(&preview_mutex);
     if (LIKELY(mPreviewWindow)) {
         ANativeWindow_setBuffersGeometry(mPreviewWindow,
@@ -242,69 +235,34 @@ void UVCPreviewJni::onPreviewPrepared(uint16_t deviceId,
 
 }
 
-static void
-copyFrame(
-        const uint8_t *src,
-        uint8_t *dest,
-        const int width, int height,
-        const int stride_src,
-        const int stride_dest) {
-    const int h8 = height % 8;
-    for (int i = 0; i < h8; i++) {
-        memcpy(dest, src, width);
-        dest += stride_dest;
-        src += stride_src;
-    }
-    for (int i = 0; i < height; i += 8) {
-        memcpy(dest, src, width);
-        dest += stride_dest;
-        src += stride_src;
-        memcpy(dest, src, width);
-        dest += stride_dest;
-        src += stride_src;
-        memcpy(dest, src, width);
-        dest += stride_dest;
-        src += stride_src;
-        memcpy(dest, src, width);
-        dest += stride_dest;
-        src += stride_src;
-        memcpy(dest, src, width);
-        dest += stride_dest;
-        src += stride_src;
-        memcpy(dest, src, width);
-        dest += stride_dest;
-        src += stride_src;
-        memcpy(dest, src, width);
-        dest += stride_dest;
-        src += stride_src;
-        memcpy(dest, src, width);
-        dest += stride_dest;
-        src += stride_src;
-    }
-}
-
 // changed to return original frame instead of returning converted frame even if convert_func is not null.
-void UVCPreviewJni::draw_preview_rgbx(
+void UVCPreviewJni::draw_preview_rgb(
         uvc_frame_t *frame) {
     ANativeWindow_Buffer buffer;
     // source = frame data
-    const uint8_t *src = (uint8_t *) frame->data;
-    const int src_w = frame->width * PREVIEW_PIXEL_BYTES;
-    const int src_step = frame->width * PREVIEW_PIXEL_BYTES;
-
     pthread_mutex_lock(&preview_mutex);
     if (mPreviewWindow != nullptr) {
         if (LIKELY(ANativeWindow_lock(mPreviewWindow, &buffer, NULL) == 0)) {
-            // destination = Surface(ANativeWindow)
-            uint8_t *dest = (uint8_t *) buffer.bits;
-            const int dest_w = buffer.width * PREVIEW_PIXEL_BYTES;
-            const int dest_step = buffer.stride * PREVIEW_PIXEL_BYTES;
             // use lower transfer bytes
-            const int w = src_w < dest_w ? src_w : dest_w;
+            const int w = frame->width < buffer.width ? frame->width : buffer.width;
             // use lower height
             const int h = frame->height < buffer.height ? frame->height : buffer.height;
             // transfer from frame data to the Surface
-            copyFrame(src, dest, w, h, src_step, dest_step);
+            uint8_t *srcBuffer = (uint8_t*)frame->data;
+            uint32_t *dest = (uint32_t *) buffer.bits;
+            uint32_t srcOffset = 0;
+            uint32_t dstOffset = 0;
+            // TODO optimize next code
+            for (uint16_t sy = 0; sy < h; sy++) {
+                for (uint16_t sx = 0; sx < w; sx++) {
+                    uint32_t rgb = srcBuffer[srcOffset] << 0 |
+                            srcBuffer[srcOffset+1] << 8 |
+                            srcBuffer[srcOffset+2] << 16;
+                    srcBuffer += 3;
+                    dest[dstOffset + sx] = 0xFF000000 | rgb;
+                }
+                dstOffset += buffer.stride;
+            }
             ANativeWindow_unlockAndPost(mPreviewWindow);
         }
     }
@@ -317,4 +275,8 @@ void UVCPreviewJni::onPreviewFinished(uint16_t deviceId) {
 
 void UVCPreviewJni::onFrameDropped(uint16_t deviceId, std::chrono::steady_clock::time_point timestamp) {
     LOGD("onFrameDropped %lld", timestamp.time_since_epoch());
+}
+
+void UVCPreviewJni::onPreviewFailed(uint16_t deviceId, UvcPreviewFailed error) {
+    LOGE("onPreviewFailed %d %s", deviceId, error.what());
 }

@@ -656,7 +656,7 @@ static jint nativeSetBrightness(JNIEnv *env,
     jint result = JNI_ERR;
     UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
     if (LIKELY(camera)) {
-        LOGE("ASD nativeSetBrightness  %d", brightness);
+        LOGE("nativeSetBrightness  %d", brightness);
         result = camera->getAdjustments()->setBrightness(brightness);
     }
     return result;
@@ -2179,7 +2179,6 @@ Java_com_jiangdg_uvc_UVCCamera_nativeGetSupportedSize(JNIEnv *env, jclass clazz,
     UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
     if (LIKELY(camera)) {
         auto supportedSized = camera->getSupportedSize();
-        LOGE("ASD nativeGetSupportedSize A03 %d", supportedSized.size());
         for (const auto &it: supportedSized) {
             auto resolution = env->NewObject(uvcCameraResolutionCls,
                                              uvcCameraResolutionInit,
@@ -2209,7 +2208,7 @@ Java_com_jiangdg_uvc_UVCCamera_nativeConnect(JNIEnv *env, jobject thiz,
     int result = JNI_ERR;
     UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
     const char *c_usbfs = env->GetStringUTFChars(usbfs, JNI_FALSE);
-    LOGE("ASD connect to %d:%d %s", vid, pid, c_usbfs);
+    LOGI("connect to %d:%d %s", vid, pid, c_usbfs);
     if (LIKELY(camera && (file_descriptor > 0))) {
 //		libusb_set_debug(NULL, LIBUSB_LOG_LEVEL_DEBUG);
         result = camera->connect(vid, pid, file_descriptor, bus_num, dev_addr, c_usbfs);
