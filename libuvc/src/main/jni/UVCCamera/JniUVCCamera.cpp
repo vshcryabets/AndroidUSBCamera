@@ -2223,13 +2223,12 @@ Java_com_jiangdg_uvc_UVCCamera_nativeSetPreviewSize(JNIEnv *env,
                                                     ID_TYPE id_camera,
                                                     jint width,
                                                     jint height,
-                                                    jint min_fps,
-                                                    jint max_fps,
+                                                    jint fps,
                                                     jint mode,
                                                     jfloat bandwidth) {
     UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
     if (LIKELY(camera)) {
-        return camera->getPreview()->setPreviewSize(width, height, min_fps, max_fps, mode,
+        return camera->getPreview()->setPreviewSize(width, height, fps, mode,
                                                     bandwidth);
     }
     return JNI_ERR;

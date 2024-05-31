@@ -142,7 +142,6 @@ class CameraUvcStrategy(ctx: Context) : ICameraStrategy(ctx) {
                     request.previewWidth,
                     request.previewHeight,
                     MIN_FS,
-                    MAX_FS,
                     UVCCamera.FRAME_FORMAT_MJPEG,
                     UVCCamera.DEFAULT_BANDWIDTH
                 )
@@ -158,7 +157,6 @@ class CameraUvcStrategy(ctx: Context) : ICameraStrategy(ctx) {
                         request.previewWidth,
                         request.previewHeight,
                         MIN_FS,
-                        MAX_FS,
                         UVCCamera.FRAME_FORMAT_YUYV,
                         UVCCamera.DEFAULT_BANDWIDTH
                     )
@@ -795,8 +793,7 @@ class CameraUvcStrategy(ctx: Context) : ICameraStrategy(ctx) {
 
     companion object {
         private const val TAG = "CameraUvc"
-        private const val MIN_FS = 10
-        private const val MAX_FS = 60
+        private const val MIN_FS = 0
         private const val MAX_NV21_DATA = 5
         private const val CAPTURE_TIMES_OUT_SEC = 1L
     }

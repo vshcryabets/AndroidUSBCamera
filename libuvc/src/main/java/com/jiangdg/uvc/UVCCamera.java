@@ -46,8 +46,7 @@ public class UVCCamera {
 	public static final int FRAME_FORMAT_YUYV = 0;
 	public static final int FRAME_FORMAT_MJPEG = 1;
 
-	public static final int DEFAULT_PREVIEW_MIN_FPS = 1;
-	public static final int DEFAULT_PREVIEW_MAX_FPS = 31;
+	public static final int DEFAULT_PREVIEW_FPS = 0;
 	public static final float DEFAULT_BANDWIDTH = 1.0f;
 	public static final int DEFAULT_PREVIEW_MODE = FRAME_FORMAT_MJPEG;
 
@@ -259,7 +258,7 @@ public class UVCCamera {
 	   @param height
 	 */
 	public void setPreviewSize(final int width, final int height) {
-		setPreviewSize(width, height, DEFAULT_PREVIEW_MIN_FPS, DEFAULT_PREVIEW_MAX_FPS, mCurrentFrameFormat, mCurrentBandwidthFactor);
+		setPreviewSize(width, height, DEFAULT_PREVIEW_FPS, mCurrentFrameFormat, mCurrentBandwidthFactor);
 	}
 
 	/**
@@ -269,7 +268,7 @@ public class UVCCamera {
 	 * @param frameFormat either FRAME_FORMAT_YUYV(0) or FRAME_FORMAT_MJPEG(1)
 	 */
 	public void setPreviewSize(final int width, final int height, final int frameFormat) {
-		setPreviewSize(width, height, DEFAULT_PREVIEW_MIN_FPS, DEFAULT_PREVIEW_MAX_FPS, frameFormat, mCurrentBandwidthFactor);
+		setPreviewSize(width, height, DEFAULT_PREVIEW_FPS, frameFormat, mCurrentBandwidthFactor);
 	}
 
 	/**
@@ -280,28 +279,26 @@ public class UVCCamera {
 	   @param bandwidth [0.0f,1.0f]
 	 */
 	public void setPreviewSize(final int width, final int height, final int frameFormat, final float bandwidth) {
-		setPreviewSize(width, height, DEFAULT_PREVIEW_MIN_FPS, DEFAULT_PREVIEW_MAX_FPS, frameFormat, bandwidth);
+		setPreviewSize(width, height, DEFAULT_PREVIEW_FPS, frameFormat, bandwidth);
 	}
 
 	/**
 	 * Set preview size and preview mode
 	 * @param width
 	 * @param height
-	 * @param min_fps
-	 * @param max_fps
+	 * @param fps 0 - any fps
 	 * @param frameFormat either FRAME_FORMAT_YUYV(0) or FRAME_FORMAT_MJPEG(1)
 	 * @param bandwidthFactor
 	 */
 	public void setPreviewSize(final int width,
 							   final int height,
-							   final int min_fps,
-							   final int max_fps,
+							   final int fps,
 							   final int frameFormat,
 							   final float bandwidthFactor) {
 		if ((width == 0) || (height == 0))
 			throw new IllegalArgumentException("invalid preview size");
 		if (mNativePtr != 0) {
-			final int result = nativeSetPreviewSize(mNativePtr, width, height, min_fps, max_fps, frameFormat, bandwidthFactor);
+			final int result = nativeSetPreviewSize(mNativePtr, width, height, fps, frameFormat, bandwidthFactor);
 			if (result != 0)
 				throw new IllegalArgumentException("Failed to set preview size " + width + "x" + height);
 			mCurrentFrameFormat = frameFormat;
@@ -1023,8 +1020,7 @@ public class UVCCamera {
 	private static native int nativeSetPreviewSize(final long id_camera,
                                                    final int width,
                                                    final int height,
-                                                   final int min_fps,
-                                                   final int max_fps,
+                                                   final int fps,
                                                    final int mode,
                                                    final float bandwidth);
 	private static native List<UvcCameraResolution> nativeGetSupportedSize(final long id_camera);

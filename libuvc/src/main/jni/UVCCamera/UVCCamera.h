@@ -68,6 +68,10 @@ public:
 	int getProcSupports(uint64_t *supports);
     std::shared_ptr<UVCPreviewBase> getPreview() const;
     std::shared_ptr<UVCCameraAdjustments> getAdjustments() const;
+
+    // hacks for UAC
+    virtual uvc_device_t *getUvcDevice();
+    virtual uvc_device_handle_t  *getUvcDeviceHandle();
 };
 
 class UVCCameraJniImpl : public UVCCamera {

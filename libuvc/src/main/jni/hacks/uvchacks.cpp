@@ -10,8 +10,8 @@
  * generate fake libusb_device according to specific params
  * and set it to uvc_device_t to access UVC device on Android7 or later
  */
-uvc_error_t uvc_get_device_with_fd(uvc_context_t *ctx, uvc_device_t **device,
-                                   int vid, int pid, const char *serial, int fd, int busnum, int devaddr) {
+uvc_error_t uvchack_get_device_with_fd(uvc_context_t *ctx, uvc_device_t **device,
+                                       int vid, int pid, const char *serial, int fd, int busnum, int devaddr) {
     LOGD("call libusb_get_device_with_fd");
     ctx->own_usb_ctx = 1; // workaround for usb initialization in libuvc
     struct libusb_device *usb_dev = libusb_get_device_with_fd(ctx->usb_ctx, vid,
@@ -32,4 +32,9 @@ uvc_error_t uvc_get_device_with_fd(uvc_context_t *ctx, uvc_device_t **device,
         RETURN(UVC_ERROR_NO_DEVICE, uvc_error_t);
     }
 }
+
+libusb_device* uvchack_get_usb_device(uvc_device_t *device) {
+    return device->usb_dev;
+}
+
 

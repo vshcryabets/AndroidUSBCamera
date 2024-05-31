@@ -95,7 +95,7 @@ int UVCCamera::connect(int vid, int pid, int fd, int busnum, int devaddr, std::s
         fd = dup(fd);
         // 指定したvid,idを持つデバイスを検索, 見つかれば0を返してmDeviceに見つかったデバイスをセットする(既に1回uvc_ref_deviceを呼んである)
 //		result = uvc_find_device(mContext, &mDevice, vid, pid, NULL, fd);
-        result = uvc_get_device_with_fd(mContext, &mDevice, vid, pid, NULL, fd, busnum, devaddr);
+        result = uvchack_get_device_with_fd(mContext, &mDevice, vid, pid, NULL, fd, busnum, devaddr);
         if (LIKELY(!result)) {
             // カメラのopen処理
             result = uvc_open(mDevice, &mDeviceHandle);
@@ -241,6 +241,14 @@ std::shared_ptr<UVCPreviewBase> UVCCamera::getPreview() const {
 
 std::shared_ptr<UVCCameraAdjustments> UVCCamera::getAdjustments() const {
     return mCameraConfig;
+}
+
+uvc_device_t *UVCCamera::getUvcDevice() {
+    return mDevice;
+}
+
+uvc_device_handle_t *UVCCamera::getUvcDeviceHandle() {
+    return mDeviceHandle;
 }
 
 UVCCameraJniImpl::UVCCameraJniImpl() : UVCCamera() {

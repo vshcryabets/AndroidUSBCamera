@@ -39,8 +39,7 @@ UVCPreviewBase::UVCPreviewBase(uvc_device_handle_t *devh,
         : mDeviceHandle(devh),
           requestWidth(DEFAULT_PREVIEW_WIDTH),
           requestHeight(DEFAULT_PREVIEW_HEIGHT),
-          requestMinFps(DEFAULT_PREVIEW_FPS_MIN),
-          requestMaxFps(DEFAULT_PREVIEW_FPS_MAX),
+          requestFps(0),
           requestMode(DEFAULT_PREVIEW_MODE),
           requestBandwidth(DEFAULT_BANDWIDTH),
           frameWidth(DEFAULT_PREVIEW_WIDTH),
@@ -117,13 +116,12 @@ void UVCPreviewBase::clear_pool() {
 
 inline const bool UVCPreviewBase::isRunning() const { return mIsRunning; }
 
-int UVCPreviewBase::setPreviewSize(int width, int height, int min_fps, int max_fps, int mode, float bandwidth) {
+int UVCPreviewBase::setPreviewSize(int width, int height, int fps, int mode, float bandwidth) {
     int result = 0;
     if ((requestWidth != width) || (requestHeight != height) || (requestMode != mode)) {
         requestWidth = width;
         requestHeight = height;
-        requestMinFps = min_fps;
-        requestMaxFps = max_fps;
+        requestFps = fps;
         requestMode = mode;
         requestBandwidth = bandwidth;
 
@@ -133,11 +131,11 @@ int UVCPreviewBase::setPreviewSize(int width, int height, int min_fps, int max_f
                                                      !requestMode ? UVC_FRAME_FORMAT_YUYV : UVC_FRAME_FORMAT_MJPEG,
                                                      requestWidth,
                                                      requestHeight,
-                                                     0);
+                                                     requestFps);
     }
-    LOGD("setPreviewSize %dx%d@%d bandwidth=%f minfps=%d maxfps=%d res=%d", width, height,
+    LOGD("setPreviewSize %dx%d@%d bandwidth=%f fps=%d res=%d", width, height,
          mode, bandwidth,
-         min_fps, max_fps,
+         fps,
          result);
     return result;
 }
