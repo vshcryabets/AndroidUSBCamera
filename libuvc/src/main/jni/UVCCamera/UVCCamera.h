@@ -41,6 +41,7 @@ struct UvcCameraResolution {
     const uint8_t frameIndex;
     const uint16_t width;
     const uint16_t height;
+    std::vector<uint32_t> frameIntervals; // in 100ns units
 };
 
 class UVCCamera {
@@ -68,6 +69,10 @@ public:
 	int getProcSupports(uint64_t *supports);
     std::shared_ptr<UVCPreviewBase> getPreview() const;
     std::shared_ptr<UVCCameraAdjustments> getAdjustments() const;
+
+    // hacks for UAC
+    virtual uvc_device_t *getUvcDevice();
+    virtual uvc_device_handle_t  *getUvcDeviceHandle();
 };
 
 class UVCCameraJniImpl : public UVCCamera {

@@ -2171,28 +2171,40 @@ extern "C" {
 JNIEXPORT jobject JNICALL
 Java_com_jiangdg_uvc_UVCCamera_nativeGetSupportedSize(JNIEnv *env, jclass clazz, jlong id_camera) {
     jclass arrayListCls = env->FindClass("java/util/ArrayList");
+    jclass integerClass = env->FindClass("java/lang/Integer");
     jmethodID arrayListInit = env->GetMethodID(arrayListCls, "<init>", "()V");
     jmethodID arrayListAdd = env->GetMethodID(arrayListCls, "add", "(Ljava/lang/Object;)Z");
+    jmethodID initInteger =  env->GetMethodID( integerClass, "<init>", "(I)V");
     jclass uvcCameraResolutionCls = env->FindClass("com/vsh/uvc/UvcCameraResolution");
-    jmethodID uvcCameraResolutionInit = env->GetMethodID(uvcCameraResolutionCls, "<init>", "(IIIII)V");
+    jmethodID uvcCameraResolutionInit = env->GetMethodID(uvcCameraResolutionCls, "<init>", "(IIIIILjava/util/List;)V");
     jobject result = env->NewObject(arrayListCls, arrayListInit);
     UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
     if (LIKELY(camera)) {
         auto supportedSized = camera->getSupportedSize();
         for (const auto &it: supportedSized) {
+            jobject intervalsList = env->NewObject(arrayListCls, arrayListInit);
+            for (const auto &interval: it.frameIntervals) {
+                jobject intervalObject = env->NewObject(integerClass, initInteger, (jint)interval);
+                env->CallBooleanMethod(intervalsList, arrayListAdd, intervalObject);
+                env->DeleteLocalRef(intervalObject);
+            }
+
             auto resolution = env->NewObject(uvcCameraResolutionCls,
                                              uvcCameraResolutionInit,
                                              it.id,
                                              it.subtype,
                                              it.frameIndex,
                                              it.width,
-                                             it.height);
+                                             it.height,
+                                             intervalsList);
             env->CallBooleanMethod(result, arrayListAdd, resolution);
             env->DeleteLocalRef(resolution);
+            env->DeleteLocalRef(intervalsList);
         }
     }
     env->DeleteLocalRef(uvcCameraResolutionCls);
     env->DeleteLocalRef(arrayListCls);
+    env->DeleteLocalRef(integerClass);
     return result;
 }
 
@@ -2223,13 +2235,15 @@ Java_com_jiangdg_uvc_UVCCamera_nativeSetPreviewSize(JNIEnv *env,
                                                     ID_TYPE id_camera,
                                                     jint width,
                                                     jint height,
-                                                    jint min_fps,
-                                                    jint max_fps,
+                                                    jfloat fps,
                                                     jint mode,
                                                     jfloat bandwidth) {
     UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
     if (LIKELY(camera)) {
-        return camera->getPreview()->setPreviewSize(width, height, min_fps, max_fps, mode,
+        return camera->getPreview()->setPreviewSize(width,
+                                                    height,
+                                                    (uint16_t)fps,
+                                                    mode,
                                                     bandwidth);
     }
     return JNI_ERR;

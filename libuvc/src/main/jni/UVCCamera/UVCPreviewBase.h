@@ -97,9 +97,10 @@ class UVCPreviewBase {
 protected:
     uvc_device_handle_t *mDeviceHandle;
     volatile bool mIsRunning;
+
     int requestWidth, requestHeight, requestMode;
-    int requestMinFps, requestMaxFps;
-    float requestBandwidth;
+    uint16_t requestFps;
+
     uint16_t frameWidth, frameHeight;
     int frameMode;
     size_t frameBytes;
@@ -143,7 +144,14 @@ public:
 
     inline const bool isRunning() const;
 
-    int setPreviewSize(int width, int height, int min_fps, int max_fps, int mode, float bandwidth = 1.0f);
+    /**
+     *
+     * @param fps 0 - any FPS
+     */
+    int setPreviewSize(int width, int height,
+                       int fps,
+                       int mode,
+                       float bandwidth = 1.0f);
 
     int startPreview();
 

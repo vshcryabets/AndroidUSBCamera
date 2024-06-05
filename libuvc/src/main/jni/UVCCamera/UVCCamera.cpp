@@ -41,6 +41,7 @@
 #include "UVCCamera.h"
 #include "libuvc/libuvc_internal.h"
 #include "uvchacks.h"
+#include <vector>
 
 #define    LOCAL_DEBUG 0
 
@@ -95,7 +96,7 @@ int UVCCamera::connect(int vid, int pid, int fd, int busnum, int devaddr, std::s
         fd = dup(fd);
         // 指定したvid,idを持つデバイスを検索, 見つかれば0を返してmDeviceに見つかったデバイスをセットする(既に1回uvc_ref_deviceを呼んである)
 //		result = uvc_find_device(mContext, &mDevice, vid, pid, NULL, fd);
-        result = uvc_get_device_with_fd(mContext, &mDevice, vid, pid, NULL, fd, busnum, devaddr);
+        result = uvchack_get_device_with_fd(mContext, &mDevice, vid, pid, NULL, fd, busnum, devaddr);
         if (LIKELY(!result)) {
             // カメラのopen処理
             result = uvc_open(mDevice, &mDeviceHandle);
@@ -163,12 +164,17 @@ std::vector<UvcCameraResolution> UVCCamera::getSupportedSize() {
                         for (const auto *frame_desc = fmt_desc->frame_descs;
                              frame_desc;
                              frame_desc = frame_desc->next) {
+                            std::vector<uint32_t> intervals;
+                            for (auto interval = frame_desc->intervals; *interval; ++interval) {
+                                intervals.push_back(*interval);
+                            }
                             result.push_back({
                                                      .id =  fmt_desc->bFormatIndex,
                                                      .subtype = (uint8_t) fmt_desc->bDescriptorSubtype,
                                                      .frameIndex = fmt_desc->bDefaultFrameIndex,
                                                      .width = frame_desc->wWidth,
-                                                     .height = frame_desc->wHeight
+                                                     .height = frame_desc->wHeight,
+                                                     .frameIntervals = intervals
                                              });
                         }
                         break;
@@ -241,6 +247,14 @@ std::shared_ptr<UVCPreviewBase> UVCCamera::getPreview() const {
 
 std::shared_ptr<UVCCameraAdjustments> UVCCamera::getAdjustments() const {
     return mCameraConfig;
+}
+
+uvc_device_t *UVCCamera::getUvcDevice() {
+    return mDevice;
+}
+
+uvc_device_handle_t *UVCCamera::getUvcDeviceHandle() {
+    return mDeviceHandle;
 }
 
 UVCCameraJniImpl::UVCCameraJniImpl() : UVCCamera() {
