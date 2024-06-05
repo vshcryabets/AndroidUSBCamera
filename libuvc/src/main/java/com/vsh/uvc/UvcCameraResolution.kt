@@ -17,7 +17,7 @@
  *   limitations under the License.
  *
  *  All files in the folder are under this Apache License, Version 2.0.
- *  Files in the libjpeg-turbo, libusb, libuvc, rapidjson folder
+ *  Files in the libjpeg-turbo, libusb, libuvc folder
  *  may have a different license, see the respective files.
  */
 package com.vsh.uvc
@@ -28,4 +28,5 @@ data class UvcCameraResolution(
     val frameIndex: Int,
     val width: Int,
     val height: Int,
+    val frameIntervals: List<Int>, // in 100ns units
 )

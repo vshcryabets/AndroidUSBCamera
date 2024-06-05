@@ -28,6 +28,7 @@
 #include "utilbase.h"
 #include "UVCPreviewBase.h"
 #include "libuvc/libuvc_internal.h"
+#include "uvchacks.h"
 
 #define LOCAL_DEBUG 1
 
@@ -41,7 +42,6 @@ UVCPreviewBase::UVCPreviewBase(uvc_device_handle_t *devh,
           requestHeight(DEFAULT_PREVIEW_HEIGHT),
           requestFps(0),
           requestMode(DEFAULT_PREVIEW_MODE),
-          requestBandwidth(DEFAULT_BANDWIDTH),
           frameWidth(DEFAULT_PREVIEW_WIDTH),
           frameHeight(DEFAULT_PREVIEW_HEIGHT),
           frameBytes(DEFAULT_PREVIEW_WIDTH * DEFAULT_PREVIEW_HEIGHT * 2),    // YUYV
@@ -116,14 +116,17 @@ void UVCPreviewBase::clear_pool() {
 
 inline const bool UVCPreviewBase::isRunning() const { return mIsRunning; }
 
-int UVCPreviewBase::setPreviewSize(int width, int height, int fps, int mode, float bandwidth) {
+int UVCPreviewBase::setPreviewSize(int width,
+                                   int height,
+                                   int fps,
+                                   int mode,
+                                   float bandwidth) {
     int result = 0;
     if ((requestWidth != width) || (requestHeight != height) || (requestMode != mode)) {
         requestWidth = width;
         requestHeight = height;
         requestFps = fps;
         requestMode = mode;
-        requestBandwidth = bandwidth;
 
         uvc_stream_ctrl_t ctrl;
         result = uvc_get_stream_ctrl_format_size(mDeviceHandle,
@@ -135,7 +138,7 @@ int UVCPreviewBase::setPreviewSize(int width, int height, int fps, int mode, flo
     }
     LOGD("setPreviewSize %dx%d@%d bandwidth=%f fps=%d res=%d", width, height,
          mode, bandwidth,
-         fps,
+         requestFps,
          result);
     return result;
 }
@@ -273,7 +276,7 @@ void UVCPreviewBase::previewThreadFunc() {
                 !requestMode ? UVC_FRAME_FORMAT_YUYV : UVC_FRAME_FORMAT_MJPEG,
                 requestWidth,
                 requestHeight,
-                0);
+                requestFps);
         if (result)
             throw UvcPreviewFailed(UvcPreviewFailed::NO_FORMAT, "Can't find format");
 

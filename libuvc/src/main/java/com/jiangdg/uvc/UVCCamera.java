@@ -205,6 +205,7 @@ public class UVCCamera {
 		mCurrentFrameFormat = FRAME_FORMAT_MJPEG;
     	if (mNativePtr != 0 && mSupportedSize.isEmpty()) {
     		mSupportedSize = nativeGetSupportedSize(mNativePtr);
+			Timber.d("Camera supported formats %s", mSupportedSize.toString());
     	}
     	if (USBMonitor.DEBUG) {
     		Timber.i("open camera status: " + mNativePtr +", size: " + mSupportedSize);
@@ -524,7 +525,7 @@ public class UVCCamera {
 	public synchronized void setBrightness(final int brightness) {
     	if (mNativePtr != 0) {
  		   final float range = Math.abs(mBrightnessMax - mBrightnessMin);
-			Timber.d("ASD setBrightness " + mBrightnessMax + " " + mBrightnessMin + " " + brightness);
+			Timber.d("setBrightness " + mBrightnessMax + " " + mBrightnessMin + " " + brightness);
  		   if (range > 0)
  			   nativeSetBrightness(mNativePtr, (int)(brightness / 100.f * range) + mBrightnessMin);
     	}
@@ -1001,7 +1002,7 @@ public class UVCCamera {
 			result = sb.toString();
 		}
 		if (TextUtils.isEmpty(result)) {
-			Timber.w("ASD failed to get USBFS path, try to use default path:" + DEFAULT_USBFS);
+			Timber.w("failed to get USBFS path, try to use default path:" + DEFAULT_USBFS);
 			result = DEFAULT_USBFS;
 		}
 		return name;
@@ -1020,7 +1021,7 @@ public class UVCCamera {
 	private static native int nativeSetPreviewSize(final long id_camera,
                                                    final int width,
                                                    final int height,
-                                                   final int fps,
+                                                   final float fps,
                                                    final int mode,
                                                    final float bandwidth);
 	private static native List<UvcCameraResolution> nativeGetSupportedSize(final long id_camera);
