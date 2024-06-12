@@ -2243,7 +2243,6 @@ Java_com_jiangdg_uvc_UVCCamera_nativeSetPreviewSize(JNIEnv *env,
         return camera->getPreview()->setPreviewSize(width,
                                                     height,
                                                     (uint16_t)fps,
-                                                    mode,
                                                     bandwidth);
     }
     return JNI_ERR;

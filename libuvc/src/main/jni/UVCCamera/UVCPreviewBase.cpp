@@ -41,11 +41,8 @@ UVCPreviewBase::UVCPreviewBase(uvc_device_handle_t *devh,
           requestWidth(DEFAULT_PREVIEW_WIDTH),
           requestHeight(DEFAULT_PREVIEW_HEIGHT),
           requestFps(0),
-          requestMode(DEFAULT_PREVIEW_MODE),
           frameWidth(DEFAULT_PREVIEW_WIDTH),
           frameHeight(DEFAULT_PREVIEW_HEIGHT),
-          frameBytes(DEFAULT_PREVIEW_WIDTH * DEFAULT_PREVIEW_HEIGHT * 2),    // YUYV
-          frameMode(0),
           mIsRunning(false),
           mDeviceId(deviceId),
           mPreviewListener(previewListener),
@@ -119,25 +116,23 @@ inline const bool UVCPreviewBase::isRunning() const { return mIsRunning; }
 int UVCPreviewBase::setPreviewSize(int width,
                                    int height,
                                    int fps,
-                                   int mode,
                                    float bandwidth) {
     int result = 0;
-    if ((requestWidth != width) || (requestHeight != height) || (requestMode != mode)) {
+    if ((requestWidth != width) || (requestHeight != height)) {
         requestWidth = width;
         requestHeight = height;
         requestFps = fps;
-        requestMode = mode;
 
         uvc_stream_ctrl_t ctrl;
         result = uvc_get_stream_ctrl_format_size(mDeviceHandle,
                                                      &ctrl,
-                                                     !requestMode ? UVC_FRAME_FORMAT_YUYV : UVC_FRAME_FORMAT_MJPEG,
+                                                     UVC_FRAME_FORMAT_ANY,
                                                      requestWidth,
                                                      requestHeight,
                                                      requestFps);
     }
-    LOGD("setPreviewSize %dx%d@%d bandwidth=%f fps=%d res=%d", width, height,
-         mode, bandwidth,
+    LOGD("setPreviewSize %dx%d bandwidth=%f fps=%d res=%d", width, height,
+         bandwidth,
          requestFps,
          result);
     return result;
@@ -185,13 +180,12 @@ void UVCPreviewBase::uvc_preview_frame_callback(uvc_frame_t *frame, void *vptr_a
     UVCPreviewBase *preview = reinterpret_cast<UVCPreviewBase *>(vptr_args);
     if UNLIKELY(!preview->isRunning() || !frame || !frame->frame_format || !frame->data || !frame->data_bytes) return;
     if (UNLIKELY(
-            ((frame->frame_format != UVC_FRAME_FORMAT_MJPEG) && (frame->data_bytes < preview->frameBytes)) ||
             (frame->width != preview->frameWidth) ||
             (frame->height != preview->frameHeight))) {
 
 #if LOCAL_DEBUG
-        LOGE("broken frame!:format=%d,actual_bytes=%d/%d(%d,%d/%d,%d)",
-             frame->frame_format, frame->data_bytes, preview->frameBytes,
+        LOGE("broken frame!:format=%d,actual_bytes=%d(%d,%d/%d,%d)",
+             frame->frame_format, frame->data_bytes,
              frame->width, frame->height, preview->frameWidth, preview->frameHeight);
 #endif
         return;
@@ -266,14 +260,13 @@ void UVCPreviewBase::clearPreviewFramesQueue() {
 void UVCPreviewBase::previewThreadFunc() {
     uvc_stream_ctrl_t ctrl;
 
-    LOGI("previewThreadFunc frameSize=%dx%d@%s", requestWidth, requestHeight,
-         (!requestMode ? "YUYV" : "MJPEG"));
+    LOGI("previewThreadFunc frameSize=%dx%d", requestWidth, requestHeight);
 
     try {
         uvc_error_t result = uvc_get_stream_ctrl_format_size(
                 mDeviceHandle,
                 &ctrl,
-                !requestMode ? UVC_FRAME_FORMAT_YUYV : UVC_FRAME_FORMAT_MJPEG,
+                UVC_FRAME_FORMAT_ANY,
                 requestWidth,
                 requestHeight,
                 requestFps);
@@ -302,8 +295,6 @@ void UVCPreviewBase::previewThreadFunc() {
             frameWidth = requestWidth;
             frameHeight = requestHeight;
 //        }
-        frameMode = requestMode;
-        frameBytes = frameWidth * frameHeight * (!requestMode ? 2 : 4);
 
         clearPreviewFramesQueue();
 

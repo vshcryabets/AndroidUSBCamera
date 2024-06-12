@@ -38,7 +38,6 @@
 #define DEFAULT_PREVIEW_HEIGHT 480
 #define DEFAULT_PREVIEW_FPS_MIN 1
 #define DEFAULT_PREVIEW_FPS_MAX 30
-#define DEFAULT_PREVIEW_MODE 0
 #define DEFAULT_BANDWIDTH 1.0f
 #define PREVIEW_PIXEL_BYTES 4    // RGBA/RGBX
 
@@ -98,12 +97,10 @@ protected:
     uvc_device_handle_t *mDeviceHandle;
     volatile bool mIsRunning;
 
-    int requestWidth, requestHeight, requestMode;
+    int requestWidth, requestHeight;
     uint16_t requestFps;
 
     uint16_t frameWidth, frameHeight;
-    int frameMode;
-    size_t frameBytes;
     pthread_mutex_t preview_mutex;
     pthread_cond_t preview_sync;
     std::list<UvcPreviewFrame> mPreviewFrames;
@@ -150,7 +147,6 @@ public:
      */
     int setPreviewSize(int width, int height,
                        int fps,
-                       int mode,
                        float bandwidth = 1.0f);
 
     int startPreview();
