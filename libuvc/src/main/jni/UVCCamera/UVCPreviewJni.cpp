@@ -197,28 +197,13 @@ void UVCPreviewJni::clearDisplay() {
 void UVCPreviewJni::handleFrame(uint16_t deviceId,
                                 const UvcPreviewFrame &frame) {
     uvc_error_t result;
-    if (frameMode) {
-        // MJPEG mode
-        if (LIKELY(frame.mFrame)) {
-            // TODO remove double convert MJPEG->YUYV->RGB
-//            LOGE("uvc_mjpeg2yuyv++ %llu", frame.mTimestamp.time_since_epoch().count());
-            auto rgbFrame = uvc_allocate_frame(frame.mFrame->width * frame.mFrame->height * 3);
-            result = uvc_mjpeg2rgb(frame.mFrame, rgbFrame);   // MJPEG => rgb
-//            LOGE("uvc_mjpeg2yuyv-- %llu", frame.mTimestamp.time_since_epoch().count());
-            if (LIKELY(!result)) {
-                draw_preview_rgb(rgbFrame);
-            }
-            uvc_free_frame(rgbFrame);
+    if (LIKELY(frame.mFrame)) {
+        auto rgbFrame = uvc_allocate_frame(frame.mFrame->width * frame.mFrame->height * 3);
+        result = uvc_any2rgb(frame.mFrame, rgbFrame);
+        if (LIKELY(!result)) {
+            draw_preview_rgb(rgbFrame);
         }
-    } else {
-        // yuvyv
-        // TODO not implemented
-//        uvc_frame_t rgbxFrame = get_frame(frame.mFrame->width * frame.mFrame->height * 4);
-//        result = uvc_yuyv2rgb(frame.mFrame, rgbxFrame); // yuyv => rgbx
-//        if (LIKELY(!result)) {
-//            draw_preview_rgb(rgbxFrame);
-//        }
-//        recycle_frame(rgbxFrame);
+        uvc_free_frame(rgbFrame);
     }
 }
 
