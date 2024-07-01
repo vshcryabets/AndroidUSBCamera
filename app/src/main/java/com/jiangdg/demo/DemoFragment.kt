@@ -53,7 +53,6 @@ import com.jiangdg.ausbc.utils.bus.EventBus
 import com.jiangdg.ausbc.widget.AspectRatioTextureView
 import com.jiangdg.ausbc.widget.CaptureMediaView
 import com.jiangdg.ausbc.widget.IAspectRatio
-import com.jiangdg.demo.databinding.DialogMoreBinding
 import com.jiangdg.demo.databinding.FragmentDemoBinding
 import timber.log.Timber
 import java.util.Timer
@@ -64,8 +63,6 @@ import java.util.TimerTask
  * @author Created by jiangdg on 2022/1/28
  */
 class DemoFragment : CameraFragment(), View.OnClickListener, CaptureMediaView.OnViewClickListener {
-    private var mMultiCameraDialog: MultiCameraDialog? = null
-    private lateinit var mMoreBindingView: DialogMoreBinding
     private var mMoreMenu: PopupWindow? = null
     private var isCapturingVideoOrAudio: Boolean = false
     private var mRecTimer: Timer? = null
@@ -265,14 +262,9 @@ class DemoFragment : CameraFragment(), View.OnClickListener, CaptureMediaView.On
 
     override fun onDestroyView() {
         super.onDestroyView()
-        mMultiCameraDialog?.hide()
     }
 
     override fun onClick(v: View?) {
-//        if (! isCameraOpened()) {
-//            ToastUtils.show("camera not worked!")
-//            return
-//        }
         clickAnimation(v!!, object : AnimatorListenerAdapter() {
             override fun onAnimationEnd(animation: Animator) {
                 when (v) {
@@ -280,12 +272,6 @@ class DemoFragment : CameraFragment(), View.OnClickListener, CaptureMediaView.On
                         showResolutionDialog()
                     }
                     // more settings
-                    mMoreBindingView.multiplex, mMoreBindingView.multiplexText -> {
-                        goToMultiplexActivity()
-                    }
-                    mMoreBindingView.contact, mMoreBindingView.contactText -> {
-                        showContactDialog()
-                    }
                     else -> {
                     }
                 }
@@ -325,18 +311,6 @@ class DemoFragment : CameraFragment(), View.OnClickListener, CaptureMediaView.On
                 }
             }
         }
-    }
-
-    private fun goToMultiplexActivity() {
-        mMoreMenu?.dismiss()
-        mMultiCameraDialog = MultiCameraDialog()
-        mMultiCameraDialog?.setOnDismissListener(object : BaseBottomDialog.OnDismissListener {
-            override fun onDismiss() {
-                registerMultiCamera(getSelectedDeviceId())
-            }
-        })
-        mMultiCameraDialog?.show(childFragmentManager, "multiRoadCameras")
-        unRegisterMultiCamera()
     }
 
     private fun showContactDialog() {
@@ -444,33 +418,6 @@ class DemoFragment : CameraFragment(), View.OnClickListener, CaptureMediaView.On
         animatorSet.addListener(listener)
         animatorSet.playTogether(scaleXAnim, scaleYAnim, alphaAnim)
         animatorSet.start()
-    }
-
-    private fun showMoreMenu() {
-        if (mMoreMenu == null) {
-            layoutInflater.inflate(R.layout.dialog_more, null).apply {
-                mMoreBindingView = DialogMoreBinding.bind(this)
-                mMoreBindingView.multiplex.setOnClickListener(this@DemoFragment)
-                mMoreBindingView.multiplexText.setOnClickListener(this@DemoFragment)
-                mMoreBindingView.contact.setOnClickListener(this@DemoFragment)
-                mMoreBindingView.contactText.setOnClickListener(this@DemoFragment)
-                mMoreBindingView.resolution.setOnClickListener(this@DemoFragment)
-                mMoreBindingView.resolutionText.setOnClickListener(this@DemoFragment)
-                mMoreBindingView.contract.setOnClickListener(this@DemoFragment)
-                mMoreBindingView.contractText.setOnClickListener(this@DemoFragment)
-                mMoreMenu = PopupWindow(
-                    this,
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT,
-                    true
-                ).apply {
-                    isOutsideTouchable = true
-                    setBackgroundDrawable(
-                        ContextCompat.getDrawable(requireContext(), R.mipmap.camera_icon_one_inch_alpha)
-                    )
-                }
-            }
-        }
     }
 
     private fun startMediaTimer() {
