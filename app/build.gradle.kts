@@ -55,7 +55,6 @@ dependencies {
     implementation(libs.core)
     implementation(libs.timber)
 
-    implementation(libs.glide)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
     implementation(libs.androidx.material)

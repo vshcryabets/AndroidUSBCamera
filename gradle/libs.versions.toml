@@ -11,7 +11,6 @@ constraintlayout = "2.1.4"
 core = "3.2.1"
 coreKtx = "1.13.1"
 espressoCore = "3.6.1"
-glide = "4.16.0"
 gradle = "8.5.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
@@ -40,7 +39,6 @@ androidx-material = { module = "androidx.compose.material:material" }
 androidx-ui = { module = "androidx.compose.ui:ui" }
 core = { module = "com.afollestad.material-dialogs:core", version.ref = "core" }
 baseRecyclerViewAdapterHelper = { module = "com.github.CymChad:BaseRecyclerViewAdapterHelper", version.ref = "baserecyclerviewadapterhelper" }
-glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
 gradle = { module = "com.android.tools.build:gradle", version.ref = "gradle" }
 junit = { module = "junit:junit", version.ref = "junit" }
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlinGradlePlugin" }
