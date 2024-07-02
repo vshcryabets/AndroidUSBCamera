@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.jiangdg.ausbc.widget.TipView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/takePictureTipView"
     android:layout_width="0dp"
     android:layout_height="0dp"
     android:background="#fff"

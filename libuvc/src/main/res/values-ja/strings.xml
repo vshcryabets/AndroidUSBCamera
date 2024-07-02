@@ -22,8 +22,6 @@
   ~  may have a different license, see the respective files.
   -->
 <resources>
-    <string name="select">USB Webカメラを選択してください</string>
-    <string name="camera">カメラ</string>
     <string name="refresh">更新</string>
     <string name="no_device">USBカメラが見つかりません</string>
 </resources>

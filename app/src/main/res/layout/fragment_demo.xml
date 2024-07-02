@@ -46,7 +46,6 @@
         app:layout_constraintTop_toTopOf="@id/toolbarBg" />
 
     <androidx.constraintlayout.widget.Barrier
-        android:id="@+id/toolbarBottomBarrier"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:barrierDirection="bottom"
@@ -68,7 +67,6 @@
         app:layout_constraintStart_toStartOf="parent" />
 
     <ViewStub
-        android:id="@+id/takePictureTipViewStub"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout="@layout/layout_tip_view"

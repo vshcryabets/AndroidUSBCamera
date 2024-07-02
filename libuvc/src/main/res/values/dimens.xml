@@ -21,10 +21,4 @@
   ~  Files in the libjpeg-turbo, libusb, libuvc, rapidjson folder
   ~  may have a different license, see the respective files.
   -->
-<resources>
-	<dimen name="horizontal_margin">16dp</dimen>
-	<dimen name="vertical_margin">16dp</dimen>
-	<dimen name="button_size">48dp</dimen>
-    <dimen name="list_font_size">18sp</dimen>
-    <dimen name="list_height_min">32dp</dimen>
-</resources>
+<resources></resources>
