@@ -15,24 +15,23 @@
  */
 package com.jiangdg.ausbc.encode
 
-import android.media.*
-import android.os.Process
-import com.jiangdg.ausbc.callback.ICaptureCallBack
+import android.media.AudioFormat
+import android.media.AudioTrack
+import android.media.MediaCodec
+import android.media.MediaCodecInfo
+import android.media.MediaFormat
 import com.jiangdg.ausbc.callback.IEncodeDataCallBack
-import com.jiangdg.ausbc.callback.IPlayCallBack
 import com.jiangdg.ausbc.encode.audio.AudioStrategySystem
 import com.jiangdg.ausbc.encode.audio.IAudioStrategy
 import com.jiangdg.ausbc.encode.bean.RawData
 import com.jiangdg.ausbc.utils.Logger
-import com.jiangdg.ausbc.utils.MediaUtils
 import com.jiangdg.ausbc.utils.Utils
-import com.jiangdg.natives.LameMp3
-import java.io.File
-import java.io.FileOutputStream
 import java.nio.ByteBuffer
-import java.util.concurrent.*
+import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.Exception
 
 /** AAC encode by MediaCodec
  *
@@ -139,147 +138,6 @@ class AACEncodeProcessor(strategy: IAudioStrategy? = null) : AbstractProcessor(f
         return data
     }
 
-    /**
-     * Play audio start
-     *
-     * @param callBack play status call back, see [IPlayCallBack]
-     */
-    fun playAudioStart(callBack: IPlayCallBack?) {
-        mAudioThreadPool.submit {
-            try {
-                mCountDownLatch = CountDownLatch(1)
-                initAudioRecord()
-                if (mCountDownLatch?.await(3, TimeUnit.SECONDS) == false) {
-                    callBack?.onError("times out, init audio failed")
-                    return@submit
-                }
-                initAudioTrack()
-                mMainHandler.post {
-                    callBack?.onBegin()
-                }
-                if (Utils.debugCamera) {
-                    Logger.i(TAG, "start play mic success.")
-                }
-                while (mAudioPlayState.get()) {
-                    val state = mAudioTrack?.state
-                    if (state != AudioTrack.STATE_INITIALIZED) {
-                        break
-                    }
-                    mPlayQueue.poll()?.apply {
-                        mAudioTrack?.play()
-                        mAudioTrack?.write(data, 0, size)
-                    }
-                }
-                releaseAudioTrack()
-                releaseAudioRecord()
-                mMainHandler.post {
-                    callBack?.onComplete()
-                }
-                if (Utils.debugCamera) {
-                    Logger.i(TAG, "stop play mic success.")
-                }
-            } catch (e: Exception) {
-                mMainHandler.post {
-                    callBack?.onError(e.localizedMessage?: "unknown exception")
-                }
-                Logger.e(TAG, "start/stop play mic failed, err = ${e.localizedMessage}", e)
-            }
-        }
-    }
-
-    /**
-     * Play audio stop
-     */
-    fun playAudioStop() {
-        mAudioPlayState.set(false)
-    }
-
-    /**
-     * Record mp3start
-     *
-     * @param audioPath custom mp4 record saving path, default is [/data/data/packagename/files]
-     * @param callBack record status, see [ICaptureCallBack]
-     */
-    fun recordMp3Start(audioPath: String?, callBack: ICaptureCallBack) {
-        mAudioThreadPool.submit {
-            var fos: FileOutputStream? = null
-            try {
-                if (audioPath.isNullOrEmpty()) {
-                    mMainHandler.post {
-                        callBack.onError("save path($audioPath) invalid")
-                    }
-                    return@submit
-                }
-                mCountDownLatch = CountDownLatch(1)
-                initAudioRecord()
-                if (mCountDownLatch?.await(3, TimeUnit.SECONDS) == false) {
-                    callBack.onError("times out, init audio failed")
-                    return@submit
-                }
-                val file = File(audioPath)
-                if (file.exists()) {
-                    file.delete()
-                }
-                fos = FileOutputStream(file)
-                val mp3Buf = ByteArray(2048)
-                val sampleRate = mAudioRecord.getSampleRate()
-                val channelCount = mAudioRecord.getChannelCount()
-                if (Utils.debugCamera) {
-                    Logger.i(TAG, "start record mp3 success, $sampleRate, $channelCount, $audioPath")
-                }
-                LameMp3.lameInit(sampleRate, channelCount, sampleRate, BIT_RATE, DEGREE_RECORD_MP3)
-                mMainHandler.post {
-                    callBack.onBegin()
-                }
-                mRecordMp3State.set(true)
-                while (mRecordMp3State.get()) {
-                    mRecordMp3Queue.poll()?.apply {
-                        val tmpData = MediaUtils.transferByte2Short(data, size)
-                        val encodeSize = LameMp3.lameEncode(tmpData, null, tmpData.size, mp3Buf)
-                        Logger.i(TAG, "encode, $size, $encodeSize")
-                        if (encodeSize > 0) {
-                            fos?.write(mp3Buf, 0, encodeSize)
-                        }
-                    }
-                }
-                val flushSize = LameMp3.lameFlush(mp3Buf)
-                if (flushSize > 0) {
-                    fos.write(mp3Buf, 0, flushSize)
-                }
-            } catch (e: Exception) {
-                mMainHandler.post {
-                    callBack.onError(e.localizedMessage?: "unknown exception")
-                }
-                Logger.e(TAG, "start/stop record mp3 failed, err = ${e.localizedMessage}", e)
-            } finally {
-                try {
-                    fos?.close()
-                    fos = null
-                    LameMp3.lameClose()
-                    releaseAudioRecord()
-                    mMainHandler.post {
-                        callBack.onComplete(audioPath)
-                    }
-                    if (Utils.debugCamera) {
-                        Logger.i(TAG, "stop record mp3 success.")
-                    }
-                } catch (e: Exception) {
-                    mMainHandler.post {
-                        callBack.onError(e.localizedMessage?: "unknown exception")
-                    }
-                    Logger.e(TAG, "stop record mp3 failed, err = ${e.localizedMessage}", e)
-                }
-            }
-        }
-    }
-
-    /**
-     * Record mp3stop
-     */
-    fun recordMp3Stop() {
-        mRecordMp3State.set(false)
-    }
-
     private fun initAudioRecord() {
         if (mAudioRecordState.get()) return
         mAudioThreadPool.submit {
@@ -318,52 +176,6 @@ class AACEncodeProcessor(strategy: IAudioStrategy? = null) : AbstractProcessor(f
             return
         }
         mAudioRecordState.set(false)
-    }
-
-    private fun initAudioTrack() {
-        if (mAudioPlayState.get()) {
-            Logger.w(TAG, "initAudioTracker has ready execute!")
-            return
-        }
-        val sampleRate = mAudioRecord.getSampleRate()
-        val audioFormat = mAudioRecord.getAudioFormat()
-        val channelCount = mAudioRecord.getChannelCount()
-        val channelConfig = mAudioRecord.getChannelConfig()
-        Logger.i(TAG, "initAudioTrack: sample=$sampleRate,format=$audioFormat,count=$channelCount")
-        Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO)
-        val minBufferSize = AudioTrack.getMinBufferSize(
-            sampleRate,
-            channelConfig,
-            audioFormat
-        )
-        mAudioTrack = AudioTrack(
-            AudioManager.STREAM_MUSIC,
-            sampleRate,
-            channelConfig,
-            audioFormat,
-            minBufferSize,
-            AUDIO_TRACK_MODE
-        )
-        mAudioPlayState.set(true)
-    }
-
-    private fun releaseAudioTrack() {
-        try {
-            mAudioTrack?.release()
-            mAudioTrack = null
-        } catch (e: Exception) {
-            Logger.e(TAG, "releaseAudioTracker failed, err = ${e.localizedMessage}", e)
-        }
-    }
-
-    private fun addADTStoPacket(packet: ByteArray, packetLen: Int) {
-        packet[0] = 0xFF.toByte()
-        packet[1] = 0xF1.toByte()
-        packet[2] = (((2 - 1 shl 6) + (mSamplingRateIndex shl 2) + (1 shr 2)).toByte())
-        packet[3] = ((1 and 3 shl 6) + (packetLen shr 11)).toByte()
-        packet[4] = (packetLen and 0x7FF shr 3).toByte()
-        packet[5] = ((packetLen and 7 shl 5) + 0x1F).toByte()
-        packet[6] = 0xFC.toByte()
     }
 
     companion object {

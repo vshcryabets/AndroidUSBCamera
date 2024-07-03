@@ -487,56 +487,6 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
         }
 
         /**
-         * Start rec mp3
-         *
-         * @param mp3Path  mp3 save path
-         * @param callBack record status, see [ICaptureCallBack]
-         */
-        fun captureAudioStart(callBack: ICaptureCallBack, mp3Path: String?=null) {
-            if (! CameraUtils.hasAudioPermission(mContext)) {
-                callBack.onError("Has no audio permission")
-                return
-            }
-            if (! CameraUtils.hasStoragePermission(mContext)) {
-                callBack.onError("Has no storage permission")
-                return
-            }
-            val path = if (mp3Path.isNullOrEmpty()) {
-                "${mContext.getExternalFilesDir(null)?.path}/${System.currentTimeMillis()}.mp3"
-            } else {
-                mp3Path
-            }
-            (mAudioProcess as? AACEncodeProcessor)?.recordMp3Start(path, callBack)
-        }
-
-        /**
-         * Stop rec mp3
-         */
-        fun captureAudioStop() {
-            (mAudioProcess as? AACEncodeProcessor)?.recordMp3Stop()
-        }
-
-        /**
-         * Start play mic
-         *
-         * @param callBack play mic status in real-time, see [IPlayCallBack]
-         */
-        fun startPlayMic(callBack: IPlayCallBack?) {
-            if (! CameraUtils.hasAudioPermission(mContext)) {
-                callBack?.onError("Has no audio permission")
-                return
-            }
-            (mAudioProcess as? AACEncodeProcessor)?.playAudioStart(callBack)
-        }
-
-        /**
-         * Stop play mic
-         */
-        fun stopPlayMic() {
-            (mAudioProcess as? AACEncodeProcessor)?.playAudioStop()
-        }
-
-        /**
          * Rotate camera render angle
          *
          * @param type rotate angle, null means rotating nothing
