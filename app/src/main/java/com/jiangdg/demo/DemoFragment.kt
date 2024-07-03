@@ -21,13 +21,8 @@ import android.animation.AnimatorListenerAdapter
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
-import android.content.Intent
-import android.content.pm.PackageManager
 import android.graphics.Typeface
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.provider.MediaStore
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -35,65 +30,29 @@ import android.view.ViewGroup
 import android.widget.PopupWindow
 import android.widget.SeekBar
 import android.widget.TextView
-import androidx.core.content.ContextCompat
+import android.widget.Toast
 import androidx.core.view.children
 import androidx.core.widget.TextViewCompat
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.list.listItemsSingleChoice
 import com.jiangdg.ausbc.MultiCameraClient
-import com.jiangdg.ausbc.base.BaseBottomDialog
 import com.jiangdg.ausbc.base.CameraFragment
 import com.jiangdg.ausbc.callback.ICameraStateCallBack
-import com.jiangdg.ausbc.callback.ICaptureCallBack
 import com.jiangdg.ausbc.camera.CameraUVC
-import com.jiangdg.ausbc.utils.ToastUtils
 import com.jiangdg.ausbc.utils.Utils
 import com.jiangdg.ausbc.utils.bus.BusKey
 import com.jiangdg.ausbc.utils.bus.EventBus
 import com.jiangdg.ausbc.widget.AspectRatioTextureView
-import com.jiangdg.ausbc.widget.CaptureMediaView
 import com.jiangdg.ausbc.widget.IAspectRatio
 import com.jiangdg.demo.databinding.FragmentDemoBinding
 import timber.log.Timber
-import java.util.Timer
-import java.util.TimerTask
 
 /** CameraFragment Usage Demo
  *
  * @author Created by jiangdg on 2022/1/28
  */
-class DemoFragment : CameraFragment(), View.OnClickListener, CaptureMediaView.OnViewClickListener {
+class DemoFragment : CameraFragment(), View.OnClickListener {
     private var mMoreMenu: PopupWindow? = null
-    private var isCapturingVideoOrAudio: Boolean = false
-    private var mRecTimer: Timer? = null
-    private var mRecSeconds = 0
-    private var mRecMinute = 0
-    private var mRecHours = 0
-
-    private val mMainHandler: Handler by lazy {
-        Handler(Looper.getMainLooper()) {
-            when(it.what) {
-                WHAT_START_TIMER -> {
-                    if (mRecSeconds % 2 != 0) {
-                        mViewBinding.recStateIv.visibility = View.VISIBLE
-                    } else {
-                        mViewBinding.recStateIv.visibility = View.INVISIBLE
-                    }
-                    mViewBinding.recTimeTv.text = calculateTime(mRecSeconds, mRecMinute)
-                }
-                WHAT_STOP_TIMER -> {
-                    mViewBinding.modeSwitchLayout.visibility = View.VISIBLE
-                    mViewBinding.toolbarGroup.visibility = View.VISIBLE
-                    mViewBinding.recTimerLayout.visibility = View.GONE
-                    mViewBinding.recTimeTv.text = calculateTime(0, 0)
-                }
-            }
-            true
-        }
-    }
-
-    private var mCameraMode = CaptureMediaView.CaptureMode.MODE_CAPTURE_PIC
-
     private lateinit var mViewBinding: FragmentDemoBinding
 
     override fun initView() {
@@ -128,13 +87,13 @@ class DemoFragment : CameraFragment(), View.OnClickListener, CaptureMediaView.On
     private fun handleCameraError(msg: String?) {
         mViewBinding.uvcLogoIv.visibility = View.VISIBLE
         mViewBinding.frameRateTv.visibility = View.GONE
-        ToastUtils.show("camera opened error: $msg")
+        Toast.makeText(requireContext(), "camera opened error: $msg", Toast.LENGTH_LONG).show()
     }
 
     private fun handleCameraClosed() {
         mViewBinding.uvcLogoIv.visibility = View.VISIBLE
         mViewBinding.frameRateTv.visibility = View.GONE
-        ToastUtils.show("camera closed success")
+        Toast.makeText(requireContext(), "camera closed success", Toast.LENGTH_LONG).show()
     }
 
     private fun handleCameraOpened() {
@@ -157,7 +116,7 @@ class DemoFragment : CameraFragment(), View.OnClickListener, CaptureMediaView.On
 
             }
         })
-        ToastUtils.show("camera opened success")
+        Toast.makeText(requireContext(), "camera opened success", Toast.LENGTH_LONG).show()
     }
 
     private fun switchLayoutClick() {
@@ -179,91 +138,6 @@ class DemoFragment : CameraFragment(), View.OnClickListener, CaptureMediaView.On
 
     override fun getGravity(): Int = Gravity.CENTER
 
-    override fun onViewClick(mode: CaptureMediaView.CaptureMode?) {
-        if (! isCameraOpened()) {
-            ToastUtils.show("camera not worked!")
-            return
-        }
-        when (mode) {
-            CaptureMediaView.CaptureMode.MODE_CAPTURE_PIC -> {
-            }
-            CaptureMediaView.CaptureMode.MODE_CAPTURE_AUDIO -> {
-                captureAudio()
-            }
-            else -> {
-                captureVideo()
-            }
-        }
-    }
-
-    private fun captureAudio() {
-        if (isCapturingVideoOrAudio) {
-            captureAudioStop()
-            return
-        }
-        captureAudioStart(object : ICaptureCallBack {
-            override fun onBegin() {
-                isCapturingVideoOrAudio = true
-                mViewBinding.modeSwitchLayout.visibility = View.GONE
-                mViewBinding.toolbarGroup.visibility = View.GONE
-                mViewBinding.recTimerLayout.visibility = View.VISIBLE
-                startMediaTimer()
-            }
-
-            override fun onError(error: String?) {
-                ToastUtils.show(error ?: "未知异常")
-                isCapturingVideoOrAudio = false
-                stopMediaTimer()
-            }
-
-            override fun onComplete(path: String?) {
-                isCapturingVideoOrAudio = false
-                mViewBinding.modeSwitchLayout.visibility = View.VISIBLE
-                mViewBinding.toolbarGroup.visibility = View.VISIBLE
-                mViewBinding.recTimerLayout.visibility = View.GONE
-                stopMediaTimer()
-                ToastUtils.show(path ?: "error")
-            }
-
-        })
-    }
-
-    private fun captureVideo() {
-        if (isCapturingVideoOrAudio) {
-            captureVideoStop()
-            return
-        }
-        captureVideoStart(object : ICaptureCallBack {
-            override fun onBegin() {
-                isCapturingVideoOrAudio = true
-                mViewBinding.modeSwitchLayout.visibility = View.GONE
-                mViewBinding.toolbarGroup.visibility = View.GONE
-                mViewBinding.recTimerLayout.visibility = View.VISIBLE
-                startMediaTimer()
-            }
-
-            override fun onError(error: String?) {
-                ToastUtils.show(error ?: "未知异常")
-                isCapturingVideoOrAudio = false
-                stopMediaTimer()
-            }
-
-            override fun onComplete(path: String?) {
-                ToastUtils.show(path ?: "")
-                isCapturingVideoOrAudio = false
-                mViewBinding.modeSwitchLayout.visibility = View.VISIBLE
-                mViewBinding.toolbarGroup.visibility = View.VISIBLE
-                mViewBinding.recTimerLayout.visibility = View.GONE
-                stopMediaTimer()
-            }
-
-        })
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-    }
-
     override fun onClick(v: View?) {
         clickAnimation(v!!, object : AnimatorListenerAdapter() {
             override fun onAnimationEnd(animation: Animator) {
@@ -284,7 +158,7 @@ class DemoFragment : CameraFragment(), View.OnClickListener, CaptureMediaView.On
         mMoreMenu?.dismiss()
         getAllPreviewSizes().let { previewSizes ->
             if (previewSizes.isNullOrEmpty()) {
-                ToastUtils.show("Get camera preview size failed")
+                Toast.makeText(requireContext(), "Get camera preview size failed", Toast.LENGTH_LONG).show()
                 return
             }
             val list = arrayListOf<String>()
@@ -310,39 +184,6 @@ class DemoFragment : CameraFragment(), View.OnClickListener, CaptureMediaView.On
                     updateResolution(previewSizes[index].width, previewSizes[index].height)
                 }
             }
-        }
-    }
-
-    private fun showContactDialog() {
-        mMoreMenu?.dismiss()
-        MaterialDialog(requireContext()).show {
-            title(R.string.dialog_contact_title)
-            message(text = getString(R.string.dialog_contact_message, getVersionName()))
-        }
-    }
-
-    private  fun getVersionName(): String? {
-        context ?: return null
-        val packageManager = requireContext().packageManager
-        try {
-            val packageInfo = packageManager?.getPackageInfo(requireContext().packageName, 0)
-            return packageInfo?.versionName
-        } catch (e: PackageManager.NameNotFoundException) {
-            e.printStackTrace()
-        }
-        return null
-    }
-
-    private fun goToGalley() {
-        try {
-            Intent(
-                Intent.ACTION_VIEW,
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-            ).apply {
-                startActivity(this)
-            }
-        } catch (e: Exception) {
-            ToastUtils.show("open error: ${e.localizedMessage}")
         }
     }
 
@@ -376,37 +217,20 @@ class DemoFragment : CameraFragment(), View.OnClickListener, CaptureMediaView.On
             tabTv.compoundDrawablePadding = 1
         }
         val height = mViewBinding.controlPanelLayout.height
-        if (mCameraMode == CaptureMediaView.CaptureMode.MODE_CAPTURE_PIC) {
-            val translationX = ObjectAnimator.ofFloat(
-                mViewBinding.controlPanelLayout,
-                "translationY",
-                height.toFloat(),
-                0.0f
-            )
-            translationX.duration = 600
-            translationX.addListener(object : AnimatorListenerAdapter() {
-                override fun onAnimationStart(animation: Animator) {
-                    super.onAnimationStart(animation)
-                    mViewBinding.controlPanelLayout.visibility = View.VISIBLE
-                }
-            })
-            translationX.start()
-        } else {
-            val translationX = ObjectAnimator.ofFloat(
-                mViewBinding.controlPanelLayout,
-                "translationY",
-                0.0f,
-                height.toFloat()
-            )
-            translationX.duration = 600
-            translationX.addListener(object : AnimatorListenerAdapter() {
-                override fun onAnimationEnd(animation: Animator) {
-                    super.onAnimationEnd(animation)
-                    mViewBinding.controlPanelLayout.visibility = View.INVISIBLE
-                }
-            })
-            translationX.start()
-        }
+        val translationX = ObjectAnimator.ofFloat(
+            mViewBinding.controlPanelLayout,
+            "translationY",
+            0.0f,
+            height.toFloat()
+        )
+        translationX.duration = 600
+        translationX.addListener(object : AnimatorListenerAdapter() {
+            override fun onAnimationEnd(animation: Animator) {
+                super.onAnimationEnd(animation)
+                mViewBinding.controlPanelLayout.visibility = View.INVISIBLE
+            }
+        })
+        translationX.start()
     }
 
     private fun clickAnimation(v: View, listener: Animator.AnimatorListener) {
@@ -418,48 +242,6 @@ class DemoFragment : CameraFragment(), View.OnClickListener, CaptureMediaView.On
         animatorSet.addListener(listener)
         animatorSet.playTogether(scaleXAnim, scaleYAnim, alphaAnim)
         animatorSet.start()
-    }
-
-    private fun startMediaTimer() {
-        val pushTask: TimerTask = object : TimerTask() {
-            override fun run() {
-                //秒
-                mRecSeconds++
-                //分
-                if (mRecSeconds >= 60) {
-                    mRecSeconds = 0
-                    mRecMinute++
-                }
-                //时
-                if (mRecMinute >= 60) {
-                    mRecMinute = 0
-                    mRecHours++
-                    if (mRecHours >= 24) {
-                        mRecHours = 0
-                        mRecMinute = 0
-                        mRecSeconds = 0
-                    }
-                }
-                mMainHandler.sendEmptyMessage(WHAT_START_TIMER)
-            }
-        }
-        if (mRecTimer != null) {
-            stopMediaTimer()
-        }
-        mRecTimer = Timer()
-        //执行schedule后1s后运行run，之后每隔1s运行run
-        mRecTimer?.schedule(pushTask, 1000, 1000)
-    }
-
-    private fun stopMediaTimer() {
-        if (mRecTimer != null) {
-            mRecTimer?.cancel()
-            mRecTimer = null
-        }
-        mRecHours = 0
-        mRecMinute = 0
-        mRecSeconds = 0
-        mMainHandler.sendEmptyMessage(WHAT_STOP_TIMER)
     }
 
     private fun calculateTime(seconds: Int, minute: Int, hour: Int? = null): String {
@@ -495,7 +277,6 @@ class DemoFragment : CameraFragment(), View.OnClickListener, CaptureMediaView.On
     override fun getSelectedDeviceId(): Int = requireArguments().getInt(MainActivity.KEY_USB_DEVICE)
 
     companion object {
-        private const val TAG  = "DemoFragment"
         private const val WHAT_START_TIMER = 0x00
         private const val WHAT_STOP_TIMER = 0x01
 

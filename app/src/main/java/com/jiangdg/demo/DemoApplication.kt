@@ -15,14 +15,14 @@
  */
 package com.jiangdg.demo
 
-import com.jiangdg.ausbc.base.BaseApplication
+import android.app.Application
 import timber.log.Timber
 
 /**
  *
  * @author Created by jiangdg on 2022/2/28
  */
-class DemoApplication: BaseApplication() {
+class DemoApplication: Application() {
 
     override fun onCreate() {
         super.onCreate()

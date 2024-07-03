@@ -21,11 +21,11 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.os.PowerManager
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.PermissionChecker
 import androidx.fragment.app.Fragment
-import com.jiangdg.ausbc.utils.ToastUtils
 import com.jiangdg.ausbc.utils.Utils
 import com.jiangdg.demo.databinding.ActivityMainBinding
 
@@ -59,7 +59,7 @@ class MainActivity : AppCompatActivity() {
             PermissionChecker.checkSelfPermission(this, WRITE_EXTERNAL_STORAGE)
         if (hasCameraPermission != PermissionChecker.PERMISSION_GRANTED || hasStoragePermission != PermissionChecker.PERMISSION_GRANTED) {
             if (ActivityCompat.shouldShowRequestPermissionRationale(this, CAMERA)) {
-                ToastUtils.show(R.string.permission_tip)
+                Toast.makeText(this, R.string.permission_tip, Toast.LENGTH_LONG).show()
             }
             ActivityCompat.requestPermissions(
                 this,
@@ -83,7 +83,7 @@ class MainActivity : AppCompatActivity() {
             REQUEST_CAMERA -> {
                 val hasCameraPermission = PermissionChecker.checkSelfPermission(this, CAMERA)
                 if (hasCameraPermission == PermissionChecker.PERMISSION_DENIED) {
-                    ToastUtils.show(R.string.permission_tip)
+                    Toast.makeText(this, R.string.permission_tip, Toast.LENGTH_LONG).show()
                     return
                 }
                 replaceDemoFragment(DemoFragment())
@@ -92,7 +92,7 @@ class MainActivity : AppCompatActivity() {
                 val hasCameraPermission =
                     PermissionChecker.checkSelfPermission(this, WRITE_EXTERNAL_STORAGE)
                 if (hasCameraPermission == PermissionChecker.PERMISSION_DENIED) {
-                    ToastUtils.show(R.string.permission_tip)
+                    Toast.makeText(this, R.string.permission_tip, Toast.LENGTH_LONG).show()
                     return
                 }
                 // todo
