@@ -40,8 +40,8 @@
  */
 #include <jni.h>
 #include <string>
-#include "utils/logger.h"
-#include "proxy/proxy_yuv.h"
+#include "logger.h"
+#include "proxy_yuv.h"
 
 #define NUM_METHODS(x) ((int)(sizeof(x)/ sizeof(x[0])))
 JavaVM *globalJvm;

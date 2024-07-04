@@ -12,8 +12,8 @@ set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} ${COMPILATION_DEBUG_FLAGS}")
 
 add_library(nativelib SHARED
         ${SRC_LAME}
-        module/yuv/yuv.cpp
-        proxy/proxy_yuv.cpp
+        yuv.cpp
+        proxy_yuv.cpp
         nativelib.cpp)
 
 find_library(

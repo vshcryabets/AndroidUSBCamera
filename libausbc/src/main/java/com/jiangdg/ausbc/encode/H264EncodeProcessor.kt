@@ -21,7 +21,7 @@ import android.media.MediaFormat
 import android.view.Surface
 import com.jiangdg.ausbc.callback.IEncodeDataCallBack
 import com.jiangdg.ausbc.utils.Logger
-import com.jiangdg.natives.YUVUtils
+import com.jiangdg.YUVUtils
 import java.lang.Exception
 import java.nio.ByteBuffer
 

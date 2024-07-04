@@ -34,5 +34,4 @@ dependencies {
     implementation(libs.material)
     implementation(libs.timber)
     implementation(project(":libuvc"))
-    api(project(":libnative"))
 }

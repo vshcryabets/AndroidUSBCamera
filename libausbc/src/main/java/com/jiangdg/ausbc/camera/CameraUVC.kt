@@ -148,7 +148,6 @@ class CameraUVC(ctx: Context, device: UsbDevice) : MultiCameraClient.ICamera(ctx
                 Logger.e(TAG, "open camera failed, preview size($previewSize) unsupported-> ${mUvcCamera?.supportedSizeList2}")
                 return
             }
-            initEncodeProcessor(previewSize.width, previewSize.height)
             // if give custom minFps or maxFps or unsupported preview size
             // this method will fail
             mUvcCamera?.setPreviewSize(
