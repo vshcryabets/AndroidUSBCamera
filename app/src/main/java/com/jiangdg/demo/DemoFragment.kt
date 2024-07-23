@@ -58,7 +58,6 @@ class DemoFragment : CameraFragment(), View.OnClickListener {
     override fun initView() {
         super.initView()
         mViewBinding.resolutionBtn.setOnClickListener(this)
-        switchLayoutClick()
     }
 
     override fun initData() {
@@ -99,28 +98,7 @@ class DemoFragment : CameraFragment(), View.OnClickListener {
     private fun handleCameraOpened() {
         mViewBinding.uvcLogoIv.visibility = View.GONE
         mViewBinding.frameRateTv.visibility = View.VISIBLE
-        mViewBinding.brightnessSb.max = 100 // (getCurrentCamera() as? CameraUVC)?.getBrightnessMax() ?: 100
-        mViewBinding.brightnessSb.progress = 0 //(getCurrentCamera() as? CameraUVC)?.getBrightness() ?: 0
-        Timber.i("max = ${mViewBinding.brightnessSb.max}, progress = ${mViewBinding.brightnessSb.progress}")
-        mViewBinding.brightnessSb.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                (getCurrentCamera() as? CameraUVC)?.setBrightness(progress)
-                (getCurrentCamera() as? CameraUVC)?.setAutoWhiteBalance(false)
-            }
-
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {
-
-            }
-
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {
-
-            }
-        })
         Toast.makeText(requireContext(), "camera opened success", Toast.LENGTH_LONG).show()
-    }
-
-    private fun switchLayoutClick() {
-        updateCameraModeSwitchUI()
     }
 
     override fun getCameraView(): IAspectRatio {
@@ -185,52 +163,6 @@ class DemoFragment : CameraFragment(), View.OnClickListener {
                 }
             }
         }
-    }
-
-    private fun updateCameraModeSwitchUI() {
-        mViewBinding.modeSwitchLayout.children.forEach { it ->
-            val tabTv = it as TextView
-            val isSelected = false
-            val typeface = if (isSelected) Typeface.BOLD else Typeface.NORMAL
-            tabTv.typeface = Typeface.defaultFromStyle(typeface)
-            if (isSelected) {
-                0xFFFFFFFF
-            } else {
-                0xFFD7DAE1
-            }.also {
-                tabTv.setTextColor(it.toInt())
-            }
-            tabTv.setShadowLayer(
-                Utils.dp2px(requireContext(), 1F).toFloat(),
-                0F,
-                0F,
-                0xBF000000.toInt()
-            )
-
-            if (isSelected) {
-                R.mipmap.camera_preview_dot_blue
-            } else {
-                R.drawable.camera_bottom_dot_transparent
-            }.also {
-                TextViewCompat.setCompoundDrawablesRelativeWithIntrinsicBounds(tabTv, 0, 0, 0, it)
-            }
-            tabTv.compoundDrawablePadding = 1
-        }
-        val height = mViewBinding.controlPanelLayout.height
-        val translationX = ObjectAnimator.ofFloat(
-            mViewBinding.controlPanelLayout,
-            "translationY",
-            0.0f,
-            height.toFloat()
-        )
-        translationX.duration = 600
-        translationX.addListener(object : AnimatorListenerAdapter() {
-            override fun onAnimationEnd(animation: Animator) {
-                super.onAnimationEnd(animation)
-                mViewBinding.controlPanelLayout.visibility = View.INVISIBLE
-            }
-        })
-        translationX.start()
     }
 
     private fun clickAnimation(v: View, listener: Animator.AnimatorListener) {
