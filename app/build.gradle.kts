@@ -61,5 +61,4 @@ dependencies {
     implementation(libs.androidx.foundation)
     implementation(libs.androidx.activity.compose)
     implementation(project(":libausbc"))
-    implementation(project(":libuvc"))
 }

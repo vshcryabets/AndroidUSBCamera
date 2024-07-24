@@ -34,7 +34,6 @@ import com.jiangdg.ausbc.callback.ICameraStateCallBack
 import com.jiangdg.ausbc.callback.ICaptureCallBack
 import com.jiangdg.ausbc.callback.IDeviceConnectCallBack
 import com.jiangdg.ausbc.callback.IEncodeDataCallBack
-import com.jiangdg.ausbc.callback.IPlayCallBack
 import com.jiangdg.ausbc.callback.IPreviewDataCallBack
 import com.jiangdg.ausbc.camera.CameraUVC
 import com.jiangdg.ausbc.camera.bean.CameraRequest
@@ -376,57 +375,6 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
      */
     fun removePreviewDataCallBack(callBack: IPreviewDataCallBack) {
         getCurrentCamera()?.removePreviewDataCallBack(callBack)
-    }
-
-    /**
-     * Capture video start
-     *
-     * @param callBack capture status, see [ICaptureCallBack]
-     * @param path custom save path
-     * @param durationInSec divided record duration time in seconds
-     */
-    protected fun captureVideoStart(callBack: ICaptureCallBack, path: String? = null, durationInSec: Long = 0L) {
-        getCurrentCamera()?.captureVideoStart(callBack, path, durationInSec)
-    }
-
-    /**
-     * Capture video stop
-     */
-    protected fun captureVideoStop() {
-        getCurrentCamera()?.captureVideoStop()
-    }
-
-    /**
-     * Capture audio start
-     *
-     * @param callBack capture status, see [ICaptureCallBack]
-     * @param path custom save path
-     */
-    protected fun captureAudioStart(callBack: ICaptureCallBack, path: String? = null) {
-        getCurrentCamera()?.captureAudioStart(callBack, path)
-    }
-
-    /**
-     * Capture audio stop
-     */
-    protected fun captureAudioStop() {
-        getCurrentCamera()?.captureAudioStop()
-    }
-
-    /**
-     * Start play mic
-     *
-     * @param callBack play mic in real-time, see [IPlayCallBack]
-     */
-    protected fun startPlayMic(callBack: IPlayCallBack? = null) {
-        getCurrentCamera()?.startPlayMic(callBack)
-    }
-
-    /**
-     * Stop play mic
-     */
-    protected fun stopPlayMic() {
-        getCurrentCamera()?.stopPlayMic()
     }
 
     /**

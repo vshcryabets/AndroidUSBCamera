@@ -68,38 +68,4 @@ object GLBitmapUtils {
         )
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
     }
-
-    fun readPixelToBitmap(width: Int, height: Int): Bitmap? {
-        val byteBuffer = ByteBuffer.allocateDirect(width * height * 4)
-        byteBuffer.order(ByteOrder.LITTLE_ENDIAN)
-        return readPixelToBitmapWithBuffer(width, height, byteBuffer)
-    }
-
-    /**
-     * 直接readPixel保存到Bitmap, 复用byteBuffer
-     *
-     * @param width
-     * @param height
-     * @param byteBuffer
-     * @return
-     */
-    private fun readPixelToBitmapWithBuffer(width: Int, height: Int, byteBuffer: ByteBuffer?): Bitmap? {
-        if (byteBuffer == null) {
-            return null
-        }
-        byteBuffer.clear()
-        byteBuffer.order(ByteOrder.LITTLE_ENDIAN)
-        GLES20.glReadPixels(
-            0,
-            0,
-            width,
-            height,
-            GLES20.GL_RGBA,
-            GLES20.GL_UNSIGNED_BYTE,
-            byteBuffer
-        )
-        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        bitmap?.copyPixelsFromBuffer(byteBuffer)
-        return bitmap
-    }
 }

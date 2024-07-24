@@ -25,8 +25,8 @@ extern "C" {
 
 #include <jni.h>
 #include <cstdlib>
-#include "../module/yuv/yuv.h"
-#include "../utils/logger.h"
+#include "yuv.h"
+#include "../../../../../libnative/src/main/cpp/utils/logger.h"
 
 void yuv420spToNv21(JNIEnv *env, jobject instance, jbyteArray data, jint width, jint height);
 void nv21ToYuv420sp(JNIEnv *env, jobject instance, jbyteArray data, jint width, jint height);
