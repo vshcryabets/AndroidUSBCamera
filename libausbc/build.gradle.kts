@@ -11,6 +11,7 @@ android {
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.targetSdk.get().toInt()
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        ndk.abiFilters.addAll(listOf("armeabi-v7a","arm64-v8a")) // x86, x86_64 still in progress
     }
 
     buildTypes {
@@ -26,6 +27,11 @@ android {
     kotlinOptions {
         jvmTarget = libs.versions.jvmTarget.get()
     }
+    externalNativeBuild {
+        cmake {
+            path = File(projectDir, "CMakeLists.txt")
+        }
+    }
 }
 
 dependencies {
@@ -33,5 +39,4 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation(libs.material)
     implementation(libs.timber)
-    implementation(project(":libuvc"))
 }

@@ -16,23 +16,14 @@
 package com.jiangdg.ausbc.utils
 
 import android.Manifest
-import android.app.Activity
 import android.app.ActivityManager
 import android.content.Context
-import android.content.Intent
-import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.location.Location
 import android.location.LocationManager
-import android.net.Uri
 import android.os.Build
 import android.os.PowerManager
-import android.provider.Settings
-import androidx.annotation.RawRes
 import androidx.core.content.ContextCompat
-import java.io.InputStream
 
 /** Common Utils
  *
@@ -63,11 +54,6 @@ object Utils  {
         return null
     }
 
-    fun dp2px(context: Context, dpValue: Float): Int {
-        val scale: Float = context.resources.displayMetrics.density
-        return (dpValue * scale + 0.5f).toInt()
-    }
-
     fun wakeLock(context: Context): PowerManager.WakeLock {
         val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
         val mWakeLock: PowerManager.WakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "jj:camera")
@@ -84,51 +70,5 @@ object Utils  {
         (context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager).apply {
             return deviceConfigurationInfo.glEsVersion
         }
-    }
-
-    fun getScreenWidth(context: Context): Int {
-        return context.resources.displayMetrics.widthPixels
-    }
-
-    fun getScreenHeight(context: Context): Int {
-        return context.resources.displayMetrics.heightPixels
-    }
-
-    fun loadBitmapFromRawResource(context: Context, @RawRes id: Int): Bitmap? {
-        var inputStream: InputStream? = null
-        return try {
-            inputStream = context.resources?.openRawResource(id)
-            BitmapFactory.decodeStream(inputStream)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        } finally {
-            try {
-                inputStream?.close()
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-    }
-
-    /**
-     * Check if application have overlays permission
-     */
-    fun canDrawOverlays(context: Context) = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-        true
-    } else {
-        Settings.canDrawOverlays(context)
-    }
-
-    /**
-     * Request overlays permission
-     */
-    fun requestOverlaysPermission(activity: Activity, requestCode: Int) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            return
-        }
-        val uri = Uri.parse("package:${activity.packageName}" )
-        val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, uri)
-        activity.startActivityForResult(intent, requestCode)
     }
 }

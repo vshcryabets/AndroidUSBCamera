@@ -19,14 +19,14 @@ import android.content.Context
 import android.graphics.ImageFormat
 import android.graphics.Rect
 import android.graphics.YuvImage
-import android.net.Uri
 import android.os.Build
-import android.provider.MediaStore
 import androidx.annotation.ChecksSdkIntAtLeast
-import java.io.*
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
-import java.nio.ShortBuffer
+import java.io.BufferedReader
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import java.io.InputStreamReader
 
 /** Media utils
  *
@@ -78,72 +78,6 @@ object MediaUtils {
         return sb.toString()
     }
 
-    fun findRecentMedia(context: Context): String? {
-        val imagePath = findRecentMedia(context, true)
-        val videoPath = findRecentMedia(context, false)
-        if (imagePath == null) {
-            return videoPath
-        }
-        if (videoPath == null) {
-            return imagePath
-        }
-        val imageFile = File(imagePath)
-        val videoFile = File(videoPath)
-        if (imageFile.lastModified() >= videoFile.lastModified()) {
-            return imagePath
-        }
-        return videoPath
-    }
-
-    fun findRecentMedia(context: Context, isImage: Boolean): String? {
-        val uri: Uri
-        val sortOrder: String
-        val columnName: String
-        val projection = if (isImage) {
-            columnName = MediaStore.Images.Media.DATA
-            sortOrder = MediaStore.Images.ImageColumns._ID + " DESC"
-            uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-            arrayOf(
-                MediaStore.Images.Media.DATA, MediaStore.Images.ImageColumns.DATE_ADDED,
-                MediaStore.Images.Media.SIZE, MediaStore.Images.Media.MIME_TYPE,
-                MediaStore.Images.Media.WIDTH, MediaStore.Images.Media.HEIGHT
-            )
-        } else {
-            columnName = MediaStore.Video.Media.DATA
-            sortOrder = MediaStore.Video.VideoColumns._ID + " DESC"
-            uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-            arrayOf(
-                MediaStore.Video.Media.DATA, MediaStore.Video.Media.DISPLAY_NAME,
-                MediaStore.Video.VideoColumns.DATE_ADDED, MediaStore.Video.Media.SIZE,
-                MediaStore.Video.Media.MIME_TYPE, MediaStore.Video.Media.DURATION,
-                MediaStore.Video.Media.WIDTH, MediaStore.Video.Media.HEIGHT
-            )
-        }
-        context.contentResolver.query(
-            uri,
-            projection,
-            null,
-            null,
-            sortOrder
-        )?.apply {
-            if (count < 1) {
-                close()
-                return null
-            }
-            while (moveToNext()) {
-                val data = getString(getColumnIndexOrThrow(columnName))
-                val file = File(data)
-                if (file.exists()) {
-                    close()
-                    return file.path
-                }
-            }
-        }.also {
-            it?.close()
-        }
-        return null
-    }
-
     fun saveYuv2Jpeg(path: String, data: ByteArray, width: Int, height: Int): Boolean {
         val yuvImage = try {
             YuvImage(data, ImageFormat.NV21, width, height, null)
@@ -184,49 +118,9 @@ object MediaUtils {
         return result
     }
 
-    fun transformYuv2Jpeg(data: ByteArray, width: Int, height: Int): ByteArray? {
-        val yuvImage = try {
-            YuvImage(data, ImageFormat.NV21, width, height, null)
-        } catch (e: Exception) {
-            Logger.e(TAG, "create YuvImage failed.", e)
-            null
-        } ?: return null
-        val bos = ByteArrayOutputStream(data.size)
-        return try {
-            yuvImage.compressToJpeg(Rect(0, 0, width, height), 100, bos)
-            bos.toByteArray()
-        } catch (e: Exception) {
-            Logger.e(TAG, "compressToJpeg failed.", e)
-            null
-        }
-    }
-
-    fun transferByte2Short(data: ByteArray, readBytes: Int): ShortArray {
-        // byte[] to short[], the length of the array is reduced by half
-        val shortLen = readBytes / 2
-        // Assemble byte[] numbers as ByteBuffer buffers
-        val byteBuffer: ByteBuffer = ByteBuffer.wrap(data, 0, readBytes)
-        // Convert ByteBuffer to little endian and get shortBuffer
-        val shortBuffer: ShortBuffer = byteBuffer.order(ByteOrder.LITTLE_ENDIAN).asShortBuffer()
-        val shortData = ShortArray(shortLen)
-        shortBuffer.get(shortData, 0, shortLen)
-        return shortData
-    }
-
     @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.Q)
     fun isAboveQ(): Boolean {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
-    }
-    fun addADTStoPacket(packet: ByteArray, packetLen: Int, sampleRate: Int) {
-        val packetWithAdts = ByteArray(packetLen + 7)
-        packetWithAdts[0] = 0xFF.toByte()
-        packetWithAdts[1] = 0xF1.toByte()
-        packetWithAdts[2] = (((2 - 1 shl 6) + (AUDIO_SAMPLING_RATES.indexOf(sampleRate) shl 2) + (1 shr 2)).toByte())
-        packetWithAdts[3] = ((1 and 3 shl 6) + (packetLen shr 11)).toByte()
-        packetWithAdts[4] = (packetLen and 0x7FF shr 3).toByte()
-        packetWithAdts[5] = ((packetLen and 7 shl 5) + 0x1F).toByte()
-        packetWithAdts[6] = 0xFC.toByte()
-        System.arraycopy(packet, 0, packetWithAdts, 7, packetLen)
     }
 
 }

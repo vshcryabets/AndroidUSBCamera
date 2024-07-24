@@ -85,11 +85,6 @@ object CameraUtils {
             }
     }
 
-    fun hasAudioPermission(ctx: Context): Boolean{
-        val locPermission = ContextCompat.checkSelfPermission(ctx, Manifest.permission.RECORD_AUDIO)
-        return locPermission == PackageManager.PERMISSION_GRANTED
-    }
-
     fun hasStoragePermission(ctx: Context): Boolean{
         val locPermission = ContextCompat.checkSelfPermission(ctx, Manifest.permission.WRITE_EXTERNAL_STORAGE)
         return locPermission == PackageManager.PERMISSION_GRANTED
