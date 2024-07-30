@@ -32,9 +32,9 @@
 
 #define LOCAL_DEBUG 1
 
-UVCPreviewBase::UVCPreviewBase(uvc_device_handle_t *devh,
+UVCCaptureBase::UVCCaptureBase(uvc_device_handle_t *devh,
                                uint16_t deviceId,
-                               UvcPreviewListener* previewListener,
+                               UvcCaptureListener* previewListener,
                                int16_t framePoolSize,
                                int16_t maxFramesQueue)
         : mDeviceHandle(devh),
@@ -53,8 +53,8 @@ UVCPreviewBase::UVCPreviewBase(uvc_device_handle_t *devh,
     pthread_cond_init(&preview_sync, nullptr);
 }
 
-UVCPreviewBase::~UVCPreviewBase() {
-    stopPreview();
+UVCCaptureBase::~UVCCaptureBase() {
+    stopCapture();
     clear_pool();
     pthread_mutex_lock(&preview_mutex);
     pthread_mutex_destroy(&preview_mutex);
@@ -69,7 +69,7 @@ UVCPreviewBase::~UVCPreviewBase() {
  * this function does not confirm the frame size
  * and you may need to confirm the size
  */
-uvc_frame_t *UVCPreviewBase::get_frame(size_t data_bytes) {
+uvc_frame_t *UVCCaptureBase::get_frame(size_t data_bytes) {
     uvc_frame_t *frame = NULL;
     pthread_mutex_lock(&pool_mutex);
     {
@@ -86,7 +86,7 @@ uvc_frame_t *UVCPreviewBase::get_frame(size_t data_bytes) {
     return frame;
 }
 
-void UVCPreviewBase::recycle_frame(uvc_frame_t *frame) {
+void UVCCaptureBase::recycle_frame(uvc_frame_t *frame) {
     if (frame == nullptr) {
         return;
     }
@@ -101,7 +101,7 @@ void UVCPreviewBase::recycle_frame(uvc_frame_t *frame) {
     }
 }
 
-void UVCPreviewBase::clear_pool() {
+void UVCCaptureBase::clear_pool() {
     pthread_mutex_lock(&pool_mutex);
     {
         for (const auto &frame: mFramePool)
@@ -111,9 +111,9 @@ void UVCPreviewBase::clear_pool() {
     pthread_mutex_unlock(&pool_mutex);
 }
 
-inline const bool UVCPreviewBase::isRunning() const { return mIsRunning; }
+inline const bool UVCCaptureBase::isRunning() const { return mIsRunning; }
 
-int UVCPreviewBase::setPreviewSize(int width,
+int UVCCaptureBase::setPreviewSize(int width,
                                    int height,
                                    int fps,
                                    float bandwidth) {
@@ -138,13 +138,13 @@ int UVCPreviewBase::setPreviewSize(int width,
     return result;
 }
 
-int UVCPreviewBase::startPreview() {
+int UVCCaptureBase::startCapture() {
     int result = EXIT_FAILURE;
     if (!isRunning()) {
         mIsRunning = true;
         pthread_mutex_lock(&preview_mutex);
         {
-            mPreviewThread = std::thread(&UVCPreviewBase::previewThreadFunc, this);
+            mPreviewThread = std::thread(&UVCCaptureBase::previewThreadFunc, this);
             result = EXIT_SUCCESS;
         }
 
@@ -162,7 +162,7 @@ int UVCPreviewBase::startPreview() {
     return result;
 }
 
-int UVCPreviewBase::stopPreview() {
+int UVCCaptureBase::stopCapture() {
     bool b = isRunning();
     if (LIKELY(b)) {
         mIsRunning = false;
@@ -175,9 +175,9 @@ int UVCPreviewBase::stopPreview() {
     return 0;
 }
 
-void UVCPreviewBase::uvc_preview_frame_callback(uvc_frame_t *frame, void *vptr_args) {
+void UVCCaptureBase::uvc_preview_frame_callback(uvc_frame_t *frame, void *vptr_args) {
     std::chrono::steady_clock::time_point timestamp = std::chrono::steady_clock::now();
-    UVCPreviewBase *preview = reinterpret_cast<UVCPreviewBase *>(vptr_args);
+    UVCCaptureBase *preview = reinterpret_cast<UVCCaptureBase *>(vptr_args);
     if UNLIKELY(!preview->isRunning() || !frame || !frame->frame_format || !frame->data || !frame->data_bytes) return;
     if (UNLIKELY(
             (frame->width != preview->frameWidth) ||
@@ -207,7 +207,7 @@ void UVCPreviewBase::uvc_preview_frame_callback(uvc_frame_t *frame, void *vptr_a
     }
 }
 
-void UVCPreviewBase::addPreviewFrame(uvc_frame_t *frame, std::chrono::steady_clock::time_point timestamp) {
+void UVCCaptureBase::addPreviewFrame(uvc_frame_t *frame, std::chrono::steady_clock::time_point timestamp) {
 
     if (isRunning()) {
         pthread_mutex_lock(&preview_mutex);
@@ -230,7 +230,7 @@ void UVCPreviewBase::addPreviewFrame(uvc_frame_t *frame, std::chrono::steady_clo
     }
 }
 
-const UvcPreviewFrame UVCPreviewBase::waitPreviewFrame() {
+const UvcPreviewFrame UVCCaptureBase::waitPreviewFrame() {
     UvcPreviewFrame frame = {
             .mFrame = nullptr
     };
@@ -246,7 +246,7 @@ const UvcPreviewFrame UVCPreviewBase::waitPreviewFrame() {
     return frame;
 }
 
-void UVCPreviewBase::clearPreviewFramesQueue() {
+void UVCCaptureBase::clearPreviewFramesQueue() {
     pthread_mutex_lock(&preview_mutex);
     {
         for (const auto &frame: mPreviewFrames) {
@@ -257,7 +257,7 @@ void UVCPreviewBase::clearPreviewFramesQueue() {
     pthread_mutex_unlock(&preview_mutex);
 }
 
-void UVCPreviewBase::previewThreadFunc() {
+void UVCCaptureBase::previewThreadFunc() {
     uvc_stream_ctrl_t ctrl;
 
     LOGI("previewThreadFunc frameSize=%dx%d", requestWidth, requestHeight);
@@ -299,7 +299,7 @@ void UVCPreviewBase::previewThreadFunc() {
         clearPreviewFramesQueue();
 
         if (mPreviewListener != nullptr)
-            mPreviewListener->onPreviewPrepared(mDeviceId, frameWidth, frameHeight);
+            mPreviewListener->onPrepared(mDeviceId, frameWidth, frameHeight);
 
         while (LIKELY(isRunning())) {
             auto frame = waitPreviewFrame();
@@ -310,12 +310,12 @@ void UVCPreviewBase::previewThreadFunc() {
             recycle_frame(frame.mFrame);
         }
         if (mPreviewListener != nullptr) {
-            mPreviewListener->onPreviewFinished(mDeviceId);
+            mPreviewListener->onFinished(mDeviceId);
         }
         uvc_stop_streaming(mDeviceHandle);
     } catch (UvcPreviewFailed err) {
         if (mPreviewListener != nullptr) {
-            mPreviewListener->onPreviewFailed(mDeviceId, err);
+            mPreviewListener->onFailed(mDeviceId, err);
         }
         LOGE("Exception %s", err.what());
     }

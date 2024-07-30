@@ -79,7 +79,7 @@ int UVCPreviewJni::setCaptureDisplay(ANativeWindow *capture_window) {
 }
 
 UVCPreviewJni::UVCPreviewJni(uvc_device_handle_t *devh)
-        : UVCPreviewBase(devh, 1, this, 8, 4),
+        : UVCCaptureBase(devh, 1, this, 8, 4),
           mPreviewWindow(NULL),
           mCaptureWindow(NULL),
           mFrameCallbackObj(NULL) {
@@ -95,8 +95,8 @@ UVCPreviewJni::~UVCPreviewJni() {
     mCaptureWindow = NULL;
 }
 
-int UVCPreviewJni::stopPreview() {
-    auto res = UVCPreviewBase::stopPreview();
+int UVCPreviewJni::stopCapture() {
+    auto res = UVCCaptureBase::stopCapture();
     clearDisplay();
     // check preview mutex available
     if (pthread_mutex_lock(&preview_mutex) == 0) {
@@ -207,7 +207,7 @@ void UVCPreviewJni::handleFrame(uint16_t deviceId,
     }
 }
 
-void UVCPreviewJni::onPreviewPrepared(uint16_t deviceId,
+void UVCPreviewJni::onPrepared(uint16_t deviceId,
                                       uint16_t frameWidth,
                                       uint16_t frameHeight) {
     LOGI("onPreviewPrepared %d %dx%d", deviceId, frameWidth, frameHeight);
@@ -254,7 +254,7 @@ void UVCPreviewJni::draw_preview_rgb(
     pthread_mutex_unlock(&preview_mutex);
 }
 
-void UVCPreviewJni::onPreviewFinished(uint16_t deviceId) {
+void UVCPreviewJni::onFinished(uint16_t deviceId) {
     LOGD("onPreviewFinished");
 }
 
@@ -262,6 +262,6 @@ void UVCPreviewJni::onFrameDropped(uint16_t deviceId, std::chrono::steady_clock:
     LOGD("onFrameDropped %lld", timestamp.time_since_epoch());
 }
 
-void UVCPreviewJni::onPreviewFailed(uint16_t deviceId, UvcPreviewFailed error) {
+void UVCPreviewJni::onFailed(uint16_t deviceId, UvcPreviewFailed error) {
     LOGE("onPreviewFailed %d %s", deviceId, error.what());
 }

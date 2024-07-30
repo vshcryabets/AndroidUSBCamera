@@ -124,7 +124,7 @@ int UVCCamera::connect(int vid, int pid, int fd, int busnum, int devaddr, std::s
 
 int UVCCamera::release() {
     if (LIKELY(mPreview)) {
-        mPreview->stopPreview();
+        mPreview->stopCapture();
     }
     if (LIKELY(mDeviceHandle)) {
         uvc_close(mDeviceHandle);
@@ -241,7 +241,7 @@ int UVCCamera::getProcSupports(uint64_t *supports) {
     RETURN(ret, int);
 }
 
-std::shared_ptr<UVCPreviewBase> UVCCamera::getPreview() const {
+std::shared_ptr<UVCCaptureBase> UVCCamera::getPreview() const {
     return mPreview;
 }
 
@@ -261,6 +261,6 @@ UVCCameraJniImpl::UVCCameraJniImpl() : UVCCamera() {
 
 }
 
-std::shared_ptr<UVCPreviewBase> UVCCameraJniImpl::constructPreview(uvc_device_handle_t *deviceHandle) {
-    return std::shared_ptr<UVCPreviewBase>(new UVCPreviewJni(deviceHandle));
+std::shared_ptr<UVCCaptureBase> UVCCameraJniImpl::constructPreview(uvc_device_handle_t *deviceHandle) {
+    return std::shared_ptr<UVCCaptureBase>(new UVCPreviewJni(deviceHandle));
 }

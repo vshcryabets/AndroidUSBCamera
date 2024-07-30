@@ -51,12 +51,12 @@ private:
 	int mFd;
 	uvc_device_t *mDevice;
 	uvc_device_handle_t *mDeviceHandle;
-    std::shared_ptr<UVCPreviewBase> mPreview;
+    std::shared_ptr<UVCCaptureBase> mPreview;
     std::shared_ptr<UVCCameraAdjustments> mCameraConfig;
 private:
 	void clearCameraParams();
 protected:
-    virtual std::shared_ptr<UVCPreviewBase> constructPreview(uvc_device_handle_t *deviceHandle) = 0;
+    virtual std::shared_ptr<UVCCaptureBase> constructPreview(uvc_device_handle_t *deviceHandle) = 0;
 public:
 	UVCCamera();
 	virtual ~UVCCamera();
@@ -67,7 +67,7 @@ public:
 	std::vector<UvcCameraResolution> getSupportedSize();
 	int getCtrlSupports(uint64_t *supports);
 	int getProcSupports(uint64_t *supports);
-    std::shared_ptr<UVCPreviewBase> getPreview() const;
+    std::shared_ptr<UVCCaptureBase> getPreview() const;
     std::shared_ptr<UVCCameraAdjustments> getAdjustments() const;
 
     // hacks for UAC
@@ -77,7 +77,7 @@ public:
 
 class UVCCameraJniImpl : public UVCCamera {
 protected:
-    virtual std::shared_ptr<UVCPreviewBase> constructPreview(uvc_device_handle_t *deviceHandle);
+    virtual std::shared_ptr<UVCCaptureBase> constructPreview(uvc_device_handle_t *deviceHandle);
 public:
     UVCCameraJniImpl();
     virtual ~UVCCameraJniImpl(){};
