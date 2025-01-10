@@ -1,21 +1,23 @@
 package com.jiangdg.ausbc
 
 import android.content.Context
-import android.content.res.Configuration
 import android.graphics.SurfaceTexture
 import android.hardware.usb.UsbDevice
-import android.os.*
-import android.view.Surface
-import com.jiangdg.ausbc.callback.*
+import android.os.Environment
+import android.os.Handler
+import android.os.HandlerThread
+import android.os.Looper
+import android.os.Message
+import com.jiangdg.ausbc.callback.ICameraStateCallBack
+import com.jiangdg.ausbc.callback.ICaptureCallBack
+import com.jiangdg.ausbc.callback.IDeviceConnectCallBack
+import com.jiangdg.ausbc.callback.IEncodeDataCallBack
+import com.jiangdg.ausbc.callback.IPreviewDataCallBack
 import com.jiangdg.ausbc.camera.bean.CameraRequest
 import com.jiangdg.ausbc.camera.bean.PreviewSize
-import com.jiangdg.ausbc.encode.AACEncodeProcessor
-import com.jiangdg.ausbc.encode.AbstractProcessor
-import com.jiangdg.ausbc.encode.H264EncodeProcessor
 import com.jiangdg.ausbc.encode.audio.AudioStrategySystem
 import com.jiangdg.ausbc.encode.audio.AudioStrategyUAC
 import com.jiangdg.ausbc.encode.audio.IAudioStrategy
-import com.jiangdg.ausbc.encode.bean.RawData
 import com.jiangdg.ausbc.encode.muxer.Mp4Muxer
 import com.jiangdg.ausbc.render.RenderManager
 import com.jiangdg.ausbc.render.env.RotateType
@@ -27,11 +29,11 @@ import com.jiangdg.ausbc.utils.OpenGLUtils
 import com.jiangdg.ausbc.utils.SettableFuture
 import com.jiangdg.ausbc.utils.Utils
 import com.jiangdg.ausbc.widget.IAspectRatio
-import com.jiangdg.usb.*
 import com.jiangdg.usb.DeviceFilter
+import com.jiangdg.usb.USBMonitor
 import com.jiangdg.uvc.UVCCamera
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Locale
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -252,14 +254,13 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
      * @property device see [UsbDevice]
      * @constructor Create camera by inherit it
      */
-    abstract class ICamera(val ctx: Context, val device: UsbDevice): Handler.Callback,
-        H264EncodeProcessor.OnEncodeReadyListener {
+    abstract class ICamera(val ctx: Context, val device: UsbDevice): Handler.Callback {
         private var isCaptureStream: Boolean = false
         private var mMediaMuxer: Mp4Muxer? = null
         private var mEncodeDataCallBack: IEncodeDataCallBack? = null
         private var mCameraThread: HandlerThread? = null
-        private var mAudioProcess: AbstractProcessor? = null
-        private var mVideoProcess: AbstractProcessor? = null
+//        private var mAudioProcess: AbstractProcessor? = null
+//        private var mVideoProcess: AbstractProcessor? = null
         private var mRenderManager: RenderManager?  = null
         private var mCameraView: Any? = null
         private var mCameraStateCallback: ICameraStateCallBack? = null
@@ -437,45 +438,45 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
          */
         private fun isGLESRender(isGlesRenderOpen: Boolean): Boolean =isGlesRenderOpen && OpenGLUtils.isGlEsSupported(ctx)
 
-        /**
-         * Init encode processor
-         *
-         * @param previewWidth camera opened preview width
-         * @param previewHeight camera opened preview height
-         */
-        protected fun initEncodeProcessor(previewWidth: Int, previewHeight: Int) {
-            releaseEncodeProcessor()
-            // create audio process
-            getAudioStrategy()?.let { audio->
-                AACEncodeProcessor(audio)
-            }?.also { processor ->
-                mAudioProcess = processor
-            }
-            // create video process
-            mContext.resources.configuration.orientation.let { orientation ->
-                orientation == Configuration.ORIENTATION_PORTRAIT
-            }.also { isPortrait ->
-                mVideoProcess = H264EncodeProcessor(previewWidth, previewHeight, isNeedGLESRender, isPortrait)
-            }
-        }
-
-        /**
-         * Release encode processor
-         */
-        protected fun releaseEncodeProcessor() {
-            try {
-                mMediaMuxer?.release()
-            } catch (e: Exception) {
-                e.printStackTrace()
-                Logger.e(TAG, "release muxer failed, err is ${e.localizedMessage}")
-            }
-            mVideoProcess?.stopEncode()
-            mAudioProcess?.stopEncode()
-            mVideoProcess = null
-            mMediaMuxer = null
-            mAudioProcess = null
-            isCaptureStream = false
-        }
+//        /**
+//         * Init encode processor
+//         *
+//         * @param previewWidth camera opened preview width
+//         * @param previewHeight camera opened preview height
+//         */
+//        protected fun initEncodeProcessor(previewWidth: Int, previewHeight: Int) {
+//            releaseEncodeProcessor()
+//            // create audio process
+//            getAudioStrategy()?.let { audio->
+//                AACEncodeProcessor(audio)
+//            }?.also { processor ->
+//                mAudioProcess = processor
+//            }
+//            // create video process
+//            mContext.resources.configuration.orientation.let { orientation ->
+//                orientation == Configuration.ORIENTATION_PORTRAIT
+//            }.also { isPortrait ->
+//                mVideoProcess = H264EncodeProcessor(previewWidth, previewHeight, isNeedGLESRender, isPortrait)
+//            }
+//        }
+//
+//        /**
+//         * Release encode processor
+//         */
+//        protected fun releaseEncodeProcessor() {
+//            try {
+//                mMediaMuxer?.release()
+//            } catch (e: Exception) {
+//                e.printStackTrace()
+//                Logger.e(TAG, "release muxer failed, err is ${e.localizedMessage}")
+//            }
+//            mVideoProcess?.stopEncode()
+//            mAudioProcess?.stopEncode()
+//            mVideoProcess = null
+//            mMediaMuxer = null
+//            mAudioProcess = null
+//            isCaptureStream = false
+//        }
 
         /**
          * Put video data
@@ -483,7 +484,7 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
          * @param data NV21 raw data
          */
         protected fun putVideoData(data: ByteArray) {
-            mVideoProcess?.putRawData(RawData(data, data.size))
+//            mVideoProcess?.putRawData(RawData(data, data.size))
         }
 
         /**
@@ -654,7 +655,7 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
                 Logger.w(TAG, "updateResolution failed, please open camera first.")
                 return
             }
-            if (isStreaming() || isRecording()) {
+            if (isRecording()) {
                 Logger.e(TAG, "updateResolution failed, video recording...")
                 return
             }
@@ -771,9 +772,9 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
          * check stream status
          * need video encoding and stream flag are true
          */
-        fun isStreaming(): Boolean = isEncoding() && isCaptureStream
+//        fun isStreaming(): Boolean = isEncoding() && isCaptureStream
 
-        private fun isEncoding(): Boolean = mVideoProcess?.isEncoding() == true
+//        private fun isEncoding(): Boolean = mVideoProcess?.isEncoding() == true
 
         private fun captureVideoStartInternal(path: String?, durationInSec: Long, callBack: ICaptureCallBack) {
             if (! isCameraOpened()) {
@@ -785,20 +786,20 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
                 return
             }
             captureStreamStartInternal()
-            Mp4Muxer(mContext, callBack, path, durationInSec, mAudioProcess==null).apply {
-                mVideoProcess?.setMp4Muxer(this)
-                mAudioProcess?.setMp4Muxer(this)
-            }.also { muxer ->
-                mMediaMuxer = muxer
-            }
+//            Mp4Muxer(mContext, callBack, path, durationInSec, mAudioProcess==null).apply {
+//                mVideoProcess?.setMp4Muxer(this)
+//                mAudioProcess?.setMp4Muxer(this)
+//            }.also { muxer ->
+//                mMediaMuxer = muxer
+//            }
             Logger.i(TAG, "capturing video start")
         }
 
         private fun captureVideoStopInternal() {
             // if streaming, cancel it
-            if (! isStreaming()) {
-                captureStreamStopInternal()
-            }
+//            if (! isStreaming()) {
+//                captureStreamStopInternal()
+//            }
             try {
                 mMediaMuxer?.release()
             } catch (e: Exception) {
@@ -815,56 +816,56 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
                 Logger.e(TAG ,"capture stream failed, camera not opened")
                 return
             }
-            if (isEncoding()) {
-                Logger.w(TAG, "capturing stream canceled, already running")
-                return
-            }
-            (mVideoProcess as? H264EncodeProcessor)?.apply {
-                if (mVideoProcess?.isEncoding() == true) {
-                    return@apply
-                }
-                startEncode()
-                setEncodeDataCallBack(mEncodeDataCallBack)
-                setOnEncodeReadyListener(this@ICamera)
-            }
-            (mAudioProcess as? AACEncodeProcessor)?.apply {
-                if (mAudioProcess?.isEncoding() == true) {
-                    return@apply
-                }
-                startEncode()
-                setEncodeDataCallBack(mEncodeDataCallBack)
-            }
+//            if (isEncoding()) {
+//                Logger.w(TAG, "capturing stream canceled, already running")
+//                return
+//            }
+//            (mVideoProcess as? H264EncodeProcessor)?.apply {
+//                if (mVideoProcess?.isEncoding() == true) {
+//                    return@apply
+//                }
+//                startEncode()
+//                setEncodeDataCallBack(mEncodeDataCallBack)
+//                setOnEncodeReadyListener(this@ICamera)
+//            }
+//            (mAudioProcess as? AACEncodeProcessor)?.apply {
+//                if (mAudioProcess?.isEncoding() == true) {
+//                    return@apply
+//                }
+//                startEncode()
+//                setEncodeDataCallBack(mEncodeDataCallBack)
+//            }
             Logger.i(TAG, "capturing stream start")
         }
 
         private fun captureStreamStopInternal() {
             mRenderManager?.stopRenderCodec()
-            (mVideoProcess as? H264EncodeProcessor)?.apply {
-                if (! isEncoding()) {
-                    return@apply
-                }
-                stopEncode()
-                setEncodeDataCallBack(null)
-            }
-            (mAudioProcess as? AACEncodeProcessor)?.apply {
-                if (! isEncoding()) {
-                    return@apply
-                }
-                stopEncode()
-                setEncodeDataCallBack(null)
-            }
+//            (mVideoProcess as? H264EncodeProcessor)?.apply {
+//                if (! isEncoding()) {
+//                    return@apply
+//                }
+//                stopEncode()
+//                setEncodeDataCallBack(null)
+//            }
+//            (mAudioProcess as? AACEncodeProcessor)?.apply {
+//                if (! isEncoding()) {
+//                    return@apply
+//                }
+//                stopEncode()
+//                setEncodeDataCallBack(null)
+//            }
             Logger.i(TAG, "capturing stream stop")
         }
 
-        override fun onReady(surface: Surface?) {
-            if (surface == null) {
-                Logger.e(TAG, "start encode failed, input surface is null")
-                return
-            }
-            mCameraRequest?.apply {
-                mRenderManager?.startRenderCodec(surface, previewWidth, previewHeight)
-            }
-        }
+//        override fun onReady(surface: Surface?) {
+//            if (surface == null) {
+//                Logger.e(TAG, "start encode failed, input surface is null")
+//                return
+//            }
+//            mCameraRequest?.apply {
+//                mRenderManager?.startRenderCodec(surface, previewWidth, previewHeight)
+//            }
+//        }
 
         private fun getDefaultCameraRequest(): CameraRequest {
             return CameraRequest.Builder()

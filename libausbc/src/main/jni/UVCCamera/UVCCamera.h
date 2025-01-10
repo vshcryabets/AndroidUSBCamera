@@ -25,8 +25,8 @@
 
 #pragma once
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 #include <pthread.h>
 #include <android/native_window.h>
 #include "UVCCameraAdjustments.h"
@@ -77,8 +77,8 @@ public:
 
 class UVCCameraJniImpl : public UVCCamera {
 protected:
-    virtual std::shared_ptr<UVCCaptureBase> constructPreview(uvc_device_handle_t *deviceHandle);
+    std::shared_ptr<UVCCaptureBase> constructPreview(uvc_device_handle_t *deviceHandle) override;
 public:
     UVCCameraJniImpl();
-    virtual ~UVCCameraJniImpl(){};
+    ~UVCCameraJniImpl() override {};
 };
