@@ -73,26 +73,26 @@ public:
     virtual const char *what() noexcept;
 };
 
-class UvcPreviewListener {
+class UvcCaptureListener {
 public:
     // will be called on each frame from UVC
     virtual void handleFrame(uint16_t deviceId,
                              const UvcPreviewFrame &frame) = 0;
 
     // will be called once from worker thread of the UVCPreviewBase
-    virtual void onPreviewPrepared(uint16_t deviceId,
+    virtual void onPrepared(uint16_t deviceId,
                                    uint16_t frameWidth,
                                    uint16_t frameHeight) = 0;
 
     // will be called once before worker thread finishing
-    virtual void onPreviewFinished(uint16_t deviceId) = 0;
-    virtual void onPreviewFailed(uint16_t deviceId, UvcPreviewFailed error) = 0;
+    virtual void onFinished(uint16_t deviceId) = 0;
+    virtual void onFailed(uint16_t deviceId, UvcPreviewFailed error) = 0;
 
     virtual void onFrameDropped(uint16_t deviceId, std::chrono::steady_clock::time_point timestamp) = 0;
 };
 
 
-class UVCPreviewBase {
+class UVCCaptureBase {
 protected:
     uvc_device_handle_t *mDeviceHandle;
     volatile bool mIsRunning;
@@ -109,7 +109,7 @@ protected:
     volatile uint16_t allocatedFramesCounter = 0;
     std::thread mPreviewThread;
     uint16_t mDeviceId;
-    UvcPreviewListener *mPreviewListener;
+    UvcCaptureListener *mPreviewListener;
     int16_t mFramePoolSize;
     int16_t mMaxFramesQueue;
 private:
@@ -131,13 +131,13 @@ protected:
     const UvcPreviewFrame waitPreviewFrame();
 
 public:
-    UVCPreviewBase(uvc_device_handle_t *devh,
+    UVCCaptureBase(uvc_device_handle_t *devh,
                    uint16_t deviceId,
-                   UvcPreviewListener *previewListener,
+                   UvcCaptureListener *previewListener,
                    int16_t framePoolSize = 8,
                    int16_t maxFramesQueue = 4);
 
-    virtual ~UVCPreviewBase();
+    virtual ~UVCCaptureBase();
 
     inline const bool isRunning() const;
 
@@ -149,7 +149,7 @@ public:
                        int fps,
                        float bandwidth = 1.0f);
 
-    int startPreview();
+    int startCapture();
 
-    virtual int stopPreview();
+    virtual int stopCapture();
 };

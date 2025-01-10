@@ -182,7 +182,7 @@ static jint nativeStartPreview(JNIEnv *env,
                                ID_TYPE id_camera) {
     UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
     if (LIKELY(camera)) {
-        return camera->getPreview()->startPreview();
+        return camera->getPreview()->startCapture();
     }
     return JNI_ERR;
 }
@@ -195,7 +195,7 @@ static jint nativeStopPreview(JNIEnv *env, jobject thiz,
 
     UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
     if (LIKELY(camera)) {
-        result = camera->getPreview()->stopPreview();
+        result = camera->getPreview()->stopCapture();
     }
     RETURN(result, jint);
 }
