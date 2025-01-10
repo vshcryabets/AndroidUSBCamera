@@ -19,6 +19,8 @@ import android.hardware.usb.UsbManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.jiangdg.demo.MainActivity
@@ -34,12 +36,12 @@ class DevicesActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        getWindow().getDecorView().setBackgroundColor(Color.White.toArgb())
         viewModel = ViewModelProvider(
             this, DeviceListViewModelFactory(
                 usbManager = applicationContext.getSystemService(USB_SERVICE) as UsbManager
             )
-        )
-            .get(DeviceListViewModel::class.java)
+        ).get(DeviceListViewModel::class.java)
         setContent {
             DeviceListScreen.ScreenContent(viewModel = viewModel)
         }
@@ -53,7 +55,8 @@ class DevicesActivity : ComponentActivity() {
             viewModel.state.collect {
                 if (it.openPreviewDeviceId != null) {
                     viewModel.onPreviewOpened()
-                    val intent = MainActivity.newInstance(applicationContext, it.openPreviewDeviceId)
+                    val intent =
+                        MainActivity.newInstance(applicationContext, it.openPreviewDeviceId)
                     startActivity(intent)
                 }
             }
