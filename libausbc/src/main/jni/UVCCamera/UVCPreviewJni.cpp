@@ -258,8 +258,8 @@ void UVCPreviewJni::onFinished(uint16_t deviceId) {
     LOGD("onPreviewFinished");
 }
 
-void UVCPreviewJni::onFrameDropped(uint16_t deviceId, std::chrono::steady_clock::time_point timestamp) {
-    LOGD("onFrameDropped %lld", timestamp.time_since_epoch());
+void UVCPreviewJni::onFrameLost(uint16_t deviceId, std::chrono::steady_clock::time_point timestamp, uint8_t reason) {
+    LOGD("onFrameDropped %lld reason = %d", timestamp.time_since_epoch(), reason);
 }
 
 void UVCPreviewJni::onFailed(uint16_t deviceId, UvcPreviewFailed error) {

@@ -80,7 +80,7 @@ uvc_frame_t *UVCCaptureBase::get_frame(size_t data_bytes) {
     }
     pthread_mutex_unlock(&pool_mutex);
     if (UNLIKELY(!frame)) {
-        allocatedFramesCounter++;
+        mAllocatedFramesCounter++;
         frame = uvc_allocate_frame(data_bytes);
     }
     return frame;
@@ -177,21 +177,32 @@ int UVCCaptureBase::stopCapture() {
 
 void UVCCaptureBase::uvc_preview_frame_callback(uvc_frame_t *frame, void *vptr_args) {
     std::chrono::steady_clock::time_point timestamp = std::chrono::steady_clock::now();
-    UVCCaptureBase *preview = reinterpret_cast<UVCCaptureBase *>(vptr_args);
-    if UNLIKELY(!preview->isRunning() || !frame || !frame->frame_format || !frame->data || !frame->data_bytes) return;
-    if (UNLIKELY(
-            (frame->width != preview->frameWidth) ||
-            (frame->height != preview->frameHeight))) {
+    auto *pCaptureBase = reinterpret_cast<UVCCaptureBase *>(vptr_args);
+    if UNLIKELY(!pCaptureBase->isRunning() || !frame || !frame->frame_format || !frame->data || !frame->data_bytes) return;
 
+    auto format = frame->frame_format;
+    uint32_t expectedSize = 0;
+    if (format == UVC_FRAME_FORMAT_UYVY || format == UVC_FRAME_FORMAT_YUYV) {
+        expectedSize = frame->width * frame->height * 2;
+    } else if (format == UVC_FRAME_FORMAT_BGR || format == UVC_FRAME_FORMAT_RGB) {
+        expectedSize = frame->width * frame->height * 3;
+    }
+
+    if (UNLIKELY(
+            (frame->width != pCaptureBase->frameWidth) ||
+            (frame->height != pCaptureBase->frameHeight) ||
+            (expectedSize != 0 && frame->data_bytes != expectedSize))) {
 #if LOCAL_DEBUG
-        LOGE("broken frame!:format=%d,actual_bytes=%d(%d,%d/%d,%d)",
+        LOGE("broken frame!:format=%d,actual_bytes=%zu(%d,%d/%d,%d), expected=%d",
              frame->frame_format, frame->data_bytes,
-             frame->width, frame->height, preview->frameWidth, preview->frameHeight);
+             frame->width, frame->height, pCaptureBase->frameWidth, pCaptureBase->frameHeight,
+             expectedSize);
 #endif
+        pCaptureBase->onBrokenFrame(timestamp);
         return;
     }
-    if (LIKELY(preview->isRunning())) {
-        uvc_frame_t *copy = preview->get_frame(frame->data_bytes);
+    if (LIKELY(pCaptureBase->isRunning())) {
+        uvc_frame_t *copy = pCaptureBase->get_frame(frame->data_bytes);
         if (UNLIKELY(!copy)) {
 #if LOCAL_DEBUG
             LOGE("uvc_callback:unable to allocate duplicate frame!");
@@ -200,10 +211,10 @@ void UVCCaptureBase::uvc_preview_frame_callback(uvc_frame_t *frame, void *vptr_a
         }
         uvc_error_t ret = uvc_duplicate_frame(frame, copy);
         if (UNLIKELY(ret)) {
-            preview->recycle_frame(copy);
+            pCaptureBase->recycle_frame(copy);
             return;
         }
-        preview->addPreviewFrame(copy, timestamp);
+        pCaptureBase->addPreviewFrame(copy, timestamp);
     }
 }
 
@@ -221,7 +232,7 @@ void UVCCaptureBase::addPreviewFrame(uvc_frame_t *frame, std::chrono::steady_clo
             frame = nullptr;
             pthread_cond_signal(&preview_sync);
         } else if (mPreviewListener != nullptr) {
-            mPreviewListener->onFrameDropped(mDeviceId, timestamp);
+            mPreviewListener->onFrameLost(mDeviceId, timestamp, UvcCaptureListener::LOST_FRAME_DROPPED);
         }
         pthread_mutex_unlock(&preview_mutex);
     }
@@ -235,7 +246,7 @@ const UvcPreviewFrame UVCCaptureBase::waitPreviewFrame() {
             .mFrame = nullptr
     };
     pthread_mutex_lock(&preview_mutex);
-    if (!mPreviewFrames.size()) {
+    if (mPreviewFrames.empty()) {
         pthread_cond_wait(&preview_sync, &preview_mutex);
     }
     if (LIKELY(isRunning() && !mPreviewFrames.empty())) {
@@ -320,6 +331,13 @@ void UVCCaptureBase::previewThreadFunc() {
         LOGE("Exception %s", err.what());
     }
 
+}
+
+void UVCCaptureBase::onBrokenFrame(std::chrono::steady_clock::time_point point) {
+    mBrokenFramesCounter++;
+    if (mPreviewListener != nullptr) {
+        mPreviewListener->onFrameLost(mDeviceId, point, UvcCaptureListener::LOST_FRAME_BROKEN);
+    }
 }
 
 UvcPreviewFailed::UvcPreviewFailed(UvcPreviewFailed::Type error, std::string decsription):

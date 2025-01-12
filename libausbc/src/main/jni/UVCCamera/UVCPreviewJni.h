@@ -39,7 +39,7 @@ protected:
     void handleFrame(uint16_t deviceId, const UvcPreviewFrame &frame) override;
     void onPrepared(uint16_t deviceId, uint16_t frameWidth, uint16_t  frameHeight) override;
     void onFinished(uint16_t deviceId) override;
-    void onFrameDropped(uint16_t deviceId, std::chrono::steady_clock::time_point timestamp) override;
+    void onFrameLost(uint16_t deviceId, std::chrono::steady_clock::time_point timestamp, uint8_t reason) override;
     void onFailed(uint16_t deviceId, UvcPreviewFailed error) override;
 public:
     UVCPreviewJni(uvc_device_handle_t *devh);

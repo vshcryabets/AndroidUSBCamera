@@ -225,7 +225,7 @@ class CameraUVC(ctx: Context, device: UsbDevice) : MultiCameraClient.ICamera(ctx
     override fun closeCameraInternal() {
         postStateEvent(ICameraStateCallBack.State.CLOSED)
         isPreviewed = false
-        releaseEncodeProcessor()
+//        releaseEncodeProcessor()
         mUvcCamera?.destroy()
         mUvcCamera = null
         if (Utils.debugCamera) {

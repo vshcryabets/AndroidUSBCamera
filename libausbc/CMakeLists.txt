@@ -22,6 +22,8 @@ set(ENABLE_STATIC TRUE)
 
 add_compile_definitions(LIBUVC_HAS_JPEG)
 
+#add_subdirectory(../libausbc/src/main/jni/libjpeg-turbo-2.1.1/)
+
 include(../libausbc/src/main/jni/libjpeg-turbo-1.5.0/android/CMakeLists.txt)
 include(../libausbc/src/main/jni/hacks/CMakeLists.txt)
 include(../libausbc/src/main/jni/common/CMakeLists.txt)

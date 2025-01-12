@@ -28,7 +28,7 @@
 #include "libusb.h"
 #include "libuvc/libuvc.h"
 #include "utilbase.h"
-#include <stdint.h>
+#include <cstdint>
 #include <mutex>
 #include <condition_variable>
 #include <list>
@@ -52,7 +52,7 @@ typedef uvc_error_t (*convFunc_t)(uvc_frame_t *in, uvc_frame_t *out);
 #define PIXEL_FORMAT_NV21 5        // YVU420SemiPlanar
 
 struct UvcPreviewFrame {
-    uvc_frame_t *mFrame;
+    uvc_frame_t *mFrame = nullptr;
     std::chrono::steady_clock::time_point mTimestamp;
 };
 
@@ -69,11 +69,14 @@ private:
 public:
     UvcPreviewFailed(Type error, std::string description);
     UvcPreviewFailed(UvcPreviewFailed&);
-    virtual ~UvcPreviewFailed() noexcept {};
+    ~UvcPreviewFailed() noexcept override = default;
     virtual const char *what() noexcept;
 };
 
 class UvcCaptureListener {
+public:
+    static const uint8_t LOST_FRAME_DROPPED = 1;
+    static const uint8_t LOST_FRAME_BROKEN = 2;
 public:
     // will be called on each frame from UVC
     virtual void handleFrame(uint16_t deviceId,
@@ -87,8 +90,7 @@ public:
     // will be called once before worker thread finishing
     virtual void onFinished(uint16_t deviceId) = 0;
     virtual void onFailed(uint16_t deviceId, UvcPreviewFailed error) = 0;
-
-    virtual void onFrameDropped(uint16_t deviceId, std::chrono::steady_clock::time_point timestamp) = 0;
+    virtual void onFrameLost(uint16_t deviceId, std::chrono::steady_clock::time_point timestamp, uint8_t reason) = 0;
 };
 
 
@@ -106,12 +108,14 @@ protected:
     std::list<UvcPreviewFrame> mPreviewFrames;
     pthread_mutex_t pool_mutex;
     std::list<uvc_frame_t *> mFramePool;
-    volatile uint16_t allocatedFramesCounter = 0;
     std::thread mPreviewThread;
     uint16_t mDeviceId;
     UvcCaptureListener *mPreviewListener;
     int16_t mFramePoolSize;
     int16_t mMaxFramesQueue;
+
+    volatile uint16_t mAllocatedFramesCounter = 0;
+    volatile uint16_t mBrokenFramesCounter = 0;
 private:
     void clear_pool();
 
@@ -152,4 +156,8 @@ public:
     int startCapture();
 
     virtual int stopCapture();
+    uint16_t getBrokenFramesCounter() { return mBrokenFramesCounter; }
+    uint16_t getAllocatedFramesCounter() { return  mAllocatedFramesCounter; };
+
+    void onBrokenFrame(std::chrono::steady_clock::time_point point);
 };
