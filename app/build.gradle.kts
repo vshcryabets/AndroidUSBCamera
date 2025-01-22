@@ -61,4 +61,7 @@ dependencies {
     implementation(libs.androidx.foundation)
     implementation(libs.androidx.activity.compose)
     implementation(project(":libausbc"))
+    implementation(libs.androidx.navigation.runtime.ktx)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.material3.android)
 }
