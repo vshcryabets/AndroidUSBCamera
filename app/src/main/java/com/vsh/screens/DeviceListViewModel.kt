@@ -106,4 +106,8 @@ class DeviceListViewModel(
             it.copy(openPreviewDeviceId = null)
         }
     }
+
+    fun onBenchmarks() {
+
+    }
 }
