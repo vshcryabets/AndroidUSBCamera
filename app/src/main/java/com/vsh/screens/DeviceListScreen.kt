@@ -35,6 +35,8 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.Icon
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -44,8 +46,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.jiangdg.demo.R
+
+enum class AusbcScreen() {
+    Start,
+    Benchmarks,
+}
 
 object DeviceListScreen {
     @Composable
@@ -72,8 +81,12 @@ object DeviceListScreen {
     }
 
     @Composable
-    fun ScreenContent(viewModel: DeviceListViewModel) {
-        val state by viewModel.state.collectAsState(DeviceListViewState())
+    fun ScreenContent(
+        uiState: DeviceListViewState,
+        onBenchmarks: () -> Unit,
+        onReload: () -> Unit,
+        onSelectUsbDevice: (UsbDevice) -> Unit
+    ) {
         Column(
             modifier = Modifier
                 .padding(8.dp)
@@ -84,12 +97,14 @@ object DeviceListScreen {
             ) {
                 Button(
                     modifier = Modifier.padding(start = 16.dp),
-                    onClick = { viewModel.onBenchmarks() }) {
+                    onClick = onBenchmarks
+                ) {
                     Text("Benchmarks")
                 }
                 Button(
                     modifier = Modifier.padding(start = 16.dp),
-                    onClick = { viewModel.onEnumarate() }) {
+                    onClick = onReload
+                ) {
                     Text("Reload USB devices")
                 }
             }
@@ -97,24 +112,30 @@ object DeviceListScreen {
             LazyColumn(
                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
             ) {
-                this.items(state.devices) {
-                    ProductItem(product = it) {
-                        viewModel.onClick(it)
-                    }
+                this.items(uiState.devices) {
+                    ProductItem(product = it, onItemClick = onSelectUsbDevice)
                 }
             }
         }
     }
+
+    @Composable
+    fun Benchmarks(viewModel: DeviceListViewModel) {
+
+    }
 }
 
 @Composable
-fun CupcakeAppBar(
+fun AusbcAppBar(
     canNavigateBack: Boolean,
     navigateUp: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     TopAppBar(
         title = { Text(stringResource(id = R.string.app_name)) },
+        colors = TopAppBarDefaults.mediumTopAppBarColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer
+        ),
         modifier = modifier,
         navigationIcon = {
             if (canNavigateBack) {
@@ -130,19 +151,38 @@ fun CupcakeAppBar(
 }
 
 @Composable
-fun CupcakeApp(
+fun AusbcApp(
     viewModel: DeviceListViewModel,
     navController: NavHostController = rememberNavController()
 ) {
-
     Scaffold(
         topBar = {
-            CupcakeAppBar(
+            AusbcAppBar(
                 canNavigateBack = false,
                 navigateUp = { /* TODO: implement back navigation */ }
             )
         }
     ) { innerPadding ->
         val uiState by viewModel.state.collectAsState()
+
+        NavHost(
+            navController = navController,
+            startDestination = AusbcScreen.Start.name,
+            modifier = Modifier.padding(innerPadding)
+        ) {
+            composable(route = AusbcScreen.Start.name) {
+                DeviceListScreen.ScreenContent(
+                    uiState = uiState,
+                    onBenchmarks = {
+                        viewModel.onBenchmarks()
+                        navController.navigate(AusbcScreen.Benchmarks.name)
+                    },
+                    onReload = { viewModel.onEnumarate() },
+                    onSelectUsbDevice = { viewModel.onClick(it) })
+            }
+            composable(route = AusbcScreen.Benchmarks.name) {
+                DeviceListScreen.Benchmarks(viewModel)
+            }
+        }
     }
 }

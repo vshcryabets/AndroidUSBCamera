@@ -24,10 +24,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import com.example.cupcake.ui.theme.CupcakeTheme
+import com.example.cupcake.ui.theme.AusbcTheme
 import com.jiangdg.demo.MainActivity
-import com.vsh.screens.CupcakeApp
-import com.vsh.screens.DeviceListScreen
+import com.vsh.screens.AusbcApp
 import com.vsh.screens.DeviceListViewModel
 import com.vsh.screens.DeviceListViewModelFactory
 import kotlinx.coroutines.launch
@@ -47,9 +46,8 @@ class DevicesActivity : ComponentActivity() {
             )
         ).get(DeviceListViewModel::class.java)
         setContent {
-            CupcakeTheme {
-                CupcakeApp(viewModel = viewModel)
-                //DeviceListScreen.ScreenContent(viewModel = viewModel)
+            AusbcTheme {
+                AusbcApp(viewModel = viewModel)
             }
         }
     }
