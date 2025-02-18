@@ -16,23 +16,52 @@
 #pragma once
 
 #include <string>
-#include <stdint.h>
+#include <cstdint>
+#include <vector>
+#include <utility>
+#include "DI.h"
 
-class GetJpegImageuseCase {
+#ifdef USE_LIBJPEG
+    #include "jpeglib.h"
+#endif
+
+class LoadJpegImageFromFileUseCase : public LoadJpegImageUseCase {
     public:
-        virtual uint8_t* loadImage(std::string imageId) = 0;
+        Result load(std::string imageId) override;
 };
 
-class DecodeJpegImageUseCase {
+#ifdef USE_TURBOJPEG
+class DecodeJpegImageTurboJpegUseCase : public DecodeJpegImageUseCase {
     public:
-        virtual void decodeImage(uint8_t* image, int size) = 0;
+        void decodeImage(uint8_t* encodedBuffer, 
+            size_t encodedBufferSize, 
+            uint8_t* decodedBuffer, 
+            size_t decodedBufferSize) override;
+        std::string getDecoderName() override;
 };
+#endif
 
-class JpegBenchmark {    
+#ifdef USE_LIBJPEG
+class DecodeJpegImageLibJpeg9UseCase : public DecodeJpegImageUseCase {
+    private:
+        static void JPEGVersionError(j_common_ptr cinfo);
+    public:
+        void decodeImage(uint8_t* encodedBuffer, 
+            size_t encodedBufferSize, 
+            uint8_t* decodedBuffer, 
+            size_t decodedBufferSize) override;
+        std::string getDecoderName() override;
+};
+#endif
+
+class JpegBenchmark {
+    public:
+        struct Arguments {
+            std::vector<std::pair<uint16_t, std::string>> imageSamples;
+            int iterations;
+        };
     public:
         JpegBenchmark();
-        virtual ~JpegBenchmark();
-        void start();
-        void stop();
-        void addFrame(int size);
-}
+        virtual ~JpegBenchmark() {};
+        void start(const Arguments& args);
+};
