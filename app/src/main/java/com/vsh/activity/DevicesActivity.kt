@@ -19,12 +19,14 @@ import android.hardware.usb.UsbManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import com.example.cupcake.ui.theme.AusbcTheme
 import com.jiangdg.demo.MainActivity
-import com.vsh.screens.DeviceListScreen
+import com.vsh.screens.AusbcApp
 import com.vsh.screens.DeviceListViewModel
 import com.vsh.screens.DeviceListViewModelFactory
 import kotlinx.coroutines.launch
@@ -35,6 +37,7 @@ class DevicesActivity : ComponentActivity() {
     lateinit var viewModel: DeviceListViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         getWindow().getDecorView().setBackgroundColor(Color.White.toArgb())
         viewModel = ViewModelProvider(
@@ -43,7 +46,9 @@ class DevicesActivity : ComponentActivity() {
             )
         ).get(DeviceListViewModel::class.java)
         setContent {
-            DeviceListScreen.ScreenContent(viewModel = viewModel)
+            AusbcTheme {
+                AusbcApp(viewModel = viewModel)
+            }
         }
     }
 
