@@ -34,12 +34,14 @@ class LinuxDi: public DI {
     private:
         LoadJpegImageFromFileUseCase imageLoader;
         DecodeJpegImageLibJpeg9UseCase decoder;
+        SaveBitmapImageToFileUseCase imageSaver;
 
         UseCases useCases;
     public:
         LinuxDi(): useCases{
             .imageLoader = &imageLoader,
-            .imageDecoder = &decoder
+            .imageDecoder = &decoder,
+            .imageSaver = &imageSaver
         } {
             DI::setInstance(this);
         }
@@ -55,12 +57,12 @@ int main(void) {
     JpegBenchmark benchmark;
     benchmark.start({
         .imageSamples = {
-            { 360, "../../app/src/assets/sample1_0360.jpg" },
-            { 480, "../../app/src/assets/sample1_0480.jpg" },
-            { 720, "../../app/src/assets/sample1_0720.jpg" },
-            { 1080, "../../app/src/assets/sample1_1080.jpg" },
-            { 1440, "../../app/src/assets/sample1_1440.jpg" },
-            { 2160, "../../app/src/assets/sample1_2160.jpg" },
+            { 360, "./app/src/main/assets/jpeg_samples/sample1_0360.jpg" },
+            { 480, "./app/src/main/assets/jpeg_samples/sample1_0480.jpg" },
+            { 720, "./app/src/main/assets/jpeg_samples/sample1_0720.jpg" },
+            { 1080, "./app/src/main/assets/jpeg_samples/sample1_1080.jpg" },
+            { 1440, "./app/src/main/assets/jpeg_samples/sample1_1440.jpg" },
+            { 2160, "./app/src/main/assets/jpeg_samples/sample1_2160.jpg" },
         },
         .iterations = 1
     });

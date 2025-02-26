@@ -30,6 +30,11 @@ class LoadJpegImageFromFileUseCase : public LoadJpegImageUseCase {
         Result load(std::string imageId) override;
 };
 
+class SaveBitmapImageToFileUseCase : public SaveBitmapImageUseCase {
+    public:
+        void save(std::string imageId, uint8_t* buffer, size_t size) override;
+};
+
 #ifdef USE_TURBOJPEG
 class DecodeJpegImageTurboJpegUseCase : public DecodeJpegImageUseCase {
     public:

@@ -37,9 +37,15 @@ class DecodeJpegImageUseCase {
         virtual std::string getDecoderName() = 0;
 };
 
+class SaveBitmapImageUseCase {
+    public:
+        virtual void save(std::string imageId, uint8_t* buffer, size_t size) = 0;
+};
+
 struct UseCases {
     LoadJpegImageUseCase* imageLoader;
     DecodeJpegImageUseCase* imageDecoder;
+    SaveBitmapImageUseCase* imageSaver;
 };
 
 class DI {

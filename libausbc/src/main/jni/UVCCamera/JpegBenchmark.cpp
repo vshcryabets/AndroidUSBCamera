@@ -54,6 +54,24 @@ void DecodeJpegImageLibJpeg9UseCase::decodeImage(uint8_t* encodedBuffer,
     uint8_t* decodedBuffer, 
     size_t decodedBufferSize) {
     // Decode image
+    jpeg_decompress_struct cinfo;
+    jpeg_error_mgr jerr;
+
+    cinfo.err = jpeg_std_error(&jerr);
+    jpeg_create_decompress(&cinfo);
+    jpeg_mem_src(&cinfo, encodedBuffer, encodedBufferSize);
+    jpeg_read_header(&cinfo, TRUE);
+    jpeg_start_decompress(&cinfo);
+
+    int row_stride = cinfo.output_width * cinfo.output_components;
+    while (cinfo.output_scanline < cinfo.output_height) {
+        uint8_t* buffer_array[1];
+        buffer_array[0] = decodedBuffer + (cinfo.output_scanline) * row_stride;
+        jpeg_read_scanlines(&cinfo, buffer_array, 1);
+    }
+
+    jpeg_finish_decompress(&cinfo);
+    jpeg_destroy_decompress(&cinfo);
 }
 
 void DecodeJpegImageLibJpeg9UseCase::JPEGVersionError(j_common_ptr cinfo){}
@@ -97,4 +115,13 @@ void JpegBenchmark::start(const Arguments& args) {
     for (auto& it : buffers) {
         delete[] it.second.buffer;
     }
+}
+
+void SaveBitmapImageToFileUseCase::save(std::string imageId, uint8_t* buffer, size_t size) {
+    FILE* file = fopen(imageId.c_str(), "wb");
+    if (file == nullptr) {
+        return;
+    }
+    fwrite(buffer, 1, size, file);
+    fclose(file);
 }
