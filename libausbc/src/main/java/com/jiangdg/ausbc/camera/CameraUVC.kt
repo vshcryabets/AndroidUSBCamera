@@ -27,7 +27,6 @@ import com.jiangdg.ausbc.MultiCameraClient
 import com.jiangdg.ausbc.MultiCameraClient.Companion.CAPTURE_TIMES_OUT_SEC
 import com.jiangdg.ausbc.MultiCameraClient.Companion.MAX_NV21_DATA
 import com.jiangdg.ausbc.callback.ICameraStateCallBack
-import com.jiangdg.ausbc.callback.ICaptureCallBack
 import com.jiangdg.ausbc.callback.IPreviewDataCallBack
 import com.jiangdg.ausbc.camera.bean.CameraRequest
 import com.jiangdg.ausbc.camera.bean.PreviewSize
@@ -63,11 +62,6 @@ class CameraUVC(ctx: Context, device: UsbDevice) : MultiCameraClient.ICamera(ctx
                 mPreviewDataCbList.forEach { cb ->
                     cb?.onPreviewData(data, previewWidth, previewHeight, IPreviewDataCallBack.DataFormat.NV21)
                 }
-                // for image
-                if (mNV21DataQueue.size >= MAX_NV21_DATA) {
-                    mNV21DataQueue.removeLast()
-                }
-                mNV21DataQueue.offerFirst(data)
                 // for video
                 // avoid preview size changed
                 putVideoData(data)
@@ -230,67 +224,6 @@ class CameraUVC(ctx: Context, device: UsbDevice) : MultiCameraClient.ICamera(ctx
         mUvcCamera = null
         if (Utils.debugCamera) {
             Logger.i(TAG, " stop preview, name = ${device.deviceName}")
-        }
-    }
-
-    override fun captureImageInternal(savePath: String?, callback: ICaptureCallBack) {
-        mSaveImageExecutor.submit {
-            if (! CameraUtils.hasStoragePermission(ctx)) {
-                mMainHandler.post {
-                    callback.onError("have no storage permission")
-                }
-                Logger.e(TAG,"open camera failed, have no storage permission")
-                return@submit
-            }
-            if (! isPreviewed) {
-                mMainHandler.post {
-                    callback.onError("camera not previewing")
-                }
-                Logger.i(TAG, "captureImageInternal failed, camera not previewing")
-                return@submit
-            }
-            val data = mNV21DataQueue.pollFirst(CAPTURE_TIMES_OUT_SEC, TimeUnit.SECONDS)
-            if (data == null) {
-                mMainHandler.post {
-                    callback.onError("Times out")
-                }
-                Logger.i(TAG, "captureImageInternal failed, times out.")
-                return@submit
-            }
-            mMainHandler.post {
-                callback.onBegin()
-            }
-            val date = mDateFormat.format(System.currentTimeMillis())
-            val title = savePath ?: "IMG_AUSBC_$date"
-            val displayName = savePath ?: "$title.jpg"
-            val path = savePath ?: "$mCameraDir/$displayName"
-            val location = Utils.getGpsLocation(ctx)
-            val width = mCameraRequest!!.previewWidth
-            val height = mCameraRequest!!.previewHeight
-            val ret = MediaUtils.saveYuv2Jpeg(path, data, width, height)
-            if (! ret) {
-                val file = File(path)
-                if (file.exists()) {
-                    file.delete()
-                }
-                mMainHandler.post {
-                    callback.onError("save yuv to jpeg failed.")
-                }
-                Logger.w(TAG, "save yuv to jpeg failed.")
-                return@submit
-            }
-            val values = ContentValues()
-            values.put(MediaStore.Images.ImageColumns.TITLE, title)
-            values.put(MediaStore.Images.ImageColumns.DISPLAY_NAME, displayName)
-            values.put(MediaStore.Images.ImageColumns.DATA, path)
-            values.put(MediaStore.Images.ImageColumns.DATE_TAKEN, date)
-            values.put(MediaStore.Images.ImageColumns.LONGITUDE, location?.longitude)
-            values.put(MediaStore.Images.ImageColumns.LATITUDE, location?.latitude)
-            ctx.contentResolver?.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
-            mMainHandler.post {
-                callback.onComplete(path)
-            }
-            if (Utils.debugCamera) { Logger.i(TAG, "captureImageInternal save path = $path") }
         }
     }
 
