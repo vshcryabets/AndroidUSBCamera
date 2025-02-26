@@ -9,19 +9,12 @@ import android.os.HandlerThread
 import android.os.Looper
 import android.os.Message
 import com.jiangdg.ausbc.callback.ICameraStateCallBack
-import com.jiangdg.ausbc.callback.ICaptureCallBack
 import com.jiangdg.ausbc.callback.IDeviceConnectCallBack
-import com.jiangdg.ausbc.callback.IEncodeDataCallBack
 import com.jiangdg.ausbc.callback.IPreviewDataCallBack
 import com.jiangdg.ausbc.camera.bean.CameraRequest
 import com.jiangdg.ausbc.camera.bean.PreviewSize
-import com.jiangdg.ausbc.encode.audio.AudioStrategySystem
-import com.jiangdg.ausbc.encode.audio.AudioStrategyUAC
-import com.jiangdg.ausbc.encode.audio.IAudioStrategy
-import com.jiangdg.ausbc.encode.muxer.Mp4Muxer
 import com.jiangdg.ausbc.render.RenderManager
 import com.jiangdg.ausbc.render.env.RotateType
-import com.jiangdg.ausbc.utils.CameraUtils
 import com.jiangdg.ausbc.utils.CameraUtils.isFilterDevice
 import com.jiangdg.ausbc.utils.CameraUtils.isUsbCamera
 import com.jiangdg.ausbc.utils.Logger
@@ -29,15 +22,10 @@ import com.jiangdg.ausbc.utils.OpenGLUtils
 import com.jiangdg.ausbc.utils.SettableFuture
 import com.jiangdg.ausbc.utils.Utils
 import com.jiangdg.ausbc.widget.IAspectRatio
-import com.jiangdg.usb.DeviceFilter
 import com.jiangdg.usb.USBMonitor
-import com.jiangdg.uvc.UVCCamera
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.concurrent.CopyOnWriteArrayList
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-import java.util.concurrent.LinkedBlockingDeque
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 
@@ -54,24 +42,6 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
 
     init {
         mUsbMonitor = USBMonitor(ctx, object : USBMonitor.OnDeviceConnectListener {
-            /**
-             * Called by receive usb device inserted broadcast
-             *
-             * @param device usb device info,see [UsbDevice]
-             */
-            override fun onAttach(device: UsbDevice?) {
-                if (Utils.debugCamera) {
-                    Logger.i(TAG, "attach device name/pid/vid:${device?.deviceName}&${device?.productId}&${device?.vendorId} ")
-                }
-                device ?: return
-                if (!isUsbCamera(device) && !isFilterDevice(ctx, device)) {
-                    return
-                }
-                mMainHandler.post {
-                    callback?.onAttachDev(device)
-                }
-            }
-
             /**
              * Called by receive usb device pulled out broadcast
              *
@@ -193,55 +163,10 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
     }
 
     /**
-     * Uvc camera has permission
-     *
-     * @param device see [UsbDevice]
-     * @return true permission granted
-     */
-    fun hasPermission(device: UsbDevice?) = mUsbMonitor?.hasPermission(device)
-
-    /**
-     * Get device list
-     *
-     * @param list filter regular
-     * @return filter device list
-     */
-    fun getDeviceList(list: List<DeviceFilter>? = null): MutableList<UsbDevice>? {
-        list?.let {
-            addDeviceFilters(it)
-        }
-        return mUsbMonitor?.deviceList
-    }
-
-    /**
-     * Add device filters
-     *
-     * @param list filter regular
-     */
-    fun addDeviceFilters(list: List<DeviceFilter>) {
-        mUsbMonitor?.addDeviceFilter(list)
-    }
-
-    /**
-     * Remove device filters
-     *
-     * @param list filter regular
-     */
-    fun removeDeviceFilters(list: List<DeviceFilter>) {
-        mUsbMonitor?.removeDeviceFilter(list)
-    }
-
-    /**
      * Destroy usb monitor engine
      */
     fun destroy() {
         mUsbMonitor?.destroy()
-    }
-
-    fun openDebug(debug: Boolean) {
-        Utils.debugCamera = debug
-        USBMonitor.DEBUG = debug
-        UVCCamera.DEBUG = debug
     }
 
     private fun isMonitorRegistered() = mUsbMonitor?.isRegistered == true
@@ -255,17 +180,11 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
      * @constructor Create camera by inherit it
      */
     abstract class ICamera(val ctx: Context, val device: UsbDevice): Handler.Callback {
-        private var isCaptureStream: Boolean = false
-        private var mMediaMuxer: Mp4Muxer? = null
-        private var mEncodeDataCallBack: IEncodeDataCallBack? = null
         private var mCameraThread: HandlerThread? = null
-//        private var mAudioProcess: AbstractProcessor? = null
-//        private var mVideoProcess: AbstractProcessor? = null
         private var mRenderManager: RenderManager?  = null
         private var mCameraView: Any? = null
         private var mCameraStateCallback: ICameraStateCallBack? = null
         private var mSizeChangedFuture: SettableFuture<Pair<Int, Int>>? = null
-        protected var mContext = ctx
         protected var mCameraRequest: CameraRequest? = null
         protected var mCameraHandler: Handler? = null
         protected var isPreviewed: Boolean = false
@@ -274,12 +193,6 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
         protected var mPreviewDataCbList = CopyOnWriteArrayList<IPreviewDataCallBack>()
         protected val mMainHandler: Handler by lazy {
             Handler(Looper.getMainLooper())
-        }
-        protected val mNV21DataQueue: LinkedBlockingDeque<ByteArray> by lazy {
-            LinkedBlockingDeque(MAX_NV21_DATA)
-        }
-        protected val mSaveImageExecutor: ExecutorService by lazy {
-            Executors.newFixedThreadPool(10)
         }
         protected val mDateFormat by lazy {
             SimpleDateFormat("yyyyMMddHHmmssSSS", Locale.getDefault())
@@ -356,80 +269,12 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
                     mRenderManager?.stopRenderScreen()
                     mRenderManager = null
                 }
-                MSG_CAPTURE_IMAGE -> {
-                    (msg.obj as Pair<*, *>).apply {
-                        val path = first as? String
-                        val cb = second as ICaptureCallBack
-                        if (isNeedGLESRender && !mCameraRequest!!.isCaptureRawImage) {
-                            mRenderManager?.saveImage(cb, path)
-                            return@apply
-                        }
-                        captureImageInternal(path, second as ICaptureCallBack)
-                    }
-                }
-                MSG_CAPTURE_VIDEO_START -> {
-                    (msg.obj as Triple<*, *, *>).apply {
-                        captureVideoStartInternal(first as? String, second as Long, third as ICaptureCallBack)
-                    }
-                }
-                MSG_CAPTURE_VIDEO_STOP -> {
-                    captureVideoStopInternal()
-                }
-                MSG_CAPTURE_STREAM_START -> {
-                    isCaptureStream = true
-                    captureStreamStartInternal()
-                }
-                MSG_CAPTURE_STREAM_STOP -> {
-                    isCaptureStream = false
-                    // if recording, cancel it
-                    if (isRecording()) {
-                        return true
-                    }
-                    captureStreamStopInternal()
-                }
             }
             return true
         }
 
         protected abstract fun <T> openCameraInternal(cameraView: T)
         protected abstract fun closeCameraInternal()
-        protected abstract fun captureImageInternal(savePath: String?, callback: ICaptureCallBack)
-
-        protected open fun getAudioStrategy(): IAudioStrategy? {
-            return when(mCameraRequest?.audioSource) {
-                CameraRequest.AudioSource.SOURCE_AUTO -> {
-                    if (isMicSupported(device) && mCtrlBlock!=null) {
-                        if (Utils.debugCamera) {
-                            Logger.i(TAG, "Audio record by using device internal mic")
-                        }
-                        AudioStrategyUAC(mCtrlBlock!!)
-                    } else {
-                        if (Utils.debugCamera) {
-                            Logger.i(TAG, "Audio record by using system mic")
-                        }
-                        AudioStrategySystem()
-                    }
-                }
-                CameraRequest.AudioSource.SOURCE_DEV_MIC -> {
-                    if (isMicSupported(device) && mCtrlBlock!=null) {
-                        if (Utils.debugCamera) {
-                            Logger.i(TAG, "Audio record by using device internal mic")
-                        }
-                        return AudioStrategyUAC(mCtrlBlock!!)
-                    }
-                    return null
-                }
-                CameraRequest.AudioSource.SOURCE_SYS_MIC -> {
-                    if (Utils.debugCamera) {
-                        Logger.i(TAG, "Audio record by using system mic")
-                    }
-                    AudioStrategySystem()
-                }
-                else -> {
-                    null
-                }
-            }
-        }
 
         /**
          * should use opengl, recommend
@@ -438,53 +283,12 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
          */
         private fun isGLESRender(isGlesRenderOpen: Boolean): Boolean =isGlesRenderOpen && OpenGLUtils.isGlEsSupported(ctx)
 
-//        /**
-//         * Init encode processor
-//         *
-//         * @param previewWidth camera opened preview width
-//         * @param previewHeight camera opened preview height
-//         */
-//        protected fun initEncodeProcessor(previewWidth: Int, previewHeight: Int) {
-//            releaseEncodeProcessor()
-//            // create audio process
-//            getAudioStrategy()?.let { audio->
-//                AACEncodeProcessor(audio)
-//            }?.also { processor ->
-//                mAudioProcess = processor
-//            }
-//            // create video process
-//            mContext.resources.configuration.orientation.let { orientation ->
-//                orientation == Configuration.ORIENTATION_PORTRAIT
-//            }.also { isPortrait ->
-//                mVideoProcess = H264EncodeProcessor(previewWidth, previewHeight, isNeedGLESRender, isPortrait)
-//            }
-//        }
-//
-//        /**
-//         * Release encode processor
-//         */
-//        protected fun releaseEncodeProcessor() {
-//            try {
-//                mMediaMuxer?.release()
-//            } catch (e: Exception) {
-//                e.printStackTrace()
-//                Logger.e(TAG, "release muxer failed, err is ${e.localizedMessage}")
-//            }
-//            mVideoProcess?.stopEncode()
-//            mAudioProcess?.stopEncode()
-//            mVideoProcess = null
-//            mMediaMuxer = null
-//            mAudioProcess = null
-//            isCaptureStream = false
-//        }
-
         /**
          * Put video data
          *
          * @param data NV21 raw data
          */
         protected fun putVideoData(data: ByteArray) {
-//            mVideoProcess?.putRawData(RawData(data, data.size))
         }
 
         /**
@@ -527,21 +331,6 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
         fun setUsbControlBlock(ctrlBlock: USBMonitor.UsbControlBlock?) {
             this.mCtrlBlock = ctrlBlock
         }
-
-        /**
-         * Get usb device information
-         *
-         * @return see [UsbDevice]
-         */
-        fun getUsbDevice() = device
-
-        /**
-         * Is mic supported
-         *
-         * @return true camera support mic
-         */
-        fun isMicSupported(device: UsbDevice?) = CameraUtils.isCameraContainsMic(device)
-
 
         /**
          * Get all preview sizes
@@ -597,53 +386,6 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
         fun getCameraRequest() = mCameraRequest
 
         /**
-         * Capture image
-         *
-         * @param callBack capture a image status, see [ICaptureCallBack]
-         * @param path image save path, default is DICM/Camera
-         */
-        fun captureImage(callBack: ICaptureCallBack, path: String? = null) {
-            Pair(path, callBack).apply {
-                mCameraHandler?.obtainMessage(MSG_CAPTURE_IMAGE, this)?.sendToTarget()
-            }
-        }
-
-        /**
-         * Capture video start
-         *
-         * @param callBack capture result callback, see [ICaptureCallBack]
-         * @param path video save path, default is DICM/Camera
-         * @param durationInSec video file auto divide duration is seconds
-         */
-        fun captureVideoStart(callBack: ICaptureCallBack, path: String? = null, durationInSec: Long = 0L) {
-            Triple(path, durationInSec, callBack).apply {
-                mCameraHandler?.obtainMessage(MSG_CAPTURE_VIDEO_START, this)?.sendToTarget()
-            }
-        }
-
-        /**
-         * Capture video stop
-         */
-        fun captureVideoStop() {
-            mCameraHandler?.obtainMessage(MSG_CAPTURE_VIDEO_STOP)?.sendToTarget()
-        }
-
-        /**
-         * Capture stream start
-         *  Getting H.264 and AAC stream
-         */
-        fun captureStreamStart() {
-            mCameraHandler?.obtainMessage(MSG_CAPTURE_STREAM_START)?.sendToTarget()
-        }
-
-        /**
-         * Capture stream stop
-         */
-        fun captureStreamStop() {
-            mCameraHandler?.obtainMessage(MSG_CAPTURE_STREAM_STOP)?.sendToTarget()
-        }
-
-        /**
          * Update resolution
          *
          * @param width camera preview width, see [PreviewSize]
@@ -653,10 +395,6 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
         fun updateResolution(width: Int, height: Int) {
             if (mCameraRequest == null) {
                 Logger.w(TAG, "updateResolution failed, please open camera first.")
-                return
-            }
-            if (isRecording()) {
-                Logger.e(TAG, "updateResolution failed, video recording...")
                 return
             }
             mCameraRequest?.apply {
@@ -680,15 +418,6 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
          */
         fun setCameraStateCallBack(callback: ICameraStateCallBack?) {
             this.mCameraStateCallback = callback
-        }
-
-        /**
-         * set encode data call back
-         *
-         * @param callBack camera encoded data call back, see [IEncodeDataCallBack]
-         */
-        fun setEncodeDataCallBack(callBack: IEncodeDataCallBack?) {
-            this.mEncodeDataCallBack = callBack
         }
 
         /**
@@ -762,111 +491,6 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
             } != null
         }
 
-        /**
-         * check video record status
-         * Only muxer started means recording success
-         */
-        fun isRecording(): Boolean = mMediaMuxer?.isMuxerStarter() == true
-
-        /**
-         * check stream status
-         * need video encoding and stream flag are true
-         */
-//        fun isStreaming(): Boolean = isEncoding() && isCaptureStream
-
-//        private fun isEncoding(): Boolean = mVideoProcess?.isEncoding() == true
-
-        private fun captureVideoStartInternal(path: String?, durationInSec: Long, callBack: ICaptureCallBack) {
-            if (! isCameraOpened()) {
-                Logger.e(TAG ,"capture video failed, camera not opened")
-                return
-            }
-            if (isRecording()) {
-                Logger.w(TAG, "capturing video already running")
-                return
-            }
-            captureStreamStartInternal()
-//            Mp4Muxer(mContext, callBack, path, durationInSec, mAudioProcess==null).apply {
-//                mVideoProcess?.setMp4Muxer(this)
-//                mAudioProcess?.setMp4Muxer(this)
-//            }.also { muxer ->
-//                mMediaMuxer = muxer
-//            }
-            Logger.i(TAG, "capturing video start")
-        }
-
-        private fun captureVideoStopInternal() {
-            // if streaming, cancel it
-//            if (! isStreaming()) {
-//                captureStreamStopInternal()
-//            }
-            try {
-                mMediaMuxer?.release()
-            } catch (e: Exception) {
-                e.printStackTrace()
-                Logger.e(TAG, "release muxer failed, err is ${e.localizedMessage}")
-            } finally {
-                mMediaMuxer = null
-            }
-            Logger.i(TAG, "capturing video stop")
-        }
-
-        private fun captureStreamStartInternal() {
-            if (! isCameraOpened()) {
-                Logger.e(TAG ,"capture stream failed, camera not opened")
-                return
-            }
-//            if (isEncoding()) {
-//                Logger.w(TAG, "capturing stream canceled, already running")
-//                return
-//            }
-//            (mVideoProcess as? H264EncodeProcessor)?.apply {
-//                if (mVideoProcess?.isEncoding() == true) {
-//                    return@apply
-//                }
-//                startEncode()
-//                setEncodeDataCallBack(mEncodeDataCallBack)
-//                setOnEncodeReadyListener(this@ICamera)
-//            }
-//            (mAudioProcess as? AACEncodeProcessor)?.apply {
-//                if (mAudioProcess?.isEncoding() == true) {
-//                    return@apply
-//                }
-//                startEncode()
-//                setEncodeDataCallBack(mEncodeDataCallBack)
-//            }
-            Logger.i(TAG, "capturing stream start")
-        }
-
-        private fun captureStreamStopInternal() {
-            mRenderManager?.stopRenderCodec()
-//            (mVideoProcess as? H264EncodeProcessor)?.apply {
-//                if (! isEncoding()) {
-//                    return@apply
-//                }
-//                stopEncode()
-//                setEncodeDataCallBack(null)
-//            }
-//            (mAudioProcess as? AACEncodeProcessor)?.apply {
-//                if (! isEncoding()) {
-//                    return@apply
-//                }
-//                stopEncode()
-//                setEncodeDataCallBack(null)
-//            }
-            Logger.i(TAG, "capturing stream stop")
-        }
-
-//        override fun onReady(surface: Surface?) {
-//            if (surface == null) {
-//                Logger.e(TAG, "start encode failed, input surface is null")
-//                return
-//            }
-//            mCameraRequest?.apply {
-//                mRenderManager?.startRenderCodec(surface, previewWidth, previewHeight)
-//            }
-//        }
-
         private fun getDefaultCameraRequest(): CameraRequest {
             return CameraRequest.Builder()
                 .setPreviewWidth(1280)
@@ -879,11 +503,6 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
         private const val TAG = "MultiCameraClient"
         private const val MSG_START_PREVIEW = 0x01
         private const val MSG_STOP_PREVIEW = 0x02
-        private const val MSG_CAPTURE_IMAGE = 0x03
-        private const val MSG_CAPTURE_VIDEO_START = 0x04
-        private const val MSG_CAPTURE_VIDEO_STOP = 0x05
-        private const val MSG_CAPTURE_STREAM_START = 0x06
-        private const val MSG_CAPTURE_STREAM_STOP = 0x07
         private const val DEFAULT_PREVIEW_WIDTH = 640
         private const val DEFAULT_PREVIEW_HEIGHT = 480
         const val MAX_NV21_DATA = 5
