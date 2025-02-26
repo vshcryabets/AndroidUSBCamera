@@ -178,7 +178,7 @@ public final class USBMonitor {
 					// when using PendingIntent.FLAG_IMMUTABLE
 					// because it means Intent can't be modified anywhere -- jiangdg/20220929
 					int PENDING_FLAG_IMMUTABLE = 1<<25;
-					mPermissionIntent = PendingIntent.getBroadcast(context, 0, new Intent(ACTION_USB_PERMISSION), PENDING_FLAG_IMMUTABLE);
+					mPermissionIntent = PendingIntent.getBroadcast(context, 0, new Intent(ACTION_USB_PERMISSION), PendingIntent.FLAG_IMMUTABLE);
 				} else {
 					mPermissionIntent = PendingIntent.getBroadcast(context, 0, new Intent(ACTION_USB_PERMISSION), 0);
 				}
@@ -186,7 +186,7 @@ public final class USBMonitor {
 				// ACTION_USB_DEVICE_ATTACHED never comes on some devices so it should not be added here
 				filter.addAction(ACTION_USB_DEVICE_ATTACHED);
 				filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
-				context.registerReceiver(mUsbReceiver, filter);
+				context.registerReceiver(mUsbReceiver, filter, Context.RECEIVER_EXPORTED);
 			}
 			// start connection check
 			mDeviceCounts = 0;
