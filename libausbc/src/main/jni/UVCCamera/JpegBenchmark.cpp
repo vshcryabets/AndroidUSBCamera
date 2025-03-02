@@ -92,29 +92,38 @@ JpegBenchmark::JpegBenchmark() {
 
 }
 
-void JpegBenchmark::start(const Arguments& args) {
+std::shared_ptr<ProgressObservable<JpegBenchmarkProgress>> JpegBenchmark::start(const Arguments& args) {
+    std::shared_ptr<ProgressObservable<JpegBenchmarkProgress>> progress = std::make_shared<ProgressObservable<JpegBenchmarkProgress>>();
 
-    std::vector<std::pair<uint16_t, LoadJpegImageUseCase::Result>> buffers(args.imageSamples.size());
+    std::thread decodeThread([args, &progress]() {
+        std::vector<std::pair<uint16_t, LoadJpegImageUseCase::Result>> buffers(args.imageSamples.size());
 
-    std::transform(args.imageSamples.begin(), args.imageSamples.end(), buffers.begin(), 
-        [load=DI::getInstance()->getUseCases()->imageLoader](auto &it) { 
-            return std::pair(it.first, load->load(it.second));
-        }
-    );
+        std::transform(args.imageSamples.begin(), args.imageSamples.end(), buffers.begin(), 
+            [load=DI::getInstance()->getUseCases()->imageLoader](auto &it) { 
+                return std::pair(it.first, load->load(it.second));
+            }
+        );
     
-    size_t decodedBufferSize = 3840 * 2160 * 3;
-    uint8_t *decodedBuffer4k = new uint8_t[decodedBufferSize];
-    DecodeJpegImageUseCase* decode = DI::getInstance()->getUseCases()->imageDecoder;
-    
-    for (auto& it : buffers) {
-        for (int i = 0; i < args.iterations; i++) {
-            decode->decodeImage(it.second.buffer, it.second.size, decodedBuffer4k, decodedBufferSize);
+        size_t decodedBufferSize = 3840 * 2160 * 3;
+        uint8_t *decodedBuffer4k = new uint8_t[decodedBufferSize];
+        DecodeJpegImageUseCase* decode = DI::getInstance()->getUseCases()->imageDecoder;
+
+        for (auto& it : buffers) {
+            progress->setData(JpegBenchmarkProgress{it.first, 0, std::chrono::milliseconds(0)});
+            for (int i = 0; i < args.iterations; i++) {
+                decode->decodeImage(it.second.buffer, it.second.size, decodedBuffer4k, decodedBufferSize);
+                progress->setData(JpegBenchmarkProgress{it.first, i, std::chrono::milliseconds(0)});
+            }
         }
-    }
-    delete[] decodedBuffer4k;
-    for (auto& it : buffers) {
-        delete[] it.second.buffer;
-    }
+        delete[] decodedBuffer4k;
+        for (auto& it : buffers) {
+            delete[] it.second.buffer;
+        }
+        progress->onComplete();
+    });
+
+    decodeThread.detach();
+    return progress;
 }
 
 void SaveBitmapImageToFileUseCase::save(std::string imageId, uint8_t* buffer, size_t size) {

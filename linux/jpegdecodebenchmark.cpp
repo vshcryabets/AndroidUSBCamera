@@ -55,17 +55,32 @@ int main(void) {
     LinuxDi di;
     printf("Decoder %s\n", di.getUseCases()->imageDecoder->getDecoderName().c_str());
     JpegBenchmark benchmark;
-    benchmark.start({
+    JpegBenchmark::Arguments args = {
         .imageSamples = {
-            { 360, "./app/src/main/assets/jpeg_samples/sample1_0360.jpg" },
-            { 480, "./app/src/main/assets/jpeg_samples/sample1_0480.jpg" },
-            { 720, "./app/src/main/assets/jpeg_samples/sample1_0720.jpg" },
-            { 1080, "./app/src/main/assets/jpeg_samples/sample1_1080.jpg" },
-            { 1440, "./app/src/main/assets/jpeg_samples/sample1_1440.jpg" },
-            { 2160, "./app/src/main/assets/jpeg_samples/sample1_2160.jpg" },
+            { 10360, "./app/src/main/assets/jpeg_samples/sample1_0360.jpg" },
+            { 10480, "./app/src/main/assets/jpeg_samples/sample1_0480.jpg" },
+            { 10720, "./app/src/main/assets/jpeg_samples/sample1_0720.jpg" },
+            { 11080, "./app/src/main/assets/jpeg_samples/sample1_1080.jpg" },
+            { 11440, "./app/src/main/assets/jpeg_samples/sample1_1440.jpg" },
+            { 12160, "./app/src/main/assets/jpeg_samples/sample1_2160.jpg" },
+            { 20360, "./app/src/main/assets/jpeg_samples/sample2_0360.jpg" },
+            { 20480, "./app/src/main/assets/jpeg_samples/sample2_0480.jpg" },
+            { 20720, "./app/src/main/assets/jpeg_samples/sample2_0720.jpg" },
+            { 21080, "./app/src/main/assets/jpeg_samples/sample2_1080.jpg" },
+            { 21440, "./app/src/main/assets/jpeg_samples/sample2_1440.jpg" },
+            { 22160, "./app/src/main/assets/jpeg_samples/sample2_2160.jpg" },
+            { 30360, "./app/src/main/assets/jpeg_samples/sample3_0360.jpg" },
+            { 30480, "./app/src/main/assets/jpeg_samples/sample3_0480.jpg" },
+            { 30720, "./app/src/main/assets/jpeg_samples/sample3_0720.jpg" },
+            { 31080, "./app/src/main/assets/jpeg_samples/sample3_1080.jpg" },
+            { 31440, "./app/src/main/assets/jpeg_samples/sample3_1440.jpg" },
+            { 32160, "./app/src/main/assets/jpeg_samples/sample3_2160.jpg" },
         },
-        .iterations = 1
+        .iterations = 10
+    };
+    auto progress = benchmark.start(args);
+    progress->subscribe([](JpegBenchmarkProgress progress) {
+        printf("Image %d, iteration %d\n", progress.sampleNumber, progress.iteration);
     });
-
     return 0;
 }

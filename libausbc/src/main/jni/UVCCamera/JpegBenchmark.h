@@ -19,6 +19,10 @@
 #include <cstdint>
 #include <vector>
 #include <utility>
+#include <memory>
+#include <functional>
+#include <mutex>
+#include <condition_variable>
 #include "DI.h"
 
 #ifdef USE_LIBJPEG
@@ -59,6 +63,53 @@ class DecodeJpegImageLibJpeg9UseCase : public DecodeJpegImageUseCase {
 };
 #endif
 
+template <typename T>
+class ProgressObservable {
+    protected:
+        std::mutex mutex;
+        std::condition_variable variable;
+        bool done;
+        T data;
+    public:
+        ProgressObservable(): done(false) {}
+        void onComplete() {
+            std::unique_lock<std::mutex> lock(mutex);
+            done = true;
+            variable.notify_all();
+        }
+        void setData(const T& newData) {
+            std::unique_lock<std::mutex> lock(mutex);
+            data = newData;
+            variable.notify_all();
+        }
+        T getData() {
+            std::unique_lock<std::mutex> lock(mutex);
+            return data;
+        }
+        T wait() {
+            std::unique_lock<std::mutex> lock(mutex);
+            variable.wait(lock);
+            return data;
+        }
+        bool isComplete() {
+            std::unique_lock<std::mutex> lock(mutex);
+            return done;
+        }
+        void subscribe(std::function<void(T)> callback) {
+            std::unique_lock<std::mutex> lock(mutex);
+            while (!done) {
+                variable.wait(lock);
+                callback(data);
+            }
+        }
+};
+
+struct JpegBenchmarkProgress {
+    int sampleNumber;
+    int iteration;
+    std::chrono::milliseconds duration;
+};
+
 class JpegBenchmark {
     public:
         struct Arguments {
@@ -68,5 +119,5 @@ class JpegBenchmark {
     public:
         JpegBenchmark();
         virtual ~JpegBenchmark() {};
-        void start(const Arguments& args);
+        std::shared_ptr<ProgressObservable<JpegBenchmarkProgress>> start(const Arguments& args);
 };
