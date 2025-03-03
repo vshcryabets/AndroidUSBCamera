@@ -99,15 +99,16 @@ class ProgressObservable {
             std::unique_lock<std::mutex> lock(mutex);
             while (!done) {
                 variable.wait(lock);
-                callback(data);
+                if (!done)
+                    callback(data);
             }
         }
 };
 
 struct JpegBenchmarkProgress {
-    int sampleNumber;
-    int iteration;
-    std::chrono::milliseconds duration;
+    int currentSampleNumber;
+    std::vector<std::pair<int, std::chrono::milliseconds>> results;
+    std::chrono::milliseconds totalTime;
 };
 
 class JpegBenchmark {

@@ -20,6 +20,9 @@
 #ifdef USE_LIBJPEG
     #include "jpeglib.h"
 #endif
+#ifdef USE_TURBOJPEG
+    #include <turbojpeg.h>
+#endif
 
 LoadJpegImageUseCase::Result LoadJpegImageFromFileUseCase::load(std::string imageId) {
     FILE* file = fopen(imageId.c_str(), "rb");
@@ -41,10 +44,15 @@ void DecodeJpegImageTurboJpegUseCase::decodeImage(uint8_t* encodedBuffer,
     uint8_t* decodedBuffer, 
     size_t decodedBufferSize) {
     // Decode image
+    tjhandle handle = tjInitDecompress();
+    int width, height, subsamp, colorspace;
+    tjDecompressHeader3(handle, encodedBuffer, encodedBufferSize, &width, &height, &subsamp, &colorspace);
+    tjDecompress2(handle, encodedBuffer, encodedBufferSize, decodedBuffer, width, 0, height, TJPF_RGB, 0);
+    tjDestroy(handle);
 }
 
 std::string DecodeJpegImageTurboJpegUseCase::getDecoderName() {
-    return "JPEG";
+    return "TurboJPEG (version unknown)";
 }
 #endif
 
@@ -107,15 +115,25 @@ std::shared_ptr<ProgressObservable<JpegBenchmarkProgress>> JpegBenchmark::start(
         size_t decodedBufferSize = 3840 * 2160 * 3;
         uint8_t *decodedBuffer4k = new uint8_t[decodedBufferSize];
         DecodeJpegImageUseCase* decode = DI::getInstance()->getUseCases()->imageDecoder;
-
+        
+        auto start = std::chrono::steady_clock::now();
+        std::vector<std::pair<int, std::chrono::milliseconds>> results;
         for (auto& it : buffers) {
-            progress->setData(JpegBenchmarkProgress{it.first, 0, std::chrono::milliseconds(0)});
+            progress->setData(JpegBenchmarkProgress{it.first, results, std::chrono::milliseconds(0)});
+            auto iteration_start = std::chrono::steady_clock::now();
             for (int i = 0; i < args.iterations; i++) {
                 decode->decodeImage(it.second.buffer, it.second.size, decodedBuffer4k, decodedBufferSize);
-                progress->setData(JpegBenchmarkProgress{it.first, i, std::chrono::milliseconds(0)});
             }
+            auto iteration_end = std::chrono::steady_clock::now();
+            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(iteration_end - iteration_start);
+            results.push_back(std::pair(it.first, duration));
         }
+        auto end = std::chrono::steady_clock::now();
+        auto total_duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        progress->setData(JpegBenchmarkProgress{0, results, total_duration});
+
         delete[] decodedBuffer4k;
+        
         for (auto& it : buffers) {
             delete[] it.second.buffer;
         }

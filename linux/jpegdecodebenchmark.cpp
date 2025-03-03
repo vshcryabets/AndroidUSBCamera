@@ -20,20 +20,28 @@
 #include "DI.h"
 #include "JpegBenchmark.h"
 
-class LinuxUseCases: public UseCases {
-    private:
-        LoadJpegImageFromFileUseCase imageLoader;
-        DecodeJpegImageLibJpeg9UseCase decoder;
-    public:
-        LoadJpegImageUseCase* getImageLoader() { return &imageLoader; }
-        DecodeJpegImageUseCase* getImageDecoder() { return &decoder; }
-};
+// class LinuxUseCases: public UseCases {
+//     private:
+//         LoadJpegImageFromFileUseCase imageLoader;
+// #ifdef USE_LIBJPEG9        
+//         DecodeJpegImageLibJpeg9UseCase decoder;
+// #elif defined(USE_TURBOJPEG)
+//         DecodeJpegImageLibJpegTurboUseCase decoder;
+// #endif
+//     public:
+//         LoadJpegImageUseCase* getImageLoader() { return &imageLoader; }
+//         DecodeJpegImageUseCase* getImageDecoder() { return &decoder; }
+// };
 
 DI* DI::instance = nullptr;
 class LinuxDi: public DI {
     private:
         LoadJpegImageFromFileUseCase imageLoader;
+#if defined(USE_LIBJPEG)
         DecodeJpegImageLibJpeg9UseCase decoder;
+#elif defined(USE_TURBOJPEG)
+        DecodeJpegImageTurboJpegUseCase decoder;
+#endif
         SaveBitmapImageToFileUseCase imageSaver;
 
         UseCases useCases;
@@ -51,9 +59,23 @@ class LinuxDi: public DI {
         }
 };
 
-int main(void) {
+int main(int argc, char* argv[]) {
+    if (argc > 1 && strcmp(argv[1], "--help") == 0) {
+        std::cout << "Usage: " << argv[0] << " [options]\n";
+        std::cout << "Options:\n";
+        std::cout << "  --help                Show this help message\n";
+        std::cout << "  --sampleIterations N  Set the number of iterations for each sample (default: 30)\n";
+        exit(0);
+    }
     LinuxDi di;
     printf("Decoder %s\n", di.getUseCases()->imageDecoder->getDecoderName().c_str());
+    int sampleIterations = 30;
+    for (int i = 1; i < argc; ++i) {
+        if (strcmp(argv[i], "--sampleIterations") == 0 && i + 1 < argc) {
+            sampleIterations = atoi(argv[++i]);
+        }
+    }
+    printf("Iteration on each sample - %d\n", sampleIterations);
     JpegBenchmark benchmark;
     JpegBenchmark::Arguments args = {
         .imageSamples = {
@@ -76,11 +98,19 @@ int main(void) {
             { 31440, "./app/src/main/assets/jpeg_samples/sample3_1440.jpg" },
             { 32160, "./app/src/main/assets/jpeg_samples/sample3_2160.jpg" },
         },
-        .iterations = 10
+        .iterations = sampleIterations
     };
     auto progress = benchmark.start(args);
-    progress->subscribe([](JpegBenchmarkProgress progress) {
-        printf("Image %d, iteration %d\n", progress.sampleNumber, progress.iteration);
+    progress->subscribe([sampleIterations](JpegBenchmarkProgress progress) {
+        if (progress.currentSampleNumber > 0) {
+            printf("\rSample id %d", progress.currentSampleNumber);
+            fflush(stdout);
+        } else {
+            printf("\n\nComplete time %ld ms\n", progress.totalTime.count());
+            for (auto& it : progress.results) {
+                printf("Sample id %d, time %0.00f ms per sample\n", it.first, (float)it.second.count() / (float)sampleIterations );
+            }
+        }
     });
     return 0;
 }
