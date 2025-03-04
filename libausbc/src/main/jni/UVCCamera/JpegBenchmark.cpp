@@ -39,7 +39,7 @@ LoadJpegImageUseCase::Result LoadJpegImageFromFileUseCase::load(std::string imag
 }
 
 #ifdef USE_TURBOJPEG
-void DecodeJpegImageTurboJpegUseCase::decodeImage(uint8_t* encodedBuffer, 
+DecodeJpegImageUseCase::Result DecodeJpegImageTurboJpegUseCase::decodeImage(uint8_t* encodedBuffer, 
     size_t encodedBufferSize, 
     uint8_t* decodedBuffer, 
     size_t decodedBufferSize) {
@@ -49,6 +49,13 @@ void DecodeJpegImageTurboJpegUseCase::decodeImage(uint8_t* encodedBuffer,
     tjDecompressHeader3(handle, encodedBuffer, encodedBufferSize, &width, &height, &subsamp, &colorspace);
     tjDecompress2(handle, encodedBuffer, encodedBufferSize, decodedBuffer, width, 0, height, TJPF_RGB, 0);
     tjDestroy(handle);
+    DecodeJpegImageUseCase::Result result = {
+        .width = width,
+        .height = height,
+        .buffer = decodedBuffer,
+        .size = width * height * 3
+    };
+    return result;
 }
 
 std::string DecodeJpegImageTurboJpegUseCase::getDecoderName() {
@@ -57,7 +64,7 @@ std::string DecodeJpegImageTurboJpegUseCase::getDecoderName() {
 #endif
 
 #ifdef USE_LIBJPEG
-void DecodeJpegImageLibJpeg9UseCase::decodeImage(uint8_t* encodedBuffer, 
+DecodeJpegImageUseCase::Result DecodeJpegImageLibJpeg9UseCase::decodeImage(uint8_t* encodedBuffer, 
     size_t encodedBufferSize, 
     uint8_t* decodedBuffer, 
     size_t decodedBufferSize) {
@@ -78,8 +85,17 @@ void DecodeJpegImageLibJpeg9UseCase::decodeImage(uint8_t* encodedBuffer,
         jpeg_read_scanlines(&cinfo, buffer_array, 1);
     }
 
+    DecodeJpegImageUseCase::Result result = {
+        .width = (int32_t)cinfo.output_width,
+        .height = (int32_t)cinfo.output_height,
+        .buffer = decodedBuffer,
+        .size = cinfo.output_width * cinfo.output_height * cinfo.output_components
+    };
+
     jpeg_finish_decompress(&cinfo);
     jpeg_destroy_decompress(&cinfo);
+
+    return result;
 }
 
 void DecodeJpegImageLibJpeg9UseCase::JPEGVersionError(j_common_ptr cinfo){}
@@ -121,12 +137,18 @@ std::shared_ptr<ProgressObservable<JpegBenchmarkProgress>> JpegBenchmark::start(
         for (auto& it : buffers) {
             progress->setData(JpegBenchmarkProgress{it.first, results, std::chrono::milliseconds(0)});
             auto iteration_start = std::chrono::steady_clock::now();
+            DecodeJpegImageUseCase::Result result;
             for (int i = 0; i < args.iterations; i++) {
-                decode->decodeImage(it.second.buffer, it.second.size, decodedBuffer4k, decodedBufferSize);
+                result = decode->decodeImage(
+                    it.second.buffer, 
+                    it.second.size, 
+                    decodedBuffer4k, 
+                    decodedBufferSize);
             }
             auto iteration_end = std::chrono::steady_clock::now();
             auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(iteration_end - iteration_start);
             results.push_back(std::pair(it.first, duration));
+            // DI::getInstance()->getUseCases()->imageSaver->save(std::to_string(it.first) + ".data", result.buffer, result.size);
         }
         auto end = std::chrono::steady_clock::now();
         auto total_duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);

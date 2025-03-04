@@ -30,7 +30,14 @@ class LoadJpegImageUseCase {
 
 class DecodeJpegImageUseCase {
     public:
-        virtual void decodeImage(uint8_t* encodedBuffer, 
+        struct Result {
+            int32_t width;
+            int32_t height;
+            uint8_t* buffer;
+            size_t size;
+        };
+    public:
+        virtual Result decodeImage(uint8_t* encodedBuffer, 
             size_t encodedBufferSize, 
             uint8_t* decodedBuffer, 
             size_t decodedBufferSize) = 0;

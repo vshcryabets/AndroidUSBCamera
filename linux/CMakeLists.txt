@@ -10,7 +10,8 @@ set(CMAKE_C_STANDARD_REQUIRED True)
 find_package( Threads REQUIRED )
 find_package (JPEG REQUIRED)
 
-set(USE_TURBOJPEG 1)
+#set(USE_TURBOJPEG 1)
+set(USE_LIBJPEG 1)
 
 include_directories(
         ../libausbc/src/main/jni/UVCCamera/
@@ -29,7 +30,6 @@ target_link_libraries(
 add_executable(jpegbenchmark
         jpegdecodebenchmark.cpp
         ../libausbc/src/main/jni/UVCCamera/JpegBenchmark.cpp
-        /usr/include/turbojpeg.h
         )
 
 if(USE_TURBOJPEG)

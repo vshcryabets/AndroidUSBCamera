@@ -42,7 +42,7 @@ class SaveBitmapImageToFileUseCase : public SaveBitmapImageUseCase {
 #ifdef USE_TURBOJPEG
 class DecodeJpegImageTurboJpegUseCase : public DecodeJpegImageUseCase {
     public:
-        void decodeImage(uint8_t* encodedBuffer, 
+        Result decodeImage(uint8_t* encodedBuffer, 
             size_t encodedBufferSize, 
             uint8_t* decodedBuffer, 
             size_t decodedBufferSize) override;
@@ -55,7 +55,7 @@ class DecodeJpegImageLibJpeg9UseCase : public DecodeJpegImageUseCase {
     private:
         static void JPEGVersionError(j_common_ptr cinfo);
     public:
-        void decodeImage(uint8_t* encodedBuffer, 
+        Result decodeImage(uint8_t* encodedBuffer, 
             size_t encodedBufferSize, 
             uint8_t* decodedBuffer, 
             size_t decodedBufferSize) override;
