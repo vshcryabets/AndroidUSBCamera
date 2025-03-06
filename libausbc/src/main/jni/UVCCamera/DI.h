@@ -17,6 +17,7 @@
 
 #include <string>
 #include <cstdint>
+#include <chrono>
 
 class LoadJpegImageUseCase {
     public:
@@ -35,6 +36,7 @@ class DecodeJpegImageUseCase {
             int32_t height;
             uint8_t* buffer;
             size_t size;
+            std::chrono::time_point<std::chrono::steady_clock> timestamp;
         };
     public:
         virtual Result decodeImage(uint8_t* encodedBuffer, 

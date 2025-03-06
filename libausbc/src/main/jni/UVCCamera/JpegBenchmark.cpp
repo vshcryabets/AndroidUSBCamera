@@ -53,7 +53,8 @@ DecodeJpegImageUseCase::Result DecodeJpegImageTurboJpegUseCase::decodeImage(uint
         .width = width,
         .height = height,
         .buffer = decodedBuffer,
-        .size = width * height * 3
+        .size = width * height * 3,
+        .timestamp = std::chrono::steady_clock::now()
     };
     return result;
 }
@@ -89,7 +90,8 @@ DecodeJpegImageUseCase::Result DecodeJpegImageLibJpeg9UseCase::decodeImage(uint8
         .width = (int32_t)cinfo.output_width,
         .height = (int32_t)cinfo.output_height,
         .buffer = decodedBuffer,
-        .size = cinfo.output_width * cinfo.output_height * cinfo.output_components
+        .size = cinfo.output_width * cinfo.output_height * cinfo.output_components,
+        .timestamp = std::chrono::steady_clock::now()
     };
 
     jpeg_finish_decompress(&cinfo);
