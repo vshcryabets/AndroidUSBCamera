@@ -21,6 +21,7 @@ import android.hardware.usb.UsbManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.jiangdg.usb.USBVendorId
+import com.vsh.uvc.JpegBenchmark
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -38,17 +39,20 @@ data class DeviceListViewState(
 )
 
 class DeviceListViewModelFactory(
-    private val usbManager: UsbManager
+    private val usbManager: UsbManager,
+    private val jpegBenchmark: JpegBenchmark
 ): ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T =
         DeviceListViewModel(
-            usbManager = usbManager
+            usbManager = usbManager,
+            jpegBenchmark = jpegBenchmark
         ) as T
 }
 
 class DeviceListViewModel(
-    private val usbManager: UsbManager
+    private val usbManager: UsbManager,
+    private val jpegBenchmark: JpegBenchmark
 ) : ViewModel() {
     private val _state = MutableStateFlow(
         DeviceListViewState()
@@ -108,6 +112,9 @@ class DeviceListViewModel(
     }
 
     fun onBenchmarks() {
-
+        jpegBenchmark.startBenchmark(JpegBenchmark.Arguments(
+            imageSamples = mapOf(),
+            iterations = 30
+        ))
     }
 }

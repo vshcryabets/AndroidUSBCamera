@@ -16,7 +16,17 @@
 
 #ifndef ANDROIDUSBCAMERA_JNIJPEGBENCHMARK_H
 #define ANDROIDUSBCAMERA_JNIJPEGBENCHMARK_H
+#include "JpegBenchmark.h"
 
+class JniJpegBenchmark: public JpegBenchmark {
+private:
+    int sockfd;
+public:
+    JniJpegBenchmark(const std::string &socketFilePath);
+    ~JniJpegBenchmark() override;
+    [[nodiscard]] int getSockFd() const;
+    void startAndSendToSockFd();
+};
 
 
 #endif //ANDROIDUSBCAMERA_JNIJPEGBENCHMARK_H

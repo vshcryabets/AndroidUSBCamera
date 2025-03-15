@@ -16,6 +16,8 @@
 #include "JpegBenchmark.h"
 #include <iostream>
 #include <algorithm>
+#include <thread>
+#include <sstream>
 
 #ifdef USE_LIBJPEG
     #include "jpeglib.h"
@@ -23,6 +25,7 @@
 #ifdef USE_TURBOJPEG
     #include <turbojpeg.h>
 #endif
+#include <cstdint>
 
 LoadJpegImageUseCase::Result LoadJpegImageFromFileUseCase::load(std::string imageId) {
     FILE* file = fopen(imageId.c_str(), "rb");
@@ -53,7 +56,7 @@ DecodeJpegImageUseCase::Result DecodeJpegImageTurboJpegUseCase::decodeImage(uint
         .width = width,
         .height = height,
         .buffer = decodedBuffer,
-        .size = width * height * 3,
+        .size = (size_t)(width * height * 3),
         .timestamp = std::chrono::steady_clock::now()
     };
     return result;
@@ -118,10 +121,48 @@ JpegBenchmark::JpegBenchmark() {
 
 }
 
-std::shared_ptr<ProgressObservable<JpegBenchmarkProgress>> JpegBenchmark::start(const Arguments& args) {
-    std::shared_ptr<ProgressObservable<JpegBenchmarkProgress>> progress = std::make_shared<ProgressObservable<JpegBenchmarkProgress>>();
+std::shared_ptr<ProgressObserver<JpegBenchmarkProgress>> JpegBenchmark::start(const Arguments& args) {
+    // std::shared_ptr<ProgressObservableMutexImpl<JpegBenchmarkProgress>> progress = 
+    //     std::make_shared<ProgressObservableMutexImpl<JpegBenchmarkProgress>>();
 
-    std::thread decodeThread([args, &progress]() {
+    std::function<std::vector<char>(JpegBenchmarkProgress)> serializer = [](JpegBenchmarkProgress progress){
+        std::ostringstream oss;
+        uint16_t size = progress.results.size();
+        oss.write(reinterpret_cast<const char*>(&progress.currentSampleNumber), sizeof(progress.currentSampleNumber));
+        oss.write(reinterpret_cast<const char*>(&size), sizeof(size));
+        for (auto &result : progress.results) {
+            oss.write(reinterpret_cast<const char*>(&result.first), sizeof(result.first));
+            uint64_t count = result.second.count();
+            oss.write(reinterpret_cast<const char*>(&count), sizeof(count));
+        }
+        uint64_t count = progress.totalTime.count();
+        oss.write(reinterpret_cast<const char*>(&count), sizeof(count));
+        std::string str = oss.str();
+        return std::vector<char>(str.begin(), str.end());                
+    };
+    std::function<JpegBenchmarkProgress(char* binary, size_t size)> deserializer = [](char* binary, size_t size){
+        JpegBenchmarkProgress data;
+        uint16_t itemsCount;
+        uint64_t count;
+        std::istringstream iss(std::string(binary, size));    
+        iss.read(reinterpret_cast<char*>(&data.currentSampleNumber), sizeof(data.currentSampleNumber));
+        iss.read(reinterpret_cast<char*>(&itemsCount), sizeof(itemsCount));
+        for (uint16_t i = 0; i < itemsCount; i++) {
+            std::pair<int, std::chrono::milliseconds> item;
+            iss.read(reinterpret_cast<char*>(&item.first), sizeof(item.first));
+            iss.read(reinterpret_cast<char*>(&count), sizeof(count));
+            item.second = std::chrono::milliseconds(count);
+            data.results.push_back(item);
+        }
+        iss.read(reinterpret_cast<char*>(&count), sizeof(count));
+        data.totalTime = std::chrono::milliseconds(count);
+        return data;          
+    };
+
+    std::shared_ptr<ProgressObservablePipeImpl<JpegBenchmarkProgress>> progress =
+        std::make_shared<ProgressObservablePipeImpl<JpegBenchmarkProgress>>(serializer);
+
+    std::thread decodeThread([args, progress]() {
         std::vector<std::pair<uint16_t, LoadJpegImageUseCase::Result>> buffers(args.imageSamples.size());
 
         std::transform(args.imageSamples.begin(), args.imageSamples.end(), buffers.begin(), 
@@ -137,7 +178,7 @@ std::shared_ptr<ProgressObservable<JpegBenchmarkProgress>> JpegBenchmark::start(
         auto start = std::chrono::steady_clock::now();
         std::vector<std::pair<int, std::chrono::milliseconds>> results;
         for (auto& it : buffers) {
-            progress->setData(JpegBenchmarkProgress{it.first, results, std::chrono::milliseconds(0)});
+            progress->setData(JpegBenchmarkProgress{it.first, results, std::chrono::milliseconds(0)}, false);
             auto iteration_start = std::chrono::steady_clock::now();
             DecodeJpegImageUseCase::Result result;
             for (int i = 0; i < args.iterations; i++) {
@@ -154,18 +195,19 @@ std::shared_ptr<ProgressObservable<JpegBenchmarkProgress>> JpegBenchmark::start(
         }
         auto end = std::chrono::steady_clock::now();
         auto total_duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-        progress->setData(JpegBenchmarkProgress{0, results, total_duration});
+        progress->setData(JpegBenchmarkProgress{0, results, total_duration}, true);
 
         delete[] decodedBuffer4k;
-        
         for (auto& it : buffers) {
             delete[] it.second.buffer;
         }
-        progress->onComplete();
     });
-
     decodeThread.detach();
-    return progress;
+
+    std::shared_ptr<ProgressObserverPipeImpl<JpegBenchmarkProgress>> progressObserver =
+        std::make_shared<ProgressObserverPipeImpl<JpegBenchmarkProgress>>(
+            progress->getReadFd(), deserializer);
+    return progressObserver;
 }
 
 void SaveBitmapImageToFileUseCase::save(std::string imageId, uint8_t* buffer, size_t size) {

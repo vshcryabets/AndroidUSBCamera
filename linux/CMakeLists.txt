@@ -30,6 +30,7 @@ target_link_libraries(
 add_executable(jpegbenchmark
         jpegdecodebenchmark.cpp
         ../libausbc/src/main/jni/UVCCamera/JpegBenchmark.cpp
+        ../libausbc/src/main/jni/UVCCamera/ProgressObserver.cpp
         )
 
 if(USE_TURBOJPEG)
@@ -51,5 +52,6 @@ if (USE_LIBJPEG)
                 ${CMAKE_THREAD_LIBS_INIT})        
 endif()
 
-
+add_executable(unix_socket_client unix_socket_client.cpp)
+add_executable(unix_socket_server unix_socket_server.cpp)
         

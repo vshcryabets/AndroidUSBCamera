@@ -11,7 +11,7 @@ enable_language(ASM)
 
 set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS} ${CMAKE_ASM_FLAGS}")
 
-message(${ANDROID_ABI})
+#message(${ANDROID_ABI})
 if (ANDROID_ABI STREQUAL "arm64-v8a")
 	set(CPU_TYPE arm64)
 elseif (ANDROID_ABI STREQUAL "armeabi-v7a")

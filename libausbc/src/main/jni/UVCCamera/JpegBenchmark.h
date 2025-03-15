@@ -20,10 +20,9 @@
 #include <vector>
 #include <utility>
 #include <memory>
-#include <functional>
-#include <mutex>
-#include <condition_variable>
 #include "DI.h"
+
+#include "ProgressObserver.h"
 
 #ifdef USE_LIBJPEG
     #include "jpeglib.h"
@@ -33,6 +32,13 @@ class LoadJpegImageFromFileUseCase : public LoadJpegImageUseCase {
     public:
         Result load(std::string imageId) override;
 };
+
+#ifdef __ANDROID__
+class LoadJpegImageFromAssetsUseCase : public LoadJpegImageUseCase {
+public:
+    Result load(std::string imageId) override;
+};
+#endif
 
 class SaveBitmapImageToFileUseCase : public SaveBitmapImageUseCase {
     public:
@@ -63,48 +69,6 @@ class DecodeJpegImageLibJpeg9UseCase : public DecodeJpegImageUseCase {
 };
 #endif
 
-template <typename T>
-class ProgressObservable {
-    protected:
-        std::mutex mutex;
-        std::condition_variable variable;
-        bool done;
-        T data;
-    public:
-        ProgressObservable(): done(false) {}
-        void onComplete() {
-            std::unique_lock<std::mutex> lock(mutex);
-            done = true;
-            variable.notify_all();
-        }
-        void setData(const T& newData) {
-            std::unique_lock<std::mutex> lock(mutex);
-            data = newData;
-            variable.notify_all();
-        }
-        T getData() {
-            std::unique_lock<std::mutex> lock(mutex);
-            return data;
-        }
-        T wait() {
-            std::unique_lock<std::mutex> lock(mutex);
-            variable.wait(lock);
-            return data;
-        }
-        bool isComplete() {
-            std::unique_lock<std::mutex> lock(mutex);
-            return done;
-        }
-        void subscribe(std::function<void(T)> callback) {
-            std::unique_lock<std::mutex> lock(mutex);
-            while (!done) {
-                variable.wait(lock);
-                if (!done)
-                    callback(data);
-            }
-        }
-};
-
 struct JpegBenchmarkProgress {
     int currentSampleNumber;
     std::vector<std::pair<int, std::chrono::milliseconds>> results;
@@ -120,5 +84,5 @@ class JpegBenchmark {
     public:
         JpegBenchmark();
         virtual ~JpegBenchmark() {};
-        std::shared_ptr<ProgressObservable<JpegBenchmarkProgress>> start(const Arguments& args);
+        std::shared_ptr<ProgressObserver<JpegBenchmarkProgress>> start(const Arguments& args);
 };

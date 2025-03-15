@@ -29,6 +29,7 @@ import com.jiangdg.demo.MainActivity
 import com.vsh.screens.AusbcApp
 import com.vsh.screens.DeviceListViewModel
 import com.vsh.screens.DeviceListViewModelFactory
+import com.vsh.uvc.JpegBenchmark
 import kotlinx.coroutines.launch
 
 
@@ -39,10 +40,14 @@ class DevicesActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        System.loadLibrary("native")
         getWindow().getDecorView().setBackgroundColor(Color.White.toArgb())
         viewModel = ViewModelProvider(
             this, DeviceListViewModelFactory(
-                usbManager = applicationContext.getSystemService(USB_SERVICE) as UsbManager
+                usbManager = applicationContext.getSystemService(USB_SERVICE) as UsbManager,
+                jpegBenchmark = JpegBenchmark(
+                    context = applicationContext
+                )
             )
         ).get(DeviceListViewModel::class.java)
         setContent {

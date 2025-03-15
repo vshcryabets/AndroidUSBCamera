@@ -101,16 +101,16 @@ int main(int argc, char* argv[]) {
         .iterations = sampleIterations
     };
     auto progress = benchmark.start(args);
-    progress->subscribe([sampleIterations](JpegBenchmarkProgress progress) {
-        if (progress.currentSampleNumber > 0) {
+    progress->subscribe(
+        [](const auto &progress) {
             printf("\rSample id %d", progress.currentSampleNumber);
             fflush(stdout);
-        } else {
+        },
+        [sampleIterations](const auto &progress) {
             printf("\n\nComplete time %ld ms\n", progress.totalTime.count());
             for (auto& it : progress.results) {
                 printf("Sample id %d, time %0.00f ms per sample\n", it.first, (float)it.second.count() / (float)sampleIterations );
             }
-        }
-    });
+        });
     return 0;
 }
