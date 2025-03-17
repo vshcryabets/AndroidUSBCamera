@@ -20,12 +20,10 @@
 
 class JniJpegBenchmark: public JpegBenchmark {
 private:
-    int sockfd;
 public:
-    JniJpegBenchmark(const std::string &socketFilePath);
+    JniJpegBenchmark();
     ~JniJpegBenchmark() override;
-    [[nodiscard]] int getSockFd() const;
-    void startAndSendToSockFd();
+    long startAndSendToSockFd(int writeFd);
 };
 
 

@@ -2,6 +2,9 @@
 #include <mutex>
 #include <condition_variable>
 #include <functional>
+#include <unistd.h>
+#include <arpa/inet.h>
+#include "utilbase.h"
 
 template <typename T>
 class ProgressObservable
@@ -88,6 +91,12 @@ public:
             throw "Can't create pipe";
         }
     }
+    ProgressObservablePipeImpl(
+            std::function<std::vector<char>(T)> transformFunction, int writeFd) : serializer(transformFunction)
+    {
+        fd[1] = writeFd;
+        fd[0] = -1;
+    }
     ~ProgressObservablePipeImpl()
     {
         // close(fd[0]);
@@ -96,10 +105,11 @@ public:
     void setData(const T &newData, bool complete) override
     {
         auto data = serializer(newData);
-        uint32_t dataSize = data.size();
+        uint32_t dataSize = htonl(data.size());
         write(fd[1], complete ? &TYPE_COMPLETE : &TYPE_DATA, 1);
         write(fd[1], &dataSize, 4);
-        write(fd[1], data.data(), dataSize);
+        write(fd[1], data.data(), data.size());
+        //flush(fd[1]);
     }
     int getReadFd() { return fd[0]; }
 };
@@ -118,6 +128,7 @@ private:
     {
         uint32_t size;
         read(readFd, &size, 4);
+        size = ntohl(size);
         if (size > 16 * 1024)
             throw "Size overflow";
         char *buffer = new char[size];
