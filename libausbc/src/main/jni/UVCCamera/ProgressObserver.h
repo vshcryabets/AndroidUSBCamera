@@ -4,7 +4,6 @@
 #include <functional>
 #include <unistd.h>
 #include <arpa/inet.h>
-#include "utilbase.h"
 
 template <typename T>
 class ProgressObservable

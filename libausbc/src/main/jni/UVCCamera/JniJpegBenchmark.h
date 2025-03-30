@@ -23,7 +23,7 @@ private:
 public:
     JniJpegBenchmark();
     ~JniJpegBenchmark() override;
-    long startAndSendToSockFd(int writeFd);
+    long startAndSendToSockFd(int writeFd, const Arguments& args);
 };
 
 

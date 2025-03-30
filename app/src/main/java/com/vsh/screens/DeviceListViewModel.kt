@@ -113,7 +113,26 @@ class DeviceListViewModel(
 
     fun onBenchmarks() {
         jpegBenchmark.startBenchmark(JpegBenchmark.Arguments(
-            imageSamples = mapOf(),
+            imageSamples = listOf(
+                Pair(10360, "jpeg_samples/sample1_0360.jpg"),
+                Pair(10480, "jpeg_samples/sample1_0480.jpg"),
+                Pair(10720, "jpeg_samples/sample1_0720.jpg"),
+                Pair(11080, "jpeg_samples/sample1_1080.jpg"),
+                Pair(11440, "jpeg_samples/sample1_1440.jpg"),
+                Pair(12160, "jpeg_samples/sample1_2160.jpg"),
+                Pair(20360, "jpeg_samples/sample2_0360.jpg"),
+                Pair(20480, "jpeg_samples/sample2_0480.jpg"),
+                Pair(20720, "jpeg_samples/sample2_0720.jpg"),
+                Pair(21080, "jpeg_samples/sample2_1080.jpg"),
+                Pair(21440, "jpeg_samples/sample2_1440.jpg"),
+                Pair(22160, "jpeg_samples/sample2_2160.jpg"),
+                Pair(30360, "jpeg_samples/sample3_0360.jpg"),
+                Pair(30480, "jpeg_samples/sample3_0480.jpg"),
+                Pair(30720, "jpeg_samples/sample3_0720.jpg"),
+                Pair(31080, "jpeg_samples/sample3_1080.jpg"),
+                Pair(31440, "jpeg_samples/sample3_1440.jpg"),
+                Pair(32160, "jpeg_samples/sample3_2160.jpg")
+            ),
             iterations = 30
         ))
     }

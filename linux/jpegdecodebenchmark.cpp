@@ -20,19 +20,6 @@
 #include "DI.h"
 #include "JpegBenchmark.h"
 
-// class LinuxUseCases: public UseCases {
-//     private:
-//         LoadJpegImageFromFileUseCase imageLoader;
-// #ifdef USE_LIBJPEG9        
-//         DecodeJpegImageLibJpeg9UseCase decoder;
-// #elif defined(USE_TURBOJPEG)
-//         DecodeJpegImageLibJpegTurboUseCase decoder;
-// #endif
-//     public:
-//         LoadJpegImageUseCase* getImageLoader() { return &imageLoader; }
-//         DecodeJpegImageUseCase* getImageDecoder() { return &decoder; }
-// };
-
 DI* DI::instance = nullptr;
 class LinuxDi: public DI {
     private:

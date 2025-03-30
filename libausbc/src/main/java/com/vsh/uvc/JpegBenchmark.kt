@@ -10,22 +10,6 @@ import java.io.FileInputStream
 class JpegBenchmark(
     private val context: Context
 ) {
-//    data class Results (
-//        val id: Int,
-//        val decodeCount360: Int,
-//        val decodeTime360Ms: Int,
-//        val decodeCount480: Int,
-//        val decodeTime480Ms: Int,
-//        val decodeCount720: Int,
-//        val decodeTime720Ms: Int,
-//        val decodeCount1080: Int,
-//        val decodeTime1080Ms: Int,
-//        val decodeCount1440: Int,
-//        val decodeTime1440Ms: Int,
-//        val decodeCount2160: Int,
-//        val decodeTime2160Ms: Int,
-//    )
-
 
     data class JpegBenchmarkProgress(
         var currentSampleNumber: Int = 0,
@@ -54,7 +38,7 @@ class JpegBenchmark(
 
 
     data class Arguments (
-        val imageSamples: Map<Int, String>,
+        val imageSamples: List<Pair<Int, String>>,
         val iterations: Int,
     )
 
@@ -103,7 +87,7 @@ class JpegBenchmark(
     private external fun nativeCreateBenchmark(socketFilePath: String): Long
     private external fun nativeDestroyBenchmark(ptr: Long)
 
-    private external fun nativeStartBenchmark(ptr: Long, args: Arguments, writeFd: Int): Long
+    private external fun nativeStartBenchmark(ptr: Long, args: Arguments, writeFd: Int)
     private external fun nativeCancelBenchmark(id: Long)
 
     companion object {
