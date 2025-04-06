@@ -34,6 +34,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.Icon
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TopAppBarDefaults
@@ -120,8 +121,20 @@ object DeviceListScreen {
     }
 
     @Composable
-    fun Benchmarks(viewModel: DeviceListViewModel) {
-
+    fun Benchmarks(benchmarkState: BenchmarkState, onShare: ()->Unit) {
+        Column {
+            if (benchmarkState.isRunning) {
+                CircularProgressIndicator()
+            } else {
+                Button(
+                    onClick = onShare,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(text = "Share benchmark results")
+                }
+            }
+            Text(text = benchmarkState.text)
+        }
     }
 }
 
@@ -164,6 +177,7 @@ fun AusbcApp(
         }
     ) { innerPadding ->
         val uiState by viewModel.state.collectAsState()
+        val benchmarkState by viewModel.benchmarkState.collectAsState()
 
         NavHost(
             navController = navController,
@@ -181,7 +195,9 @@ fun AusbcApp(
                     onSelectUsbDevice = { viewModel.onClick(it) })
             }
             composable(route = AusbcScreen.Benchmarks.name) {
-                DeviceListScreen.Benchmarks(viewModel)
+                DeviceListScreen.Benchmarks(
+                    benchmarkState = benchmarkState,
+                    onShare = viewModel::onShareBenchmarkResults )
             }
         }
     }

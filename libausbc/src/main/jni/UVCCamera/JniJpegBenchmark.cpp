@@ -24,6 +24,7 @@
 #include <map>
 #include <thread>
 #include <arpa/inet.h>
+#include <android/asset_manager_jni.h>
 
 extern "C" {
 
@@ -31,11 +32,33 @@ JNIEXPORT void JNICALL
 Java_com_vsh_uvc_JpegBenchmark_nativeStartBenchmark(JNIEnv *env,
                                                     jobject thiz,
                                                     jlong ptr,
-                                                    jobject args,
+                                                    jint iterations,
+                                                    jintArray sampleIds,
+                                                    jobjectArray sampleStrings,
                                                     jint writeFd) {
     auto *result = reinterpret_cast<JniJpegBenchmark *>(ptr);
     JpegBenchmark::Arguments argsForBenchmark;
-//    argsForBenchmark.
+    argsForBenchmark.iterations = iterations;
+    auto sampleIdsSize = env->GetArrayLength(sampleIds);
+    auto sampleStringSize = env->GetArrayLength(sampleStrings);
+    if (sampleIdsSize != sampleStringSize) {
+        LOGE("Sample ids and strings size mismatch");
+        jclass illegalStateExceptionClass = env->FindClass("java/lang/IllegalStateException");
+        if (illegalStateExceptionClass != nullptr) {
+            env->ThrowNew(illegalStateExceptionClass, "Sample ids and strings size mismatch");
+        }
+        return;
+    }
+    argsForBenchmark.imageSamples.reserve(env->GetArrayLength(sampleIds));
+    jint*  idsArray = env->GetIntArrayElements(sampleIds, nullptr);
+    for (int i = 0; i < sampleIdsSize; i++) {
+        jint sampleId = idsArray[i];
+        auto sampleString = (jstring)env->GetObjectArrayElement(sampleStrings, i);
+        const char *samplePath = env->GetStringUTFChars(sampleString, nullptr);
+        argsForBenchmark.imageSamples.emplace_back(sampleId, std::string(samplePath));
+        env->ReleaseStringUTFChars(sampleString, samplePath);
+    }
+    env->ReleaseIntArrayElements(sampleIds, idsArray, JNI_ABORT);
     result->startAndSendToSockFd(writeFd, argsForBenchmark);
 }
 
@@ -52,8 +75,7 @@ Java_com_vsh_uvc_JpegBenchmark_nativeGetBenchamrkResults(JNIEnv *env, jobject th
 }
 
 JNIEXPORT jlong JNICALL
-Java_com_vsh_uvc_JpegBenchmark_nativeCreateBenchmark(JNIEnv *env,
-                                                     jobject thiz) {
+Java_com_vsh_uvc_JpegBenchmark_nativeCreateBenchmark(JNIEnv *env, jobject thiz) {
     auto *result = new JniJpegBenchmark();
     return reinterpret_cast<jlong>(result);
 }
@@ -64,6 +86,12 @@ Java_com_vsh_uvc_JpegBenchmark_nativeDestroyBenchmark(JNIEnv *env, jobject thiz,
     delete result;
 }
 
+JNIEXPORT jstring JNICALL
+Java_com_vsh_uvc_JpegBenchmark_getDecoderName(JNIEnv *env, jobject thiz, jlong ptr) {
+    auto decoderName = DI::getInstance()->getUseCases()->imageDecoder->getDecoderName();
+    return env->NewStringUTF(decoderName.c_str());
+}
+
 }
 
 JniJpegBenchmark::JniJpegBenchmark() {
@@ -72,7 +100,7 @@ JniJpegBenchmark::JniJpegBenchmark() {
 JniJpegBenchmark::~JniJpegBenchmark() {
 }
 
-long JniJpegBenchmark::startAndSendToSockFd(int writeFd, const Arguments& args) {
+void JniJpegBenchmark::startAndSendToSockFd(int writeFd, const Arguments& args) {
     std::function<std::vector<char>(JpegBenchmarkProgress)> serializer = [](JpegBenchmarkProgress progress){
         std::ostringstream oss;
         uint32_t sampleNumber = htonl(progress.currentSampleNumber);
@@ -94,25 +122,8 @@ long JniJpegBenchmark::startAndSendToSockFd(int writeFd, const Arguments& args) 
     std::shared_ptr<ProgressObservablePipeImpl<JpegBenchmarkProgress>> progress =
             std::make_shared<ProgressObservablePipeImpl<JpegBenchmarkProgress>>(serializer, writeFd);
 
-//    std::thread decodeTestThread([this, progress]() {
-//        LOGD("ASD startAndSendToSockFd");
-//        JpegBenchmarkProgress data;
-//        data.totalTime = std::chrono::milliseconds(0);
-//        int counter = 100;
-//        while (true) {
-//            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-//            LOGD("ASD startAndSendToSockFd 2 %d", counter);
-//            data.currentSampleNumber = counter;
-//            data.totalTime = std::chrono::milliseconds(counter * 237);
-//            progress->setData(data, false);
-//            counter++;
-//        }
-//    });
-//    decodeTestThread.detach();
-
     std::thread decodeThread([args, progress]() {
         std::vector<std::pair<uint16_t, LoadJpegImageUseCase::Result>> buffers(args.imageSamples.size());
-
         std::transform(args.imageSamples.begin(), args.imageSamples.end(), buffers.begin(),
                        [load= DI::getInstance()->getUseCases()->imageLoader](auto &it) {
                            return std::pair(it.first, load->load(it.second));
@@ -151,6 +162,4 @@ long JniJpegBenchmark::startAndSendToSockFd(int writeFd, const Arguments& args) 
         }
     });
     decodeThread.detach();
-
-    return progress->getReadFd();
 }

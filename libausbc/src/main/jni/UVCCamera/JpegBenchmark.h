@@ -33,13 +33,6 @@ class LoadJpegImageFromFileUseCase : public LoadJpegImageUseCase {
         Result load(std::string imageId) override;
 };
 
-#ifdef __ANDROID__
-class LoadJpegImageFromAssetsUseCase : public LoadJpegImageUseCase {
-public:
-    Result load(std::string imageId) override;
-};
-#endif
-
 class SaveBitmapImageToFileUseCase : public SaveBitmapImageUseCase {
     public:
         void save(std::string imageId, uint8_t* buffer, size_t size) override;

@@ -34,7 +34,7 @@ LoadJpegImageUseCase::Result LoadJpegImageFromFileUseCase::load(std::string imag
     }
     fseek(file, 0, SEEK_END);
     size_t size = ftell(file);
-    uint8_t* buffer = new uint8_t[size];
+    auto* buffer = new uint8_t[size];
     fseek(file, 0, SEEK_SET);
     fread(buffer, 1, size, file);
     fclose(file);

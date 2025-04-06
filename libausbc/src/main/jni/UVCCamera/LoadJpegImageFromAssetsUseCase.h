@@ -1,6 +1,6 @@
 /*
- * Copyright 2017-2022 Jiangdg
- *           2025 vschryabets@gmail.com
+ * Copyright 2025 vschryabets@gmail.com
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,24 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.jiangdg.demo
+#pragma once
 
-import android.app.Application
-import android.content.res.AssetManager
-import timber.log.Timber
+#include <android/asset_manager_jni.h>
+#include "DI.h"
 
-/**
- *
- * @author Created by jiangdg on 2022/2/28
- */
-class DemoApplication: Application() {
-
-    override fun onCreate() {
-        super.onCreate()
-        Timber.plant(Timber.DebugTree())
-        System.loadLibrary("native")
-        initDI(this.assets)
-    }
-
-    external fun initDI(assetManager: AssetManager)
-}
+class LoadJpegImageFromAssetsUseCase : public LoadJpegImageUseCase {
+private:
+    AAssetManager* assetManagerObj;
+public:
+    LoadJpegImageFromAssetsUseCase(AAssetManager* assetManager) : assetManagerObj(assetManager) {}
+    Result load(std::string imageId) override;
+};

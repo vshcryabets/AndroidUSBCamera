@@ -39,33 +39,6 @@ jint JNI_OnLoad(JavaVM *vm, void *reserved);
 
 #ifdef __cplusplus
 }
-
-DI* DI::instance = nullptr;
-class LinuxDi: public DI {
-private:
-    LoadJpegImageFromAssetsUseCase imageLoader;
-#if defined(USE_LIBJPEG)
-    DecodeJpegImageLibJpeg9UseCase decoder;
-#elif defined(USE_TURBOJPEG)
-    DecodeJpegImageTurboJpegUseCase decoder;
-#endif
-    SaveBitmapImageToFileUseCase imageSaver;
-
-    UseCases useCases;
-public:
-    LinuxDi(): useCases{
-            .imageLoader = &imageLoader,
-            .imageDecoder = &decoder,
-            .imageSaver = &imageSaver
-    } {
-        DI::setInstance(this);
-    }
-
-    UseCases* getUseCases() {
-        return &useCases;
-    }
-};
-
 #endif
 
 #endif /* ONLOAD_H_ */

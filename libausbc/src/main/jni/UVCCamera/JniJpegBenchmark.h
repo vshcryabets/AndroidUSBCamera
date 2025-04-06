@@ -19,11 +19,10 @@
 #include "JpegBenchmark.h"
 
 class JniJpegBenchmark: public JpegBenchmark {
-private:
 public:
     JniJpegBenchmark();
     ~JniJpegBenchmark() override;
-    long startAndSendToSockFd(int writeFd, const Arguments& args);
+    void startAndSendToSockFd(int writeFd, const Arguments& args);
 };
 
 

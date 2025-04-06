@@ -80,6 +80,7 @@ public:
 protected:
     std::function<std::vector<char>(T)> serializer;
     int fd[2];
+    bool ownFd {true};
 
 public:
     ProgressObservablePipeImpl(
@@ -93,13 +94,16 @@ public:
     ProgressObservablePipeImpl(
             std::function<std::vector<char>(T)> transformFunction, int writeFd) : serializer(transformFunction)
     {
+        ownFd = false;
         fd[1] = writeFd;
         fd[0] = -1;
     }
     ~ProgressObservablePipeImpl()
     {
-        // close(fd[0]);
-        close(fd[1]);
+        if (ownFd) {
+            close(fd[1]);
+            close(fd[0]);
+        }
     }
     void setData(const T &newData, bool complete) override
     {
@@ -133,7 +137,7 @@ private:
         char *buffer = new char[size];
         ssize_t readed = read(readFd, buffer, size);
         data = deserializer(buffer, readed);
-        delete buffer;
+        delete [] buffer;
     }
 
 public:

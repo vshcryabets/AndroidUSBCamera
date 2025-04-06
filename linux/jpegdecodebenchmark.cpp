@@ -41,7 +41,7 @@ class LinuxDi: public DI {
             DI::setInstance(this);
         }
 
-        UseCases* getUseCases() {
+        UseCases* getUseCases() override {
             return &useCases;
         }
 };

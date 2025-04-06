@@ -28,5 +28,6 @@ list(APPEND SOURCES
     ${UVCCAMERA}/ProgressObserver.cpp
     ${UVCCAMERA}/JniUVCCamera.cpp
     ${UVCCAMERA}/JpegBenchmark.cpp
+    ${UVCCAMERA}/LoadJpegImageFromAssetsUseCase.cpp
     ${UVCCAMERA}/JniJpegBenchmark.cpp
     )
