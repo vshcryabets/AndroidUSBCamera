@@ -1,6 +1,6 @@
 /*
- * Copyright 2017-2022 Jiangdg
- *           2025 vschryabets@gmail.com
+ * Copyright 2025 vschryabets@gmail.com
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,24 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.jiangdg.demo
 
-import android.app.Application
-import android.content.res.AssetManager
-import timber.log.Timber
+#ifndef ANDROIDUSBCAMERA_JNIJPEGBENCHMARK_H
+#define ANDROIDUSBCAMERA_JNIJPEGBENCHMARK_H
+#include "JpegBenchmark.h"
 
-/**
- *
- * @author Created by jiangdg on 2022/2/28
- */
-class DemoApplication: Application() {
+class JniJpegBenchmark: public JpegBenchmark {
+public:
+    JniJpegBenchmark();
+    ~JniJpegBenchmark() override;
+    void startAndSendToSockFd(int writeFd, const Arguments& args);
+};
 
-    override fun onCreate() {
-        super.onCreate()
-        Timber.plant(Timber.DebugTree())
-        System.loadLibrary("native")
-        initDI(this.assets)
-    }
 
-    external fun initDI(assetManager: AssetManager)
-}
+#endif //ANDROIDUSBCAMERA_JNIJPEGBENCHMARK_H
