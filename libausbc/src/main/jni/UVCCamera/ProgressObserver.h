@@ -145,8 +145,8 @@ public:
                              std::function<T(char *, size_t)> deserializer) : readFd(readFd), deserializer(deserializer), done(false)
     {
     }
-    T getData() { return data; }
-    T wait()
+    T getData() override { return data; }
+    T wait() override
     {
         uint8_t type;
         read(readFd, &type, 1);
@@ -161,7 +161,7 @@ public:
         }
         return data;
     }
-    bool isComplete() { return done; }
+    bool isComplete() override{ return done; }
     void subscribe(std::function<void(const T &)> callback, std::function<void(const T &)> complete) override
     {
         while (!done)

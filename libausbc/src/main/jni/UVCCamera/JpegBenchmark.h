@@ -24,44 +24,6 @@
 
 #include "ProgressObserver.h"
 
-#ifdef USE_LIBJPEG
-    #include "jpeglib.h"
-#endif
-
-class LoadJpegImageFromFileUseCase : public LoadJpegImageUseCase {
-    public:
-        Result load(std::string imageId) override;
-};
-
-class SaveBitmapImageToFileUseCase : public SaveBitmapImageUseCase {
-    public:
-        void save(std::string imageId, uint8_t* buffer, size_t size) override;
-};
-
-#ifdef USE_TURBOJPEG
-class DecodeJpegImageTurboJpegUseCase : public DecodeJpegImageUseCase {
-    public:
-        Result decodeImage(uint8_t* encodedBuffer, 
-            size_t encodedBufferSize, 
-            uint8_t* decodedBuffer, 
-            size_t decodedBufferSize) override;
-        std::string getDecoderName() override;
-};
-#endif
-
-#ifdef USE_LIBJPEG
-class DecodeJpegImageLibJpeg9UseCase : public DecodeJpegImageUseCase {
-    private:
-        static void JPEGVersionError(j_common_ptr cinfo);
-    public:
-        Result decodeImage(uint8_t* encodedBuffer, 
-            size_t encodedBufferSize, 
-            uint8_t* decodedBuffer, 
-            size_t decodedBufferSize) override;
-        std::string getDecoderName() override;
-};
-#endif
-
 struct JpegBenchmarkProgress {
     int currentSampleNumber;
     std::vector<std::pair<int, std::chrono::milliseconds>> results;

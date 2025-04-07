@@ -22,6 +22,7 @@ add_compile_definitions(USE_TURBOJPEG)
 list(APPEND SOURCES
 	${UVCCAMERA}/_onload.cpp
     ${UVCCAMERA}/UVCCamera.cpp
+    ${UVCCAMERA}/ImageUseCases.cpp
     ${UVCCAMERA}/UVCPreviewBase.cpp
     ${UVCCAMERA}/UVCPreviewJni.cpp
     ${UVCCAMERA}/UVCCameraAdjustments.cpp
