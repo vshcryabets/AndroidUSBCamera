@@ -18,6 +18,7 @@
 #include <unistd.h>
 
 #include "DI.h"
+#include "ImageUseCases.h"
 #include "JpegBenchmark.h"
 
 DI* DI::instance = nullptr;

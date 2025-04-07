@@ -18,38 +18,7 @@
 #include <string>
 #include <cstdint>
 #include <chrono>
-
-class LoadJpegImageUseCase {
-    public:
-        struct Result {
-            uint8_t* buffer;
-            size_t size;
-        };
-    public:
-        virtual Result load(std::string imageId) = 0;
-};
-
-class DecodeJpegImageUseCase {
-    public:
-        struct Result {
-            int32_t width;
-            int32_t height;
-            uint8_t* buffer;
-            size_t size;
-            std::chrono::time_point<std::chrono::steady_clock> timestamp;
-        };
-    public:
-        virtual Result decodeImage(uint8_t* encodedBuffer, 
-            size_t encodedBufferSize, 
-            uint8_t* decodedBuffer, 
-            size_t decodedBufferSize) = 0;
-        virtual std::string getDecoderName() = 0;
-};
-
-class SaveBitmapImageUseCase {
-    public:
-        virtual void save(std::string imageId, uint8_t* buffer, size_t size) = 0;
-};
+#include "ImageUseCases.h"
 
 struct UseCases {
     LoadJpegImageUseCase* imageLoader;

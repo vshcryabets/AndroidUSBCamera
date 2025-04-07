@@ -17,18 +17,22 @@ include_directories(
         ../libausbc/src/main/jni/UVCCamera/
 )
 
+find_package(SDL2 REQUIRED)
+
 add_executable(uvccapture
+        SdlTools.cpp
         uvccapture.cpp
 )
 
-
 target_link_libraries(
         uvccapture
+        ${SDL2_LIBRARIES}
         ${CMAKE_THREAD_LIBS_INIT})
 
 
 add_executable(jpegbenchmark
         jpegdecodebenchmark.cpp
+        ../libausbc/src/main/jni/UVCCamera/ImageUseCases.cpp
         ../libausbc/src/main/jni/UVCCamera/JpegBenchmark.cpp
         ../libausbc/src/main/jni/UVCCamera/ProgressObserver.cpp
         )
