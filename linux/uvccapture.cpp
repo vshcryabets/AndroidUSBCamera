@@ -14,6 +14,8 @@
 // SDL
 #include "SdlTools.h"
 
+#include "ImageUseCases.h"
+
 using namespace std::chrono;
 
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
@@ -39,6 +41,10 @@ class UvcException : public std::exception {
 
 class UvcCamera {
 public:
+    struct Frame {
+        uint8_t* data {nullptr};
+        size_t size {0};
+    };
     enum io_method {
         IO_METHOD_READ,
         IO_METHOD_MMAP,
@@ -417,28 +423,30 @@ public:
     }
 
 
-    int readFrame(std::function<void(const void*, int)> processImageCallback){
+    Frame readFrame(std::function<void(Frame)> processImageCallback = nullptr){
         struct v4l2_buffer buf;
         unsigned int i;
+        Frame result;
 
         switch (io) {
             case IO_METHOD_READ:
                 if (-1 == read(fd, buffers[0].start, buffers[0].length)) {
                     switch (errno) {
                         case EAGAIN:
-                            return 0;
-
+                            return result;
                         case EIO:
                             /* Could ignore EIO, see spec. */
 
                             /* fall through */
-
                         default:
-                        throw UvcException(UvcException::Type::ReadError);
+                            throw UvcException(UvcException::Type::ReadError);
                     }
                 }
                 printf("Process image 1 %p %d\n", buffers[0].start, buffers[0].length);
-                processImageCallback(buffers[0].start, buffers[0].length);
+                result.data = (uint8_t*)buffers[0].start;
+                result.size = buffers[0].length;
+                if (processImageCallback != nullptr)
+                    processImageCallback(result);
                 break;
 
             case IO_METHOD_MMAP:
@@ -450,7 +458,7 @@ public:
                 if (-1 == xioctl(fd, VIDIOC_DQBUF, &buf)) {
                     switch (errno) {
                         case EAGAIN:
-                            return 0;
+                            return Frame();
 
                         case EIO:
                             /* Could ignore EIO, see spec. */
@@ -463,7 +471,11 @@ public:
                 }
 
                 //printf("Process image 2 %p %d\n", buffers[buf.index].start, buf.bytesused);
-                processImageCallback(buffers[buf.index].start, buf.bytesused);
+                result.data = (uint8_t*)buffers[buf.index].start;
+                result.size = buf.bytesused;
+                if (processImageCallback != nullptr)
+                    processImageCallback(result);
+
                 if (-1 == xioctl(fd, VIDIOC_QBUF, &buf))
                     throw UvcException(UvcException::Type::IoCtlError);
                 break;
@@ -477,7 +489,7 @@ public:
                 if (-1 == xioctl(fd, VIDIOC_DQBUF, &buf)) {
                     switch (errno) {
                         case EAGAIN:
-                            return 0;
+                            return Frame();
 
                         case EIO:
                             /* Could ignore EIO, see spec. */
@@ -495,13 +507,17 @@ public:
                         break;
 
                 printf("Process image 3 %p %d\n", (void *)buf.m.userptr, buf.bytesused);
-                processImageCallback((void *)buf.m.userptr, buf.bytesused);
+                result.data = (uint8_t*)buf.m.userptr;
+                result.size = buf.bytesused;
+                if (processImageCallback != nullptr)
+                    processImageCallback(result);
+                
                 if (-1 == xioctl(fd, VIDIOC_QBUF, &buf))
                     throw UvcException(UvcException::Type::IoCtlError);
                 break;
         }
 
-        return 1;
+        return result;
     }
 
     int getFd() {
@@ -535,9 +551,16 @@ int main(void) {
         camera.width, camera.height);
 
     int frame_number = 0;
-    uint8_t* rgbxBuffer = new uint8_t[camera.width * camera.height * 4];
+    ConvertYUV422toRGBAUseCase convertUseCase;
+    ConvertBitmapUseCase::Buffer dst = {
+        .buffer = new uint8_t[camera.width * camera.height * 4],
+        .capacity = camera.width * camera.height * 4,
+        .size = 0,
+        .width = 0,
+        .height = 0
+    };
 
-    loop.setDrawCallback([&camera, &frame_number, &texture, &wnd, rgbxBuffer](uint32_t frameCounter) {
+    loop.setDrawCallback([&camera, &frame_number, &texture, &wnd, &dst, &convertUseCase](uint32_t frameCounter) {
         fd_set fds;
         struct timeval tv;
         int r;
@@ -556,20 +579,29 @@ int main(void) {
             exit(EXIT_FAILURE);
         }
         if (r > 0 ) {
-            camera.readFrame([&frame_number, &texture, &wnd, &camera, rgbxBuffer](const void* data, int size) {
+            UvcCamera::Frame result = camera.readFrame();
+            if (result.data != nullptr) {
                 frame_number++;
-                memcpy(rgbxBuffer, data, size);
+                convertUseCase.convert(dst,
+                    {
+                        .buffer = result.data,
+                        .capacity = result.size,
+                        .size = result.size,
+                        .width = camera.width,
+                        .height = camera.height
+                    }
+                );
                 // char filename[15];
                 // sprintf(filename, "frame-%d.bin", frame_number);
                 // FILE *fp=fopen(filename,"wb");
-                // fwrite(p, size, 1, fp);
+                // fwrite(result.data, result.size, 1, fp);
                 // fflush(fp);
                 // fclose(fp);
-                SDL_UpdateTexture(texture, NULL, rgbxBuffer, camera.width * 4);
+                SDL_UpdateTexture(texture, NULL, dst.buffer, camera.width * 4);
                 wnd.clear();
                 SDL_RenderCopy(wnd.getRenderer(), texture, NULL, NULL);
                 SDL_RenderPresent(wnd.getRenderer());
-            });
+            };
         } else  if (-1 == r) {
             if (EINTR != errno)
                 errno_exit("select");
@@ -577,7 +609,7 @@ int main(void) {
     });
     loop.loop();
 
-    delete[] rgbxBuffer;
+    delete[] dst.buffer;
 
     camera.stop_capturing();
 
