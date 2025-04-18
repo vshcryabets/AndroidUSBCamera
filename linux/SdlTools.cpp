@@ -35,7 +35,7 @@ SDL_Renderer* SdlWindow::getRenderer() const {
     return renderer;
 }
 
-SdlLoop::SdlLoop() {
+SdlLoop::SdlLoop(Configuration configuration): configuration(configuration) {
 }
 
 SdlLoop::~SdlLoop() {
@@ -53,7 +53,9 @@ void SdlLoop::loop() {
             onEvent(event);
         }
         draw();
-        SDL_Delay(1000 / 60); // ~60 fps
+        if (configuration.needDelay) {
+            SDL_Delay(1000 / 60); // ~60 fps
+        }
         ++frame;
     }
 }

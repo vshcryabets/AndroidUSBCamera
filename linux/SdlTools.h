@@ -29,12 +29,19 @@ public:
 };
 
 class SdlLoop {
+public:
+    struct Configuration {
+        bool needDelay;
+    };
 protected:
+    Configuration configuration;
     bool running = true;
     uint32_t frame = 0;
     std::function<void(uint32_t)> drawCallback {nullptr};
 public:
-    SdlLoop();
+    SdlLoop(Configuration configuration = {
+        .needDelay = true
+    });
     virtual void stop() { running = false; }
     virtual ~SdlLoop();
     virtual void onEvent(const SDL_Event& event);

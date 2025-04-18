@@ -11,6 +11,11 @@
 #include <sys/mman.h>
 #include <sys/ioctl.h>
 
+// SDL
+#include "SdlTools.h"
+
+#include "ImageUseCases.h"
+
 using namespace std::chrono;
 
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
@@ -36,6 +41,10 @@ class UvcException : public std::exception {
 
 class UvcCamera {
 public:
+    struct Frame {
+        uint8_t* data {nullptr};
+        size_t size {0};
+    };
     enum io_method {
         IO_METHOD_READ,
         IO_METHOD_MMAP,
@@ -46,13 +55,15 @@ public:
         void   *start;
         size_t  length;
     };
+
+    uint32_t width {0};
+    uint32_t height {0};
 private:
     int fd = -1;
     struct buffer *buffers;
     unsigned int n_buffers;
     enum io_method io = IO_METHOD_MMAP;
     int force_format = 1;
-    int              frame_number = 0;
 
 private:
     int xioctl(int fh, int request, void *arg) {
@@ -179,6 +190,15 @@ private:
         }
     }
 public:
+    UvcCamera() {
+        width = 640;
+        height = 480;
+    }
+    ~UvcCamera() {
+        // Destructor
+        // uninit_device();
+        // close_device();
+    }
     void open_device(const char *dev_name) {
         struct stat st;
 
@@ -278,9 +298,8 @@ public:
     
         fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         if (force_format) {
-            fprintf(stderr, "Set H264\r\n");
-            fmt.fmt.pix.width = 640; //replace
-            fmt.fmt.pix.height = 480; //replace
+            fmt.fmt.pix.width = width;
+            fmt.fmt.pix.height = height;
             fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV; //V4L2_PIX_FMT_H264; //replace
             fmt.fmt.pix.field = V4L2_FIELD_ANY;
     
@@ -404,29 +423,30 @@ public:
     }
 
 
-    int read_frame(void)
-    {
+    Frame readFrame(std::function<void(Frame)> processImageCallback = nullptr){
         struct v4l2_buffer buf;
         unsigned int i;
+        Frame result;
 
         switch (io) {
             case IO_METHOD_READ:
                 if (-1 == read(fd, buffers[0].start, buffers[0].length)) {
                     switch (errno) {
                         case EAGAIN:
-                            return 0;
-
+                            return result;
                         case EIO:
                             /* Could ignore EIO, see spec. */
 
                             /* fall through */
-
                         default:
-                        throw UvcException(UvcException::Type::ReadError);
+                            throw UvcException(UvcException::Type::ReadError);
                     }
                 }
                 printf("Process image 1 %p %d\n", buffers[0].start, buffers[0].length);
-                process_image(buffers[0].start, buffers[0].length);
+                result.data = (uint8_t*)buffers[0].start;
+                result.size = buffers[0].length;
+                if (processImageCallback != nullptr)
+                    processImageCallback(result);
                 break;
 
             case IO_METHOD_MMAP:
@@ -438,7 +458,7 @@ public:
                 if (-1 == xioctl(fd, VIDIOC_DQBUF, &buf)) {
                     switch (errno) {
                         case EAGAIN:
-                            return 0;
+                            return Frame();
 
                         case EIO:
                             /* Could ignore EIO, see spec. */
@@ -450,8 +470,12 @@ public:
                     }
                 }
 
-                printf("Process image 2 %p %d\n", buffers[buf.index].start, buf.bytesused);
-                process_image(buffers[buf.index].start, buf.bytesused);
+                //printf("Process image 2 %p %d\n", buffers[buf.index].start, buf.bytesused);
+                result.data = (uint8_t*)buffers[buf.index].start;
+                result.size = buf.bytesused;
+                if (processImageCallback != nullptr)
+                    processImageCallback(result);
+
                 if (-1 == xioctl(fd, VIDIOC_QBUF, &buf))
                     throw UvcException(UvcException::Type::IoCtlError);
                 break;
@@ -465,7 +489,7 @@ public:
                 if (-1 == xioctl(fd, VIDIOC_DQBUF, &buf)) {
                     switch (errno) {
                         case EAGAIN:
-                            return 0;
+                            return Frame();
 
                         case EIO:
                             /* Could ignore EIO, see spec. */
@@ -483,34 +507,23 @@ public:
                         break;
 
                 printf("Process image 3 %p %d\n", (void *)buf.m.userptr, buf.bytesused);
-                process_image((void *)buf.m.userptr, buf.bytesused);
+                result.data = (uint8_t*)buf.m.userptr;
+                result.size = buf.bytesused;
+                if (processImageCallback != nullptr)
+                    processImageCallback(result);
+                
                 if (-1 == xioctl(fd, VIDIOC_QBUF, &buf))
                     throw UvcException(UvcException::Type::IoCtlError);
                 break;
         }
 
-        return 1;
-    }
-
-    void process_image(const void *p, int size)
-    {
-        frame_number++;
-        char filename[15];
-        sprintf(filename, "frame-%d.bin", frame_number);
-        FILE *fp=fopen(filename,"wb");
-        fwrite(p, size, 1, fp);
-        fflush(fp);
-        fclose(fp);
+        return result;
     }
 
     int getFd() {
         return fd;
     }
 };
-
-
-void draw_frame() {
-}
 
 
 static void errno_exit(const char *s) {
@@ -526,7 +539,28 @@ int main(void) {
     camera.init_device(videodevice);
     camera.start_capturing();
 
-    //vkwnd->loop([](SdlWindow* wnd, uint64_t frameCounter){
+    SdlWindow wnd("UVC preview", 640, 480);
+    SdlLoop loop(
+        {
+            .needDelay = false
+        }
+    );
+    SDL_Texture* texture = SDL_CreateTexture(wnd.getRenderer(),
+        SDL_PIXELFORMAT_RGBA32,
+        SDL_TEXTUREACCESS_STREAMING,
+        camera.width, camera.height);
+
+    int frame_number = 0;
+    ConvertYUV422toRGBAUseCase convertUseCase;
+    ConvertBitmapUseCase::Buffer dst = {
+        .buffer = new uint8_t[camera.width * camera.height * 4],
+        .capacity = camera.width * camera.height * 4,
+        .size = 0,
+        .width = 0,
+        .height = 0
+    };
+
+    loop.setDrawCallback([&camera, &frame_number, &texture, &wnd, &dst, &convertUseCase](uint32_t frameCounter) {
         fd_set fds;
         struct timeval tv;
         int r;
@@ -545,15 +579,37 @@ int main(void) {
             exit(EXIT_FAILURE);
         }
         if (r > 0 ) {
-            camera.read_frame();
+            UvcCamera::Frame result = camera.readFrame();
+            if (result.data != nullptr) {
+                frame_number++;
+                convertUseCase.convert(dst,
+                    {
+                        .buffer = result.data,
+                        .capacity = result.size,
+                        .size = result.size,
+                        .width = camera.width,
+                        .height = camera.height
+                    }
+                );
+                // char filename[15];
+                // sprintf(filename, "frame-%d.bin", frame_number);
+                // FILE *fp=fopen(filename,"wb");
+                // fwrite(result.data, result.size, 1, fp);
+                // fflush(fp);
+                // fclose(fp);
+                SDL_UpdateTexture(texture, NULL, dst.buffer, camera.width * 4);
+                wnd.clear();
+                SDL_RenderCopy(wnd.getRenderer(), texture, NULL, NULL);
+                SDL_RenderPresent(wnd.getRenderer());
+            };
         } else  if (-1 == r) {
             if (EINTR != errno)
                 errno_exit("select");
         }
-        draw_frame();
-//    });
-    //vkwnd->deinit();
+    });
+    loop.loop();
 
+    delete[] dst.buffer;
 
     camera.stop_capturing();
 
