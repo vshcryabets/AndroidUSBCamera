@@ -1,5 +1,7 @@
 ## Samsung A8 + TurboJPEG 1.5
+Debug build:
 
+```
 Complete time 135088 ms, iterations=30
 Build type: Debug
 Device: SM-X205 (gta8)
@@ -22,7 +24,11 @@ Sample id 30720, time 97 ms
 Sample id 31080, time 206 ms
 Sample id 31440, time 354 ms
 Sample id 32160, time 756 ms
+```
 
+Release build:
+
+```
 Complete time 43203 ms, iterations=30
 Build type: Release
 Device: SM-X205 (gta8)
@@ -45,3 +51,4 @@ Sample id 30720, time 33 ms
 Sample id 31080, time 67 ms
 Sample id 31440, time 112 ms
 Sample id 32160, time 230 ms
+```

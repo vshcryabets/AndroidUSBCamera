@@ -79,22 +79,25 @@ class DeviceListViewModel(
     val benchmarkState: StateFlow<BenchmarkState> = _benchmarkState
 
     fun begin() {
-        loadDevicesJob = viewModelScope.launch {
-            isActive = true
-            while (isActive) {
-                loadDevices()
-                delay(1000L)
+        if (!isActive) {
+            loadDevicesJob?.cancel()
+            loadDevicesJob = viewModelScope.launch {
+                isActive = true
+                while (isActive) {
+                    loadDevices()
+                    delay(1000L)
+                }
             }
         }
-        loadDevices()
     }
 
     fun stop() {
         isActive = false
         loadDevicesJob?.cancel()
+        loadDevicesJob = null
     }
 
-    fun onEnumarate() {
+    fun onEnumerate() {
         loadDevices()
     }
 
