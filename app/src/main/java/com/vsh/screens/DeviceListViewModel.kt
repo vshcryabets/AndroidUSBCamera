@@ -26,6 +26,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.jiangdg.demo.BuildConfig
 import com.jiangdg.usb.USBVendorId
 import com.vsh.uvc.JpegBenchmark
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -70,17 +72,26 @@ class DeviceListViewModel(
         DeviceListViewState()
     )
     private val _benchmarkState = MutableStateFlow(BenchmarkState())
-
+    private var loadDevicesJob : Job? = null
+    private var isActive = false
 
     val state: StateFlow<DeviceListViewState> = _state
     val benchmarkState: StateFlow<BenchmarkState> = _benchmarkState
 
     fun begin() {
+        loadDevicesJob = viewModelScope.launch {
+            isActive = true
+            while (isActive) {
+                loadDevices()
+                delay(1000L)
+            }
+        }
         loadDevices()
     }
 
     fun stop() {
-
+        isActive = false
+        loadDevicesJob?.cancel()
     }
 
     fun onEnumarate() {
