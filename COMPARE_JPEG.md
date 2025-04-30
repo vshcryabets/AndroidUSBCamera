@@ -52,3 +52,58 @@ Sample id 31080, time 67 ms
 Sample id 31440, time 112 ms
 Sample id 32160, time 230 ms
 ```
+
+## Google Pixel 6 + TurboJPEG 1.5
+
+Debug build:
+```
+Complete time 49639 ms, iterations=30
+Build type: Debug
+Device: Pixel 6 (oriole)
+JPEG decoder: TurboJPEG (version unknown))
+Sample id 10360, time 12 ms
+Sample id 10480, time 19 ms
+Sample id 10720, time 41 ms
+Sample id 11080, time 93 ms
+Sample id 11440, time 149 ms
+Sample id 12160, time 305 ms
+Sample id 20360, time 8 ms
+Sample id 20480, time 14 ms
+Sample id 20720, time 30 ms
+Sample id 21080, time 69 ms
+Sample id 21440, time 117 ms
+Sample id 22160, time 246 ms
+Sample id 30360, time 10 ms
+Sample id 30480, time 17 ms
+Sample id 30720, time 35 ms
+Sample id 31080, time 77 ms
+Sample id 31440, time 130 ms
+Sample id 32160, time 273 ms
+```
+
+Release build:
+
+```
+Complete time 21514 ms, iterations=30
+Build type: Release
+Device: Pixel 6 (oriole)
+JPEG decoder: TurboJPEG (version unknown))
+Sample id 10360, time 5 ms
+Sample id 10480, time 8 ms
+Sample id 10720, time 17 ms
+Sample id 11080, time 42 ms
+Sample id 11440, time 65 ms
+Sample id 12160, time 133 ms
+Sample id 20360, time 3 ms
+Sample id 20480, time 5 ms
+Sample id 20720, time 12 ms
+Sample id 21080, time 30 ms
+Sample id 21440, time 51 ms
+Sample id 22160, time 106 ms
+Sample id 30360, time 4 ms
+Sample id 30480, time 7 ms
+Sample id 30720, time 14 ms
+Sample id 31080, time 34 ms
+Sample id 31440, time 56 ms
+Sample id 32160, time 116 ms
+```
