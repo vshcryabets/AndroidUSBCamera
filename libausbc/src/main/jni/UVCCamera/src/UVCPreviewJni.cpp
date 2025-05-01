@@ -23,7 +23,7 @@
  * Files in the jni/libjpeg, jni/libusb, jin/libuvc folder may have a different license, see the respective files.
 */
 
-#include <stdlib.h>
+#include <cstdlib>
 #include "UVCPreviewJni.h"
 
 int UVCPreviewJni::setPreviewDisplay(ANativeWindow *preview_window) {

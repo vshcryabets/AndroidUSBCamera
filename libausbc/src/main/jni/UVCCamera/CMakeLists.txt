@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.22)
 
 set(UVCCAMERA ${CMAKE_CURRENT_LIST_DIR}/)
 include_directories(
-    ${UVCCAMERA}/
+    ${UVCCAMERA}/include/
 )
 
 
@@ -20,15 +20,15 @@ endif ()
 add_compile_definitions(USE_TURBOJPEG)
 
 list(APPEND SOURCES
-	${UVCCAMERA}/_onload.cpp
-    ${UVCCAMERA}/UVCCamera.cpp
-    ${UVCCAMERA}/ImageUseCases.cpp
-    ${UVCCAMERA}/UVCPreviewBase.cpp
-    ${UVCCAMERA}/UVCPreviewJni.cpp
-    ${UVCCAMERA}/UVCCameraAdjustments.cpp
-    ${UVCCAMERA}/ProgressObserver.cpp
-    ${UVCCAMERA}/JniUVCCamera.cpp
-    ${UVCCAMERA}/JpegBenchmark.cpp
-    ${UVCCAMERA}/LoadJpegImageFromAssetsUseCase.cpp
-    ${UVCCAMERA}/JniJpegBenchmark.cpp
+	${UVCCAMERA}/src/_onload.cpp
+    ${UVCCAMERA}/src/UVCCamera.cpp
+    ${UVCCAMERA}/src/ImageUseCases.cpp
+    ${UVCCAMERA}/src/UVCPreviewBase.cpp
+    ${UVCCAMERA}/src/UVCPreviewJni.cpp
+    ${UVCCAMERA}/src/UVCCameraAdjustments.cpp
+    ${UVCCAMERA}/src/ProgressObserver.cpp
+    ${UVCCAMERA}/src/JniUVCCamera.cpp
+    ${UVCCAMERA}/src/JpegBenchmark.cpp
+    ${UVCCAMERA}/src/LoadJpegImageFromAssetsUseCase.cpp
+    ${UVCCAMERA}/src/JniJpegBenchmark.cpp
     )

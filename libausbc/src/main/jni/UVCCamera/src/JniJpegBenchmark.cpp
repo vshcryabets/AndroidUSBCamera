@@ -19,7 +19,6 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <unistd.h>
-#include "JpegBenchmark.h"
 #include "utilbase.h"
 #include <map>
 #include <thread>

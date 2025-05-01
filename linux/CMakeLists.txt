@@ -14,16 +14,17 @@ find_package (JPEG REQUIRED)
 set(USE_LIBJPEG 1)
 
 include_directories(
-        ../libausbc/src/main/jni/UVCCamera/
+        ../libausbc/src/main/jni/UVCCamera/include/
+        ./include/
 )
 
 find_package(SDL2 REQUIRED)
 
 add_executable(uvccapture
-        SdlTools.cpp
-        UvcCamera.cpp
-        uvccapture.cpp
-        ../libausbc/src/main/jni/UVCCamera/ImageUseCases.cpp
+        ./src/SdlTools.cpp
+        ./src/UvcCamera.cpp
+        ./src/uvccapture.cpp
+        ../libausbc/src/main/jni/UVCCamera/src/ImageUseCases.cpp
         )
 
 target_link_libraries(
@@ -33,10 +34,10 @@ target_link_libraries(
 
 
 add_executable(jpegbenchmark
-        jpegdecodebenchmark.cpp
-        ../libausbc/src/main/jni/UVCCamera/ImageUseCases.cpp
-        ../libausbc/src/main/jni/UVCCamera/JpegBenchmark.cpp
-        ../libausbc/src/main/jni/UVCCamera/ProgressObserver.cpp
+        ./src/jpegdecodebenchmark.cpp
+        ../libausbc/src/main/jni/UVCCamera/src/ImageUseCases.cpp
+        ../libausbc/src/main/jni/UVCCamera/src/JpegBenchmark.cpp
+        ../libausbc/src/main/jni/UVCCamera/src/ProgressObserver.cpp
         )
 
 if(USE_TURBOJPEG)
