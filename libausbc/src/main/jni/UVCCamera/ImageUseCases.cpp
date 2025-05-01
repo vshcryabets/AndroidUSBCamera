@@ -234,8 +234,8 @@ ConvertBitmapUseCase::Buffer ConvertYUV422toRGBAUseCase::convertToNew(const Buff
         .buffer = new uint8_t[pixelsCount * 4],
         .capacity = pixelsCount * 4,
         .size = 0,
-        .width = 0,
-        .height = 0
+        .width = src.width,
+        .height = src.height
     };
     return convert(newBuffer, src);
 }
