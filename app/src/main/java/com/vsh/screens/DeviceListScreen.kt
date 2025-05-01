@@ -191,7 +191,7 @@ fun AusbcApp(
                         viewModel.onBenchmarks()
                         navController.navigate(AusbcScreen.Benchmarks.name)
                     },
-                    onReload = { viewModel.onEnumarate() },
+                    onReload = { viewModel.onEnumerate() },
                     onSelectUsbDevice = { viewModel.onClick(it) })
             }
             composable(route = AusbcScreen.Benchmarks.name) {

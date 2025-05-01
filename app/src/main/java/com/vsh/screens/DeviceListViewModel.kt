@@ -26,6 +26,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.jiangdg.demo.BuildConfig
 import com.jiangdg.usb.USBVendorId
 import com.vsh.uvc.JpegBenchmark
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -70,20 +72,38 @@ class DeviceListViewModel(
         DeviceListViewState()
     )
     private val _benchmarkState = MutableStateFlow(BenchmarkState())
-
+    private var loadDevicesJob : Job? = null
+    private var isActive = false
 
     val state: StateFlow<DeviceListViewState> = _state
     val benchmarkState: StateFlow<BenchmarkState> = _benchmarkState
 
+    /**
+     * Starts a periodic update loop to refresh the list of USB devices.
+     * The loop runs every second while `isActive` is true, calling `loadDevices()`
+     * to fetch the latest device information. This ensures the UI remains up-to-date
+     * with the current state of connected USB devices.
+     */
     fun begin() {
-        loadDevices()
+        if (!isActive) {
+            loadDevicesJob?.cancel()
+            loadDevicesJob = viewModelScope.launch {
+                isActive = true
+                while (isActive) {
+                    loadDevices()
+                    delay(1000L)
+                }
+            }
+        }
     }
 
     fun stop() {
-
+        isActive = false
+        loadDevicesJob?.cancel()
+        loadDevicesJob = null
     }
 
-    fun onEnumarate() {
+    fun onEnumerate() {
         loadDevices()
     }
 
