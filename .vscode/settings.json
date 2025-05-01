@@ -61,7 +61,9 @@
         "thread": "cpp",
         "cinttypes": "cpp",
         "typeinfo": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "cstring": "cpp",
+        "complex": "cpp"
     },
     "cmake.sourceDirectory": "${workspaceFolder}/linux/"
 }

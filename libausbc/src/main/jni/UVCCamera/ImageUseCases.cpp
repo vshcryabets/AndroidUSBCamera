@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 #include "ImageUseCases.h"
+#include <algorithm>
+
 #ifdef USE_LIBJPEG
     #include "jpeglib.h"
 #endif
@@ -157,15 +159,83 @@ void SaveBitmapImageToFileUseCase::save(std::string imageId, uint8_t* buffer, si
     fclose(file);
 }
 
-ConvertRGBtoRGBAUseCase::Result ConvertRGBtoRGBAUseCase::convert(uint8_t* buffer, size_t size, uint32_t width, uint32_t height) {
-    size_t pixelsCount = width * height;
+
+ConvertBitmapUseCase::Buffer ConvertRGBtoRGBAUseCase::convert(Buffer dst, const Buffer &src) {
+    size_t pixelsCount = src.width * src.height;
     size_t rgbaSize = pixelsCount * 4;
-    uint8_t* rgbaBuffer = new uint8_t[rgbaSize];
-    for (size_t i = 0; i < pixelsCount; i ++) {
-        rgbaBuffer[i * 4] = buffer[i*3];     // R
-        rgbaBuffer[i * 4 + 1] = buffer[i*3 + 1]; // G
-        rgbaBuffer[i * 4 + 2] = buffer[i*3 + 2]; // B
-        rgbaBuffer[i * 4 + 3] = 255;     // A
+    if (dst.capacity < rgbaSize) {
+        throw ConvertBitmapUseCase::Exception("Destination buffer is too small");
     }
-    return Result{rgbaBuffer, rgbaSize, width, height};
+    dst.size = rgbaSize;
+    for (size_t i = 0; i < pixelsCount; i ++) {
+        dst.buffer[i * 4] = src.buffer[i*3];     // R
+        dst.buffer[i * 4 + 1] = src.buffer[i*3 + 1]; // G
+        dst.buffer[i * 4 + 2] = src.buffer[i*3 + 2]; // B
+        dst.buffer[i * 4 + 3] = 255;     // A
+    }
+    return dst;
+}
+
+ConvertBitmapUseCase::Buffer ConvertRGBtoRGBAUseCase::convertToNew(const Buffer &src) {
+    size_t pixelsCount = src.width * src.height;
+    Buffer newBuffer = {
+        .buffer = new uint8_t[pixelsCount * 4],
+        .capacity = pixelsCount * 4,
+        .size = 0,
+        .width = src.width,
+        .height = src.height
+    };
+    return convert(newBuffer, src);
+}
+
+ConvertBitmapUseCase::Buffer ConvertYUV422toRGBAUseCase::convert(Buffer dst, const Buffer &src) {
+    size_t pixelsCount = src.width * src.height;
+    size_t rgbaSize = pixelsCount * 4;
+    if (dst.capacity < rgbaSize) {
+        throw ConvertBitmapUseCase::Exception("Destination buffer is too small");
+    }
+    size_t out_index = 0;
+    dst.size = rgbaSize;
+    for (size_t i = 0; i < pixelsCount * 2; i += 4) {
+        uint8_t y0 = src.buffer[i + 0];
+        uint8_t u  = src.buffer[i + 1];
+        uint8_t y1 = src.buffer[i + 2];
+        uint8_t v  = src.buffer[i + 3];
+
+        int c0 = y0 - 16;
+        int c1 = y1 - 16;
+        int d = u - 128;
+        int e = v - 128;
+
+        int r = (298 * c0 + 409 * e + 128) >> 8;
+        int g = (298 * c0 - 100 * d - 208 * e + 128) >> 8;
+        int b = (298 * c0 + 516 * d + 128) >> 8;
+
+        dst.buffer[out_index++] = r < 0 ? 0 : r > 255 ? 255 : r;
+        dst.buffer[out_index++] = g < 0 ? 0 : g > 255 ? 255 : g;
+        dst.buffer[out_index++] = b < 0 ? 0 : b > 255 ? 255 : b;
+        dst.buffer[out_index++] = 255;
+
+        r = (298 * c1 + 409 * e + 128) >> 8;
+        g = (298 * c1 - 100 * d - 208 * e + 128) >> 8;
+        b = (298 * c1 + 516 * d + 128) >> 8;
+
+        dst.buffer[out_index++] = r < 0 ? 0 : r > 255 ? 255 : r;
+        dst.buffer[out_index++] = g < 0 ? 0 : g > 255 ? 255 : g;
+        dst.buffer[out_index++] = b < 0 ? 0 : b > 255 ? 255 : b;
+        dst.buffer[out_index++] = 255;
+    }
+    return dst;
+}
+
+ConvertBitmapUseCase::Buffer ConvertYUV422toRGBAUseCase::convertToNew(const Buffer &src) {
+    size_t pixelsCount = src.width * src.height;
+    Buffer newBuffer = {
+        .buffer = new uint8_t[pixelsCount * 4],
+        .capacity = pixelsCount * 4,
+        .size = 0,
+        .width = src.width,
+        .height = src.height
+    };
+    return convert(newBuffer, src);
 }

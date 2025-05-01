@@ -21,8 +21,10 @@ find_package(SDL2 REQUIRED)
 
 add_executable(uvccapture
         SdlTools.cpp
+        UvcCamera.cpp
         uvccapture.cpp
-)
+        ../libausbc/src/main/jni/UVCCamera/ImageUseCases.cpp
+        )
 
 target_link_libraries(
         uvccapture
@@ -56,6 +58,6 @@ if (USE_LIBJPEG)
                 ${CMAKE_THREAD_LIBS_INIT})        
 endif()
 
-add_executable(unix_socket_client unix_socket_client.cpp)
-add_executable(unix_socket_server unix_socket_server.cpp)
+# add_executable(unix_socket_client unix_socket_client.cpp)
+# add_executable(unix_socket_server unix_socket_server.cpp)
         
