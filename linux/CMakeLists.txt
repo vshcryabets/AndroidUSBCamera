@@ -62,3 +62,6 @@ endif()
 # add_executable(unix_socket_client unix_socket_client.cpp)
 # add_executable(unix_socket_server unix_socket_server.cpp)
         
+add_executable(uaccapture
+        ./src/uaccapture.cpp
+        )

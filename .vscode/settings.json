@@ -63,7 +63,24 @@
         "typeinfo": "cpp",
         "variant": "cpp",
         "cstring": "cpp",
-        "complex": "cpp"
+        "complex": "cpp",
+        "any": "cpp",
+        "hash_map": "cpp",
+        "hash_set": "cpp",
+        "bitset": "cpp",
+        "codecvt": "cpp",
+        "forward_list": "cpp",
+        "set": "cpp",
+        "unordered_set": "cpp",
+        "fstream": "cpp",
+        "future": "cpp",
+        "queue": "cpp",
+        "ranges": "cpp",
+        "shared_mutex": "cpp",
+        "text_encoding": "cpp",
+        "cfenv": "cpp",
+        "typeindex": "cpp",
+        "valarray": "cpp"
     },
     "cmake.sourceDirectory": "${workspaceFolder}/linux/"
 }
