@@ -80,7 +80,9 @@
         "text_encoding": "cpp",
         "cfenv": "cpp",
         "typeindex": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "regex": "cpp",
+        "stack": "cpp"
     },
     "cmake.sourceDirectory": "${workspaceFolder}/linux/"
 }

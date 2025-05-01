@@ -2,19 +2,31 @@ cmake_minimum_required(VERSION 3.22)
 
 project(LinuxUvcTests)
 
+cmake_path(GET CMAKE_CURRENT_LIST_DIR PARENT_PATH ROOT_DIR)
+set(UVCCAMERA ${ROOT_DIR}/libausbc/src/main/jni/UVCCamera)
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED True)
 
-find_package( Threads REQUIRED )
+include(FetchContent)
+FetchContent_Declare(
+    Catch2
+    GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+    GIT_TAG        v3.5.3
+)
+FetchContent_MakeAvailable(Catch2)
+
+find_package(PkgConfig REQUIRED)
+find_package(Threads REQUIRED)
 find_package (JPEG REQUIRED)
 
 #set(USE_TURBOJPEG 1)
 set(USE_LIBJPEG 1)
 
 include_directories(
-        ../libausbc/src/main/jni/UVCCamera/include/
+        ${UVCCAMERA}/include/
         ./include/
 )
 
@@ -24,7 +36,7 @@ add_executable(uvccapture
         ./src/SdlTools.cpp
         ./src/UvcCamera.cpp
         ./src/uvccapture.cpp
-        ../libausbc/src/main/jni/UVCCamera/src/ImageUseCases.cpp
+        ${UVCCAMERA}/src/ImageUseCases.cpp
         )
 
 target_link_libraries(
@@ -35,9 +47,9 @@ target_link_libraries(
 
 add_executable(jpegbenchmark
         ./src/jpegdecodebenchmark.cpp
-        ../libausbc/src/main/jni/UVCCamera/src/ImageUseCases.cpp
-        ../libausbc/src/main/jni/UVCCamera/src/JpegBenchmark.cpp
-        ../libausbc/src/main/jni/UVCCamera/src/ProgressObserver.cpp
+        ${UVCCAMERA}/src/ImageUseCases.cpp
+        ${UVCCAMERA}/src/JpegBenchmark.cpp
+        ${UVCCAMERA}/src/ProgressObserver.cpp
         )
 
 if(USE_TURBOJPEG)
@@ -59,9 +71,28 @@ if (USE_LIBJPEG)
                 ${CMAKE_THREAD_LIBS_INIT})        
 endif()
 
-# add_executable(unix_socket_client unix_socket_client.cpp)
-# add_executable(unix_socket_server unix_socket_server.cpp)
-        
+##
+## USB Audio devices tests
+##
+
+pkg_check_modules(LibUSB REQUIRED libusb-1.0)
+
+if(LibUSB_FOUND)
+  include_directories(${LibUSB_INCLUDE_DIRS})
+else()
+  message(FATAL_ERROR "LibUSB not found. Please install libusb-dev (or equivalent) on your system.")
+endif()
+
 add_executable(uaccapture
         ./src/uaccapture.cpp
+        ./src/UacSource.cpp
         )
+
+target_link_libraries(uaccapture ${LibUSB_LIBRARIES})
+        
+# Enable testing with CTest
+enable_testing()
+
+# add_test(NAME DemoTests COMMAND catch2_tests)
+add_executable(tests test/test_catch2.cpp)
+target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
