@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 vschryabets@gmail.com
+ * Copyright 2024-2025 vschryabets@gmail.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,26 @@
  */
 package com.vsh.activity
 
+import android.content.Intent
 import android.hardware.usb.UsbManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import com.example.cupcake.ui.theme.AusbcTheme
 import com.jiangdg.demo.MainActivity
-import com.vsh.screens.DeviceListScreen
+import com.vsh.screens.AusbcApp
 import com.vsh.screens.DeviceListViewModel
 import com.vsh.screens.DeviceListViewModelFactory
+import com.vsh.uvc.JpegBenchmark
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 
 class DevicesActivity : ComponentActivity() {
@@ -35,15 +42,21 @@ class DevicesActivity : ComponentActivity() {
     lateinit var viewModel: DeviceListViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         getWindow().getDecorView().setBackgroundColor(Color.White.toArgb())
         viewModel = ViewModelProvider(
             this, DeviceListViewModelFactory(
-                usbManager = applicationContext.getSystemService(USB_SERVICE) as UsbManager
+                usbManager = applicationContext.getSystemService(USB_SERVICE) as UsbManager,
+                jpegBenchmark = JpegBenchmark(
+                    context = applicationContext
+                )
             )
         ).get(DeviceListViewModel::class.java)
         setContent {
-            DeviceListScreen.ScreenContent(viewModel = viewModel)
+            AusbcTheme {
+                AusbcApp(viewModel = viewModel)
+            }
         }
     }
 
@@ -58,6 +71,19 @@ class DevicesActivity : ComponentActivity() {
                     val intent =
                         MainActivity.newInstance(applicationContext, it.openPreviewDeviceId)
                     startActivity(intent)
+                }
+            }
+        }
+        lifecycleScope.launch {
+            viewModel.benchmarkState.collect {
+                if (it.needToShareText) {
+                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                        putExtra(Intent.EXTRA_TEXT, it.text)
+                        type = "text/plain"
+                    }
+                    val chooser = Intent.createChooser(shareIntent, "Share via")
+                    startActivity(chooser)
+                    viewModel.onShareBenchmarkResultsDismissed()
                 }
             }
         }

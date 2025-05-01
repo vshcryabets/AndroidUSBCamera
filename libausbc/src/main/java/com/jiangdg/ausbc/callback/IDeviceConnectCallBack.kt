@@ -9,12 +9,6 @@ import com.jiangdg.usb.USBMonitor
  * @author Created by jiangdg on 2022/7/19
  */
 interface IDeviceConnectCallBack {
-    /**
-     * On attach dev
-     *
-     * @param device usb device
-     */
-    fun onAttachDev(device: UsbDevice?)
 
     /**
      * On detach dev

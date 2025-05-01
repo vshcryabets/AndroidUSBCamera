@@ -28,6 +28,8 @@
 #pragma interface
 
 #include <jni.h>
+#include "DI.h"
+#include "JpegBenchmark.h"
 
 #ifdef __cplusplus
 extern "C" {

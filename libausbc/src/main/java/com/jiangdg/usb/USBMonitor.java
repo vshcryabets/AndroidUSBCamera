@@ -39,16 +39,12 @@ import android.os.Handler;
 import android.text.TextUtils;
 import android.util.SparseArray;
 
-import androidx.annotation.RequiresApi;
-
 import com.jiangdg.utils.BuildCheck;
 import com.jiangdg.utils.HandlerThreadHandler;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -63,8 +59,6 @@ public final class USBMonitor {
 
 	private static final String ACTION_USB_PERMISSION_BASE = "com.serenegiant.USB_PERMISSION.";
 	private final String ACTION_USB_PERMISSION = ACTION_USB_PERMISSION_BASE + hashCode();
-
-	public static final String ACTION_USB_DEVICE_ATTACHED = "android.hardware.usb.action.USB_DEVICE_ATTACHED";
 
 	/**
 	 * openしているUsbControlBlock
@@ -87,11 +81,6 @@ public final class USBMonitor {
 	 * USB機器の状態変更時のコールバックリスナー
 	 */
 	public interface OnDeviceConnectListener {
-		/**
-		 * called when device attached
-		 * @param device
-		 */
-		public void onAttach(UsbDevice device);
 		/**
 		 * called when device dettach(after onDisconnect)
 		 * @param device
@@ -174,23 +163,16 @@ public final class USBMonitor {
 			final Context context = mWeakContext.get();
 			if (context != null) {
 				if (Build.VERSION.SDK_INT >= 31) {
-					// avoid acquiring intent data failed in receiver on Android12
-					// when using PendingIntent.FLAG_IMMUTABLE
-					// because it means Intent can't be modified anywhere -- jiangdg/20220929
-					int PENDING_FLAG_IMMUTABLE = 1<<25;
-					mPermissionIntent = PendingIntent.getBroadcast(context, 0, new Intent(ACTION_USB_PERMISSION), PENDING_FLAG_IMMUTABLE);
+					mPermissionIntent = PendingIntent.getBroadcast(context, 0, new Intent(ACTION_USB_PERMISSION), PendingIntent.FLAG_IMMUTABLE);
 				} else {
 					mPermissionIntent = PendingIntent.getBroadcast(context, 0, new Intent(ACTION_USB_PERMISSION), 0);
 				}
 				final IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
-				// ACTION_USB_DEVICE_ATTACHED never comes on some devices so it should not be added here
-				filter.addAction(ACTION_USB_DEVICE_ATTACHED);
 				filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
-				context.registerReceiver(mUsbReceiver, filter);
+				context.registerReceiver(mUsbReceiver, filter, Context.RECEIVER_EXPORTED);
 			}
 			// start connection check
 			mDeviceCounts = 0;
-			mAsyncHandler.postDelayed(mDeviceCheckRunnable, 1000);
 		}
 	}
 
@@ -201,212 +183,13 @@ public final class USBMonitor {
 	public synchronized void unregister() throws IllegalStateException {
 		// 接続チェック用Runnableを削除
 		mDeviceCounts = 0;
-		if (!destroyed) {
-			mAsyncHandler.removeCallbacks(mDeviceCheckRunnable);
-		}
 		if (mPermissionIntent != null) {
-//			if (DEBUG) Timber.i("unregister:");
-			final Context context = mWeakContext.get();
-			try {
-				if (context != null) {
-					context.unregisterReceiver(mUsbReceiver);
-				}
-			} catch (final Exception e) {
-				Timber.e(e);
-			}
 			mPermissionIntent = null;
 		}
 	}
 
 	public synchronized boolean isRegistered() {
 		return !destroyed && (mPermissionIntent != null);
-	}
-
-	/**
-	 * set device filter
-	 * @param filter
-	 * @throws IllegalStateException
-	 */
-	public void setDeviceFilter(final DeviceFilter filter) throws IllegalStateException {
-		if (destroyed) throw new IllegalStateException("already destroyed");
-		mDeviceFilters.clear();
-		mDeviceFilters.add(filter);
-	}
-
-	/**
-	 * デバイスフィルターを追加
-	 * @param filter
-	 * @throws IllegalStateException
-	 */
-	public void addDeviceFilter(final DeviceFilter filter) throws IllegalStateException {
-		if (destroyed) throw new IllegalStateException("already destroyed");
-		mDeviceFilters.add(filter);
-	}
-
-	/**
-	 * デバイスフィルターを削除
-	 * @param filter
-	 * @throws IllegalStateException
-	 */
-	public void removeDeviceFilter(final DeviceFilter filter) throws IllegalStateException {
-		if (destroyed) throw new IllegalStateException("already destroyed");
-		mDeviceFilters.remove(filter);
-	}
-
-	/**
-	 * set device filters
-	 * @param filters
-	 * @throws IllegalStateException
-	 */
-	public void setDeviceFilter(final List<DeviceFilter> filters) throws IllegalStateException {
-		if (destroyed) throw new IllegalStateException("already destroyed");
-		mDeviceFilters.clear();
-		mDeviceFilters.addAll(filters);
-	}
-
-	/**
-	 * add device filters
-	 * @param filters
-	 * @throws IllegalStateException
-	 */
-	public void addDeviceFilter(final List<DeviceFilter> filters) throws IllegalStateException {
-		if (destroyed) throw new IllegalStateException("already destroyed");
-		mDeviceFilters.addAll(filters);
-	}
-
-	/**
-	 * remove device filters
-	 * @param filters
-	 */
-	public void removeDeviceFilter(final List<DeviceFilter> filters) throws IllegalStateException {
-		if (destroyed) throw new IllegalStateException("already destroyed");
-		mDeviceFilters.removeAll(filters);
-	}
-
-	/**
-	 * return the number of connected USB devices that matched device filter
-	 * @return
-	 * @throws IllegalStateException
-	 */
-	public int getDeviceCount() throws IllegalStateException {
-		if (destroyed) throw new IllegalStateException("already destroyed");
-		return getDeviceList().size();
-	}
-
-	/**
-	 * return device list, return empty list if no device matched
-	 * @return
-	 * @throws IllegalStateException
-	 */
-	public List<UsbDevice> getDeviceList() throws IllegalStateException {
-		if (destroyed) throw new IllegalStateException("already destroyed");
-		return getDeviceList(mDeviceFilters);
-	}
-
-	/**
-	 * return device list, return empty list if no device matched
-	 * @param filters
-	 * @return
-	 * @throws IllegalStateException
-	 */
-	public List<UsbDevice> getDeviceList(final List<DeviceFilter> filters) throws IllegalStateException {
-		if (destroyed) throw new IllegalStateException("already destroyed");
-		// get detected devices
-		final HashMap<String, UsbDevice> deviceList = mUsbManager.getDeviceList();
-		final List<UsbDevice> result = new ArrayList<UsbDevice>();
-		if (deviceList != null) {
-			if ((filters == null) || filters.isEmpty()) {
-				result.addAll(deviceList.values());
-			} else {
-				for (final UsbDevice device: deviceList.values() ) {
-					// match devices
-					for (final DeviceFilter filter: filters) {
-						if ((filter != null) && filter.matches(device) || (filter != null && filter.mSubclass == device.getDeviceSubclass())) {
-							// when filter matches
-							if (!filter.isExclude) {
-								result.add(device);
-							}
-							break;
-						}
-					}
-				}
-			}
-		}
-		return result;
-	}
-
-	/**
-	 * return device list, return empty list if no device matched
-	 * @param filter
-	 * @return
-	 * @throws IllegalStateException
-	 */
-	public List<UsbDevice> getDeviceList(final DeviceFilter filter) throws IllegalStateException {
-		if (destroyed) throw new IllegalStateException("already destroyed");
-		final HashMap<String, UsbDevice> deviceList = mUsbManager.getDeviceList();
-		final List<UsbDevice> result = new ArrayList<UsbDevice>();
-		if (deviceList != null) {
-			for (final UsbDevice device: deviceList.values() ) {
-				if ((filter == null) || (filter.matches(device) && !filter.isExclude)) {
-					result.add(device);
-				}
-			}
-		}
-		return result;
-	}
-
-	/**
-	 * get USB device list, without filter
-	 * @return
-	 * @throws IllegalStateException
-	 */
-	public Iterator<UsbDevice> getDevices() throws IllegalStateException {
-		if (destroyed) throw new IllegalStateException("already destroyed");
-		Iterator<UsbDevice> iterator = null;
-		final HashMap<String, UsbDevice> list = mUsbManager.getDeviceList();
-		if (list != null)
-			iterator = list.values().iterator();
-		return iterator;
-	}
-
-	/**
-	 * output device list to XLogWrapperCat
-	 */
-	public final void dumpDevices() {
-		final HashMap<String, UsbDevice> list = mUsbManager.getDeviceList();
-		if (list != null) {
-			final Set<String> keys = list.keySet();
-			if (keys != null && keys.size() > 0) {
-				final StringBuilder sb = new StringBuilder();
-				for (final String key: keys) {
-					final UsbDevice device = list.get(key);
-					final int num_interface = device != null ? device.getInterfaceCount() : 0;
-					sb.setLength(0);
-					for (int i = 0; i < num_interface; i++) {
-						sb.append(String.format(Locale.US, "interface%d:%s", i, device.getInterface(i).toString()));
-					}
-					Timber.i("key=" + key + ":" + device + ":" + sb.toString());
-				}
-			} else {
-				Timber.i("no device");
-			}
-		} else {
-			Timber.i("no device");
-		}
-	}
-
-	/**
-	 * return whether the specific Usb device has permission
-	 * @param device
-	 * @return true: 指定したUsbDeviceにパーミッションがある
-	 * @throws IllegalStateException
-	 */
-	public final boolean hasPermission(final UsbDevice device) throws IllegalStateException {
-		if (destroyed) {
-			Timber.w("hasPermission failed, camera destroyed!");
-			return false;
-		}
-		return updatePermission(device, device != null && mUsbManager.hasPermission(device));
 	}
 
 	/**
@@ -477,25 +260,6 @@ public final class USBMonitor {
 	}
 
 	/**
-	 * 指定したUsbDeviceをopenする
-	 * @param device
-	 * @return
-	 * @throws SecurityException パーミッションがなければSecurityExceptionを投げる
-	 */
-	public UsbControlBlock openDevice(final UsbDevice device) throws SecurityException {
-		if (hasPermission(device)) {
-			UsbControlBlock result = mCtrlBlocks.get(device);
-			if (result == null) {
-				result = new UsbControlBlock(USBMonitor.this, device);    // この中でopenDeviceする
-				mCtrlBlocks.put(device, result);
-			}
-			return result;
-		} else {
-			throw new SecurityException("has no permission");
-		}
-	}
-
-	/**
 	 * BroadcastReceiver for USB permission
 	 */
 	private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
@@ -522,10 +286,6 @@ public final class USBMonitor {
 						processCancel(device);
 					}
 				}
-			} else if (UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(action)) {
-				final UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-				updatePermission(device, hasPermission(device));
-				processAttach(device);
 			} else if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
 				// when device removed
 				final UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
@@ -544,43 +304,6 @@ public final class USBMonitor {
 
 	/** number of connected & detected devices */
 	private volatile int mDeviceCounts = 0;
-	/**
-	 * periodically check connected devices and if it changed, call onAttach
-	 */
-	private final Runnable mDeviceCheckRunnable = new Runnable() {
-		@Override
-		public void run() {
-			if (destroyed) return;
-			final List<UsbDevice> devices = getDeviceList();
-			final int n = devices.size();
-			final int hasPermissionCounts;
-			final int m;
-			synchronized (mHasPermissions) {
-				hasPermissionCounts = mHasPermissions.size();
-				mHasPermissions.clear();
-				for (final UsbDevice device: devices) {
-					hasPermission(device);
-				}
-				m = mHasPermissions.size();
-			}
-			if ((n > mDeviceCounts) || (m > hasPermissionCounts)) {
-				mDeviceCounts = n;
-				if (mOnDeviceConnectListener != null) {
-					for (int i = 0; i < n; i++) {
-						final UsbDevice device = devices.get(i);
-						mAsyncHandler.post(new Runnable() {
-							@Override
-							public void run() {
-								mOnDeviceConnectListener.onAttach(device);
-							}
-						});
-					}
-				}
-			}
-			mAsyncHandler.postDelayed(this, 2000);	// confirm every 2 seconds
-		}
-	};
-
 	/**
 	 * open specific USB device
 	 * @param device UsbDevice
@@ -625,19 +348,6 @@ public final class USBMonitor {
 		}
 	}
 
-	private void processAttach(final UsbDevice device) {
-		if (destroyed) return;
-		Timber.v("processAttach:");
-		if (mOnDeviceConnectListener != null) {
-			mAsyncHandler.post(new Runnable() {
-				@Override
-				public void run() {
-					mOnDeviceConnectListener.onAttach(device);
-				}
-			});
-		}
-	}
-
 	private void processDettach(final UsbDevice device) {
 		if (destroyed) return;
 		Timber.v("processDettach:");
@@ -651,27 +361,6 @@ public final class USBMonitor {
 		}
 	}
 
-	/**
-	 * USB機器毎の設定保存用にデバイスキー名を生成する。
-	 * ベンダーID, プロダクトID, デバイスクラス, デバイスサブクラス, デバイスプロトコルから生成
-	 * 同種の製品だと同じキー名になるので注意
-	 * @param device nullなら空文字列を返す
-	 * @return
-	 */
-	public static final String getDeviceKeyName(final UsbDevice device) {
-		return getDeviceKeyName(device, null, false);
-	}
-
-	/**
-	 * USB機器毎の設定保存用にデバイスキー名を生成する。
-	 * useNewAPI=falseで同種の製品だと同じデバイスキーになるので注意
-	 * @param device
-	 * @param useNewAPI
-	 * @return
-	 */
-	public static final String getDeviceKeyName(final UsbDevice device, final boolean useNewAPI) {
-		return getDeviceKeyName(device, null, useNewAPI);
-	}
 	/**
 	 * USB機器毎の設定保存用にデバイスキー名を生成する。この機器名をHashMapのキーにする
 	 * UsbDeviceがopenしている時のみ有効
@@ -714,18 +403,6 @@ public final class USBMonitor {
 	/**
 	 * デバイスキーを整数として取得
 	 * getDeviceKeyNameで得られる文字列のhasCodeを取得
-	 * ベンダーID, プロダクトID, デバイスクラス, デバイスサブクラス, デバイスプロトコルから生成
-	 * 同種の製品だと同じデバイスキーになるので注意
-	 * @param device nullなら0を返す
-	 * @return
-	 */
-	public static final int getDeviceKey(final UsbDevice device) {
-		return device != null ? getDeviceKeyName(device, null, false).hashCode() : 0;
-	}
-
-	/**
-	 * デバイスキーを整数として取得
-	 * getDeviceKeyNameで得られる文字列のhasCodeを取得
 	 * useNewAPI=falseで同種の製品だと同じデバイスキーになるので注意
 	 * @param device
 	 * @param useNewAPI
@@ -733,19 +410,6 @@ public final class USBMonitor {
 	 */
 	public static final int getDeviceKey(final UsbDevice device, final boolean useNewAPI) {
 		return device != null ? getDeviceKeyName(device, null, useNewAPI).hashCode() : 0;
-	}
-
-	/**
-	 * デバイスキーを整数として取得
-	 * getDeviceKeyNameで得られる文字列のhasCodeを取得
-	 * serialがnullでuseNewAPI=falseで同種の製品だと同じデバイスキーになるので注意
-	 * @param device nullなら0を返す
-	 * @param serial UsbDeviceConnection#getSerialで取得したシリアル番号を渡す, nullでuseNewAPI=trueでAPI>=21なら内部で取得
-	 * @param useNewAPI API>=21またはAPI>=23のみで使用可能なメソッドも使用する(ただし機器によってはnullが返ってくるので有効かどうかは機器による)
-	 * @return
-	 */
-	public static final int getDeviceKey(final UsbDevice device, final String serial, final boolean useNewAPI) {
-		return device != null ? getDeviceKeyName(device, serial, useNewAPI).hashCode() : 0;
 	}
 
 	public static class UsbDeviceInfo {
@@ -837,29 +501,6 @@ public final class USBMonitor {
 	private static final int USB_DT_STRING = 0x03;
 	private static final int USB_DT_INTERFACE = 0x04;
 	private static final int USB_DT_ENDPOINT = 0x05;
-	private static final int USB_DT_DEVICE_QUALIFIER = 0x06;
-	private static final int USB_DT_OTHER_SPEED_CONFIG = 0x07;
-	private static final int USB_DT_INTERFACE_POWER = 0x08;
-	private static final int USB_DT_OTG = 0x09;
-	private static final int USB_DT_DEBUG = 0x0a;
-	private static final int USB_DT_INTERFACE_ASSOCIATION = 0x0b;
-	private static final int USB_DT_SECURITY = 0x0c;
-	private static final int USB_DT_KEY = 0x0d;
-	private static final int USB_DT_ENCRYPTION_TYPE = 0x0e;
-	private static final int USB_DT_BOS = 0x0f;
-	private static final int USB_DT_DEVICE_CAPABILITY = 0x10;
-	private static final int USB_DT_WIRELESS_ENDPOINT_COMP = 0x11;
-	private static final int USB_DT_WIRE_ADAPTER = 0x21;
-	private static final int USB_DT_RPIPE = 0x22;
-	private static final int USB_DT_CS_RADIO_CONTROL = 0x23;
-	private static final int USB_DT_PIPE_USAGE = 0x24;
-	private static final int USB_DT_SS_ENDPOINT_COMP = 0x30;
-	private static final int USB_DT_CS_DEVICE = (USB_TYPE_CLASS | USB_DT_DEVICE);
-	private static final int USB_DT_CS_CONFIG = (USB_TYPE_CLASS | USB_DT_CONFIG);
-	private static final int USB_DT_CS_STRING = (USB_TYPE_CLASS | USB_DT_STRING);
-	private static final int USB_DT_CS_INTERFACE = (USB_TYPE_CLASS | USB_DT_INTERFACE);
-	private static final int USB_DT_CS_ENDPOINT = (USB_TYPE_CLASS | USB_DT_ENDPOINT);
-	private static final int USB_DT_DEVICE_SIZE = 18;
 
 	/**
 	 * 指定したIDのStringディスクリプタから文字列を取得する。取得できなければnull
@@ -892,26 +533,6 @@ public final class USBMonitor {
 			}
 		}
 		return result;
-	}
-
-	/**
-	 * ベンダー名・製品名・バージョン・シリアルを取得する
-	 * @param device
-	 * @return
-	 */
-	public UsbDeviceInfo getDeviceInfo(final UsbDevice device) {
-		return updateDeviceInfo(mUsbManager, device, null);
-	}
-
-	/**
-	 * ベンダー名・製品名・バージョン・シリアルを取得する
-	 * #updateDeviceInfo(final UsbManager, final UsbDevice, final UsbDeviceInfo)のヘルパーメソッド
-	 * @param context
-	 * @param device
-	 * @return
-	 */
-	public static UsbDeviceInfo getDeviceInfo(final Context context, final UsbDevice device) {
-		return updateDeviceInfo((UsbManager)context.getSystemService(Context.USB_SERVICE), device, new UsbDeviceInfo());
 	}
 
 	/**
@@ -1099,7 +720,7 @@ public final class USBMonitor {
 			return mWeakMonitor.get();
 		}
 
-		public final UsbDevice getDevice() {
+		public UsbDevice getDevice() {
 			return mWeakDevice.get();
 		}
 
@@ -1110,73 +731,6 @@ public final class USBMonitor {
 		public String getDeviceName() {
 			final UsbDevice device = mWeakDevice.get();
 			return device != null ? device.getDeviceName() : "";
-		}
-
-		/**
-		 * get device id
-		 * @return
-		 */
-		public int getDeviceId() {
-			final UsbDevice device = mWeakDevice.get();
-			return device != null ? device.getDeviceId() : 0;
-		}
-
-		/**
-		 * get device key string
-		 * @return same value if the devices has same vendor id, product id, device class, device subclass and device protocol
-		 */
-		public String getDeviceKeyName() {
-			return USBMonitor.getDeviceKeyName(mWeakDevice.get());
-		}
-
-		/**
-		 * get device key string
-		 * @param useNewAPI if true, try to use serial number
-		 * @return
-		 * @throws IllegalStateException
-		 */
-		public String getDeviceKeyName(final boolean useNewAPI) throws IllegalStateException {
-			if (useNewAPI) checkConnection();
-			return USBMonitor.getDeviceKeyName(mWeakDevice.get(), mInfo.serial, useNewAPI);
-		}
-
-		/**
-		 * get device key
-		 * @return
-		 * @throws IllegalStateException
-		 */
-		public int getDeviceKey() throws IllegalStateException {
-			checkConnection();
-			return USBMonitor.getDeviceKey(mWeakDevice.get());
-		}
-
-		/**
-		 * get device key
-		 * @param useNewAPI if true, try to use serial number
-		 * @return
-		 * @throws IllegalStateException
-		 */
-		public int getDeviceKey(final boolean useNewAPI) throws IllegalStateException {
-			if (useNewAPI) checkConnection();
-			return USBMonitor.getDeviceKey(mWeakDevice.get(), mInfo.serial, useNewAPI);
-		}
-
-		/**
-		 * get device key string
-		 * if device has serial number, use it
-		 * @return
-		 */
-		public String getDeviceKeyNameWithSerial() {
-			return USBMonitor.getDeviceKeyName(mWeakDevice.get(), mInfo.serial, false);
-		}
-
-		/**
-		 * get device key
-		 * if device has serial number, use it
-		 * @return
-		 */
-		public int getDeviceKeyWithSerial() {
-			return getDeviceKeyNameWithSerial().hashCode();
 		}
 
 		/**
@@ -1198,16 +752,6 @@ public final class USBMonitor {
 		}
 
 		/**
-		 * get raw descriptor for the USB device
-		 * @return
-		 * @throws IllegalStateException
-		 */
-		public synchronized byte[] getRawDescriptors() throws IllegalStateException {
-			checkConnection();
-			return mConnection.getRawDescriptors();
-		}
-
-		/**
 		 * get vendor id
 		 * @return
 		 */
@@ -1223,30 +767,6 @@ public final class USBMonitor {
 		public int getProductId() {
 			final UsbDevice device = mWeakDevice.get();
 			return device != null ? device.getProductId() : 0;
-		}
-
-		/**
-		 * get version string of USB
-		 * @return
-		 */
-		public String getUsbVersion() {
-			return mInfo.usb_version;
-		}
-
-		/**
-		 * get manufacture
-		 * @return
-		 */
-		public String getManufacture() {
-			return mInfo.manufacturer;
-		}
-
-		/**
-		 * get product name
-		 * @return
-		 */
-		public String getProductName() {
-			return mInfo.product;
 		}
 
 		/**
@@ -1271,79 +791,6 @@ public final class USBMonitor {
 
 		public int getDevNum() {
 			return mDevNum;
-		}
-
-		/**
-		 * get interface
-		 * @param interface_id
-		 * @throws IllegalStateException
-		 */
-		public synchronized UsbInterface getInterface(final int interface_id) throws IllegalStateException {
-			return getInterface(interface_id, 0);
-		}
-
-		/**
-		 * get interface
-		 * @param interface_id
-		 * @param altsetting
-		 * @return
-		 * @throws IllegalStateException
-		 */
-		@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-		public synchronized UsbInterface getInterface(final int interface_id, final int altsetting) throws IllegalStateException {
-			checkConnection();
-			SparseArray<UsbInterface> intfs = mInterfaces.get(interface_id);
-			if (intfs == null) {
-				intfs = new SparseArray<UsbInterface>();
-				mInterfaces.put(interface_id, intfs);
-			}
-			UsbInterface intf = intfs.get(altsetting);
-			if (intf == null) {
-				final UsbDevice device = mWeakDevice.get();
-				final int n = device.getInterfaceCount();
-				for (int i = 0; i < n; i++) {
-					final UsbInterface temp = device.getInterface(i);
-					if ((temp.getId() == interface_id) && (temp.getAlternateSetting() == altsetting)) {
-						intf = temp;
-						break;
-					}
-				}
-				if (intf != null) {
-					intfs.append(altsetting, intf);
-				}
-			}
-			return intf;
-		}
-
-		/**
-		 * open specific interface
-		 * @param intf
-		 */
-		public synchronized void claimInterface(final UsbInterface intf) {
-			claimInterface(intf, true);
-		}
-
-		public synchronized void claimInterface(final UsbInterface intf, final boolean force) {
-			checkConnection();
-			mConnection.claimInterface(intf, force);
-		}
-
-		/**
-		 * close interface
-		 * @param intf
-		 * @throws IllegalStateException
-		 */
-		public synchronized void releaseInterface(final UsbInterface intf) throws IllegalStateException {
-			checkConnection();
-			final SparseArray<UsbInterface> intfs = mInterfaces.get(intf.getId());
-			if (intfs != null) {
-				final int index = intfs.indexOfValue(intf);
-				intfs.removeAt(index);
-				if (intfs.size() == 0) {
-					mInterfaces.remove(intf.getId());
-				}
-			}
-			mConnection.releaseInterface(intf);
 		}
 
 		/**
@@ -1391,13 +838,6 @@ public final class USBMonitor {
 			}
 			return super.equals(o);
 		}
-
-//		@Override
-//		protected void finalize() throws Throwable {
-///			close();
-//			super.finalize();
-//		}
-
 		private synchronized void checkConnection() throws IllegalStateException {
 			if (mConnection == null) {
 				throw new IllegalStateException("already closed");

@@ -1,6 +1,6 @@
 /*
  * Copyright 2017-2022 Jiangdg
- *
+ *           2025 vschryabets@gmail.com
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
 package com.jiangdg.demo
 
 import android.app.Application
+import android.content.res.AssetManager
 import timber.log.Timber
 
 /**
@@ -27,5 +28,9 @@ class DemoApplication: Application() {
     override fun onCreate() {
         super.onCreate()
         Timber.plant(Timber.DebugTree())
+        System.loadLibrary("native")
+        initDI(this.assets)
     }
+
+    external fun initDI(assetManager: AssetManager)
 }

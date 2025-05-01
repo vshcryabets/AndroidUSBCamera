@@ -1,0 +1,38 @@
+{
+    "tasks": [
+        {
+            "label": "CMakePrepare",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "-B",
+                "${workspaceFolder}/build",
+                "-S",
+                "${workspaceFolder}/linux/",
+                "-DCMAKE_BUILD_TYPE=Debug"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": ["$gcc"],
+            "detail": "Generated task by Debugger."
+        },
+        {
+            "label": "CMakeBuild",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "${workspaceFolder}/build"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": ["$gcc"],
+            "detail": "Generated task by Debugger."
+        }
+    ],
+    "version": "2.0.0"
+}

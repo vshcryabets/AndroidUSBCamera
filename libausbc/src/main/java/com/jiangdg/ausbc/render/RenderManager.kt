@@ -23,7 +23,6 @@ import android.opengl.EGLContext
 import android.os.*
 import android.provider.MediaStore
 import android.view.Surface
-import com.jiangdg.ausbc.callback.ICaptureCallBack
 import com.jiangdg.ausbc.callback.IPreviewDataCallBack
 import com.jiangdg.ausbc.render.env.RotateType
 import com.jiangdg.ausbc.render.internal.*
@@ -73,15 +72,11 @@ class RenderManager(
     private var mHeight: Int = 0
     private var mFBOBufferId: Int = 0
     private var mContext: Context = context
-    private var mCaptureDataCb: ICaptureCallBack? = null
     private var mFrameRate = 0
     private var mEndTime: Long = 0L
     private var mStartTime = System.currentTimeMillis()
     private val mStFuture by lazy {
         SettableFuture<SurfaceTexture>()
-    }
-    private val mMainHandler: Handler by lazy {
-        Handler(Looper.getMainLooper())
     }
     private val mCaptureState: AtomicBoolean by lazy {
         AtomicBoolean(false)
@@ -245,26 +240,6 @@ class RenderManager(
     }
 
     /**
-     * Start render codec
-     *
-     * @param inputSurface mediacodec input surface, see [android.media.MediaCodec]
-     * @param width camera preview width
-     * @param height camera preview height
-     */
-    fun startRenderCodec(inputSurface: Surface, width: Int, height: Int) {
-        Triple(inputSurface, width, height).apply {
-            mRenderHandler?.obtainMessage(MSG_GL_START_RENDER_CODEC, this)?.sendToTarget()
-        }
-    }
-
-    /**
-     * Stop render codec
-     */
-    fun stopRenderCodec() {
-        mRenderHandler?.obtainMessage(MSG_GL_STOP_RENDER_CODEC)?.sendToTarget()
-    }
-
-    /**
      * Set render size
      *
      * @param w surface width
@@ -282,17 +257,6 @@ class RenderManager(
      */
     fun setRotateType(type: RotateType?) {
         mRenderHandler?.obtainMessage(MSG_GL_ROUTE_ANGLE, type)?.sendToTarget()
-    }
-
-    /**
-     * Save image
-     *
-     * @param callBack capture image status, see [ICaptureCallBack]
-     * @param path custom image path
-     */
-    fun saveImage(callBack: ICaptureCallBack?, path: String?) {
-        this.mCaptureDataCb = callBack
-        mRenderHandler?.obtainMessage(MSG_GL_SAVE_IMAGE, path)?.sendToTarget()
     }
 
     override fun onFrameAvailable(surfaceTexture: SurfaceTexture?) {
@@ -365,9 +329,6 @@ class RenderManager(
             return
         }
         mCaptureState.set(true)
-        mMainHandler.post {
-            mCaptureDataCb?.onBegin()
-        }
         val date = mDateFormat.format(System.currentTimeMillis())
         val title = savePath ?: "IMG_AUSBC_$date"
         val displayName = savePath ?: "$title.jpg"
@@ -385,9 +346,6 @@ class RenderManager(
                 recycle()
             }
         } catch (e: IOException) {
-            mMainHandler.post {
-                mCaptureDataCb?.onError(e.localizedMessage)
-            }
             Logger.e(TAG, "Failed to write file, err = ${e.localizedMessage}", e)
         } finally {
             try {
@@ -413,9 +371,6 @@ class RenderManager(
         values.put(MediaStore.Images.ImageColumns.WIDTH, width)
         values.put(MediaStore.Images.ImageColumns.HEIGHT, height)
         mContext.contentResolver?.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
-        mMainHandler.post {
-            mCaptureDataCb?.onComplete(path)
-        }
         mCaptureState.set(false)
         if (Utils.debugCamera) {
             Logger.i(TAG, "captureImageInternal save path = $path")
