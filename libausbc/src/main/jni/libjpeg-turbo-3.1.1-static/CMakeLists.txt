@@ -4,6 +4,7 @@ set(LIBJPEGTURBO ${CMAKE_CURRENT_LIST_DIR}/)
 
 include_directories(
 	${LIBJPEGTURBO}/${ANDROID_ABI}/
+	${LIBJPEGTURBO}/include/
 )
 
 add_library(jpeg-static STATIC IMPORTED )
