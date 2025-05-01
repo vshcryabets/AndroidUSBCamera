@@ -78,6 +78,12 @@ class DeviceListViewModel(
     val state: StateFlow<DeviceListViewState> = _state
     val benchmarkState: StateFlow<BenchmarkState> = _benchmarkState
 
+    /**
+     * Starts a periodic update loop to refresh the list of USB devices.
+     * The loop runs every second while `isActive` is true, calling `loadDevices()`
+     * to fetch the latest device information. This ensures the UI remains up-to-date
+     * with the current state of connected USB devices.
+     */
     fun begin() {
         if (!isActive) {
             loadDevicesJob?.cancel()
