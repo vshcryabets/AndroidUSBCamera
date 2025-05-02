@@ -36,7 +36,7 @@ class MainActivity : AppCompatActivity() {
         if (savedInstanceState == null) {
             val transaction = supportFragmentManager.beginTransaction()
             transaction.replace(R.id.fragment_container, DemoFragment.newInstance(usbDeviceId))
-            transaction.commitAllowingStateLoss()
+            transaction.commit()
         }
     }
 
