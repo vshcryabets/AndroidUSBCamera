@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 
-project(libuvc)
+project(libausbc)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COMPILATION_FLAGS} -std=c++17")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} ${COMPILATION_RELEASE_FLAGS}")
@@ -15,16 +15,10 @@ set(REQUIRE_SIMD ON)
 set(ENABLE_SHARED FALSE)
 set(ENABLE_STATIC TRUE)
 
-#set(LIBJPEG_PATH src/main/jni/libjpeg-turbo-2.1.1/)
-#add_subdirectory(./${LIBJPEG_PATH})
-#include_directories(./${LIBJPEG_PATH})
-#include_directories(${CMAKE_CURRENT_BINARY_DIR}/${LIBJPEG_PATH})
-
 add_compile_definitions(LIBUVC_HAS_JPEG)
 
-#add_subdirectory(../libausbc/src/main/jni/libjpeg-turbo-2.1.1/)
-
-include(../libausbc/src/main/jni/libjpeg-turbo-1.5.0/android/CMakeLists.txt)
+#include(../libausbc/src/main/jni/libjpeg-turbo-1.5.0/android/CMakeLists.txt)
+include(../libausbc/src/main/jni/libjpeg-turbo-3.1.1-static/CMakeLists.txt)
 include(../libausbc/src/main/jni/hacks/CMakeLists.txt)
 include(../libausbc/src/main/jni/common/CMakeLists.txt)
 include(../libausbc/src/main/jni/libusb/android/jni/CMakeLists.txt)
