@@ -21,31 +21,23 @@ import android.animation.AnimatorListenerAdapter
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
-import android.graphics.Typeface
 import android.os.Bundle
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupWindow
-import android.widget.SeekBar
-import android.widget.TextView
 import android.widget.Toast
-import androidx.core.view.children
-import androidx.core.widget.TextViewCompat
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.list.listItemsSingleChoice
 import com.jiangdg.ausbc.MultiCameraClient
 import com.jiangdg.ausbc.base.CameraFragment
 import com.jiangdg.ausbc.callback.ICameraStateCallBack
-import com.jiangdg.ausbc.camera.CameraUVC
-import com.jiangdg.ausbc.utils.Utils
 import com.jiangdg.ausbc.utils.bus.BusKey
 import com.jiangdg.ausbc.utils.bus.EventBus
 import com.jiangdg.ausbc.widget.AspectRatioTextureView
 import com.jiangdg.ausbc.widget.IAspectRatio
 import com.jiangdg.demo.databinding.FragmentDemoBinding
-import timber.log.Timber
 
 /** CameraFragment Usage Demo
  *
@@ -176,42 +168,9 @@ class DemoFragment : CameraFragment(), View.OnClickListener {
         animatorSet.start()
     }
 
-    private fun calculateTime(seconds: Int, minute: Int, hour: Int? = null): String {
-        val mBuilder = java.lang.StringBuilder()
-        //时
-        if (hour != null) {
-            if (hour < 10) {
-                mBuilder.append("0")
-                mBuilder.append(hour)
-            } else {
-                mBuilder.append(hour)
-            }
-            mBuilder.append(":")
-        }
-        // 分
-        if (minute < 10) {
-            mBuilder.append("0")
-            mBuilder.append(minute)
-        } else {
-            mBuilder.append(minute)
-        }
-        //秒
-        mBuilder.append(":")
-        if (seconds < 10) {
-            mBuilder.append("0")
-            mBuilder.append(seconds)
-        } else {
-            mBuilder.append(seconds)
-        }
-        return mBuilder.toString()
-    }
-
     override fun getSelectedDeviceId(): Int = requireArguments().getInt(MainActivity.KEY_USB_DEVICE)
 
     companion object {
-        private const val WHAT_START_TIMER = 0x00
-        private const val WHAT_STOP_TIMER = 0x01
-
         fun newInstance(usbDeviceId: Int): DemoFragment {
             val fragment = DemoFragment()
             fragment.arguments = Bundle().apply {
