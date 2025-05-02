@@ -1,6 +1,6 @@
 /*
  * Copyright 2017-2022 Jiangdg
- * Copyright 2024 vshcryabets@gmail.com
+ * Copyright 2024-2025 vshcryabets@gmail.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,11 @@
  */
 package com.jiangdg.demo
 
-import android.Manifest.permission.*
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.os.PowerManager
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import androidx.core.content.PermissionChecker
-import androidx.fragment.app.Fragment
 import com.jiangdg.ausbc.utils.Utils
 import com.jiangdg.demo.databinding.ActivityMainBinding
 
@@ -38,7 +33,11 @@ class MainActivity : AppCompatActivity() {
         viewBinding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
         val usbDeviceId = intent.getIntExtra(KEY_USB_DEVICE, -1)
-        replaceDemoFragment(DemoFragment.newInstance(usbDeviceId))
+        if (savedInstanceState == null) {
+            val transaction = supportFragmentManager.beginTransaction()
+            transaction.replace(R.id.fragment_container, DemoFragment.newInstance(usbDeviceId))
+            transaction.commitAllowingStateLoss()
+        }
     }
 
     override fun onStart() {
@@ -53,58 +52,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun replaceDemoFragment(fragment: Fragment) {
-        val hasCameraPermission = PermissionChecker.checkSelfPermission(this, CAMERA)
-        val hasStoragePermission =
-            PermissionChecker.checkSelfPermission(this, WRITE_EXTERNAL_STORAGE)
-        if (hasCameraPermission != PermissionChecker.PERMISSION_GRANTED || hasStoragePermission != PermissionChecker.PERMISSION_GRANTED) {
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this, CAMERA)) {
-                Toast.makeText(this, R.string.permission_tip, Toast.LENGTH_LONG).show()
-            }
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(CAMERA, WRITE_EXTERNAL_STORAGE, RECORD_AUDIO),
-                REQUEST_CAMERA
-            )
-            return
-        }
-        val transaction = supportFragmentManager.beginTransaction()
-        transaction.replace(R.id.fragment_container, fragment)
-        transaction.commitAllowingStateLoss()
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        when (requestCode) {
-            REQUEST_CAMERA -> {
-                val hasCameraPermission = PermissionChecker.checkSelfPermission(this, CAMERA)
-                if (hasCameraPermission == PermissionChecker.PERMISSION_DENIED) {
-                    Toast.makeText(this, R.string.permission_tip, Toast.LENGTH_LONG).show()
-                    return
-                }
-                replaceDemoFragment(DemoFragment())
-            }
-            REQUEST_STORAGE -> {
-                val hasCameraPermission =
-                    PermissionChecker.checkSelfPermission(this, WRITE_EXTERNAL_STORAGE)
-                if (hasCameraPermission == PermissionChecker.PERMISSION_DENIED) {
-                    Toast.makeText(this, R.string.permission_tip, Toast.LENGTH_LONG).show()
-                    return
-                }
-                // todo
-            }
-            else -> {
-            }
-        }
-    }
-
     companion object {
-        private const val REQUEST_CAMERA = 0
-        private const val REQUEST_STORAGE = 1
         const val KEY_USB_DEVICE = "usbDeviceId"
 
         fun newInstance(context: Context, usbDeviceId: Int) = Intent(context, MainActivity::class.java).apply {
