@@ -23,7 +23,7 @@
  * Files in the jni/libjpeg, jni/libusb, jin/libuvc, jni/rapidjson folder may have a different license, see the respective files.
 */
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <unistd.h>
 #include "utilbase.h"
 #include "UVCPreviewBase.h"
