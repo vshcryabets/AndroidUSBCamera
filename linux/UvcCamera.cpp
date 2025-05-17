@@ -13,6 +13,29 @@
 
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
 
+const char* UvcException::what() const noexcept {
+    switch (errorType) {
+        case Other:
+            return "Other error";
+        case WrongDevice:
+            return "Wrong device";
+        case CantOpenDevice:
+            return "Can't open device";
+        case CantCloseDevice:
+            return "Can't close device";
+        case IoCtlError:
+            return "Ioctl error";
+        case MmapError:
+            return "Mmap error";
+        case ReadError:
+            return "Read error";
+        case FrameTimout:
+            return "Frame timeout";
+        default:
+            return "Unknown error";
+    }
+}
+
 int UvcCamera::xioctl(int fh, int request, void *arg) {
     int r;
 
@@ -41,7 +64,7 @@ void UvcCamera::init_read(unsigned int buffer_size)
     }
 }
 
-void UvcCamera::init_mmap(const char* dev_name)
+void UvcCamera::init_mmap()
 {
     struct v4l2_requestbuffers req;
 
@@ -54,7 +77,7 @@ void UvcCamera::init_mmap(const char* dev_name)
     if (-1 == xioctl(fd, VIDIOC_REQBUFS, &req)) {
         if (EINVAL == errno) {
             fprintf(stderr, "%s does not support "
-                            "memory mapping\n", dev_name);
+                            "memory mapping\n", this->uvcConfig.dev_name);
             exit(EXIT_FAILURE);
         } else {
             throw UvcException(UvcException::Type::IoCtlError);
@@ -63,7 +86,7 @@ void UvcCamera::init_mmap(const char* dev_name)
 
     if (req.count < 2) {
         fprintf(stderr, "Insufficient buffer memory on %s\n",
-                dev_name);
+            this->uvcConfig.dev_name);
         exit(EXIT_FAILURE);
     }
 
@@ -99,7 +122,7 @@ void UvcCamera::init_mmap(const char* dev_name)
     }
 }
 
-void UvcCamera::init_userp(unsigned int buffer_size, const char* dev_name)
+void UvcCamera::init_userp(unsigned int buffer_size)
 {
     struct v4l2_requestbuffers req;
 
@@ -112,7 +135,7 @@ void UvcCamera::init_userp(unsigned int buffer_size, const char* dev_name)
     if (-1 == xioctl(fd, VIDIOC_REQBUFS, &req)) {
         if (EINVAL == errno) {
             fprintf(stderr, "%s does not support "
-                            "user pointer i/o\n", dev_name);
+                            "user pointer i/o\n", this->uvcConfig.dev_name);
             exit(EXIT_FAILURE);
         } else {
             throw UvcException(UvcException::Type::IoCtlError);
@@ -138,8 +161,6 @@ void UvcCamera::init_userp(unsigned int buffer_size, const char* dev_name)
 }
 
 UvcCamera::UvcCamera() {
-    width = 640;
-    height = 480;
 }
 
 UvcCamera::~UvcCamera() {
@@ -147,36 +168,57 @@ UvcCamera::~UvcCamera() {
     // uninit_device();
     // close_device();
 }
-void UvcCamera::open_device(const char *dev_name) {
+void UvcCamera::open(const UvcCamera::Configuration & config) {
+    Source::open(config.source);
+    this->uvcConfig = config;
     struct stat st;
 
-    if (-1 == stat(dev_name, &st)) {
+    if (-1 == stat(uvcConfig.dev_name, &st)) {
         fprintf(stderr, "Cannot identify '%s': %d, %s\n",
-                dev_name, errno, strerror(errno));
+            uvcConfig.dev_name, errno, strerror(errno));
         throw UvcException(UvcException::Type::WrongDevice);
     }
 
     if (!S_ISCHR(st.st_mode)) {
-        fprintf(stderr, "%s is no device\n", dev_name);
+        fprintf(stderr, "%s is no device\n", uvcConfig.dev_name);
         throw UvcException(UvcException::Type::WrongDevice);
     }
 
-    fd = open(dev_name, O_RDWR /* required */ | O_NONBLOCK, 0);
+    fd = ::open(uvcConfig.dev_name, O_RDWR /* required */ | O_NONBLOCK, 0);
 
     if (-1 == fd) {
         fprintf(stderr, "Cannot open '%s': %d, %s\n",
-                dev_name, errno, strerror(errno));
+            uvcConfig.dev_name, errno, strerror(errno));
         throw UvcException(UvcException::Type::CantOpenDevice);
     }
 }
 
-void UvcCamera::close_device() {
-    if (-1 == close(fd))
+void UvcCamera::close() {
+    unsigned int i;
+    switch (io) {
+        case IO_METHOD_READ:
+            free(buffers[0].start);
+            break;
+        case IO_METHOD_MMAP:
+            for (i = 0; i < n_buffers; ++i)
+                if (-1 == munmap(buffers[i].start, buffers[i].length))
+                    throw UvcException(UvcException::Type::MmapError);
+            break;
+
+        case IO_METHOD_USERPTR:
+            for (i = 0; i < n_buffers; ++i)
+                free(buffers[i].start);
+            break;
+    }
+
+    free(buffers);
+
+    if (-1 == ::close(fd))
         throw UvcException(UvcException::Type::CantCloseDevice);
     fd = -1;
 }
 
-void UvcCamera::init_device(const char *dev_name) {
+void UvcCamera::init_device() {
     struct v4l2_capability cap;
     struct v4l2_cropcap cropcap;
     struct v4l2_crop crop;
@@ -185,7 +227,7 @@ void UvcCamera::init_device(const char *dev_name) {
 
     if (-1 == xioctl(fd, VIDIOC_QUERYCAP, &cap)) {
         if (EINVAL == errno) {
-            fprintf(stderr, "%s is no V4L2 device\n", dev_name);
+            fprintf(stderr, "%s is no V4L2 device\n", this->uvcConfig.dev_name);
             exit(EXIT_FAILURE);
         } else {
             throw UvcException(UvcException::Type::IoCtlError);
@@ -194,7 +236,7 @@ void UvcCamera::init_device(const char *dev_name) {
 
     if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)) {
         fprintf(stderr, "%s is no video capture device\n",
-                dev_name);
+            this->uvcConfig.dev_name);
         exit(EXIT_FAILURE);
     }
 
@@ -202,7 +244,7 @@ void UvcCamera::init_device(const char *dev_name) {
         case IO_METHOD_READ:
             if (!(cap.capabilities & V4L2_CAP_READWRITE)) {
                 fprintf(stderr, "%s does not support read i/o\n",
-                        dev_name);
+                    this->uvcConfig.dev_name);
                 exit(EXIT_FAILURE);
             }
             break;
@@ -211,7 +253,7 @@ void UvcCamera::init_device(const char *dev_name) {
         case IO_METHOD_USERPTR:
             if (!(cap.capabilities & V4L2_CAP_STREAMING)) {
                 fprintf(stderr, "%s does not support streaming i/o\n",
-                        dev_name);
+                    this->uvcConfig.dev_name);
                 exit(EXIT_FAILURE);
             }
             break;
@@ -246,8 +288,9 @@ void UvcCamera::init_device(const char *dev_name) {
 
     fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     if (force_format) {
-        fmt.fmt.pix.width = width;
-        fmt.fmt.pix.height = height;
+        auto config = getCaptureConffiguration();
+        fmt.fmt.pix.width = config.width;
+        fmt.fmt.pix.height = config.height;
         fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV; //V4L2_PIX_FMT_H264; //replace
         fmt.fmt.pix.field = V4L2_FIELD_ANY;
 
@@ -275,38 +318,20 @@ void UvcCamera::init_device(const char *dev_name) {
             break;
 
         case IO_METHOD_MMAP:
-            init_mmap(dev_name);
+            init_mmap();
             break;
 
         case IO_METHOD_USERPTR:
-            init_userp(fmt.fmt.pix.sizeimage, dev_name);
+            init_userp(fmt.fmt.pix.sizeimage);
             break;
     }
 }
 
-void UvcCamera::uninit_device(void) {
-    unsigned int i;
-    switch (io) {
-        case IO_METHOD_READ:
-            free(buffers[0].start);
-            break;
-        case IO_METHOD_MMAP:
-            for (i = 0; i < n_buffers; ++i)
-                if (-1 == munmap(buffers[i].start, buffers[i].length))
-                    throw UvcException(UvcException::Type::MmapError);
-            break;
-
-        case IO_METHOD_USERPTR:
-            for (i = 0; i < n_buffers; ++i)
-                free(buffers[i].start);
-            break;
-    }
-
-    free(buffers);
-}
-
-void UvcCamera::start_capturing(void)
+void UvcCamera::startCapturing(const Source::CaptureConfigutation &config)
 {
+    Source::startCapturing(config);
+    init_device();
+
     unsigned int i;
     enum v4l2_buf_type type;
 
@@ -353,7 +378,7 @@ void UvcCamera::start_capturing(void)
     }
 }
 
-void UvcCamera::stop_capturing(void)
+void UvcCamera::stopCapturing()
 {
     enum v4l2_buf_type type;
 
@@ -371,10 +396,12 @@ void UvcCamera::stop_capturing(void)
 }
 
 
-UvcCamera::Frame UvcCamera::readFrame(std::function<void(Frame)> processImageCallback){
+UvcCamera::Frame UvcCamera::readFrame(){
+    frameCounter++;
     struct v4l2_buffer buf;
     unsigned int i;
     Frame result;
+    result.format = Source::FrameFormat::YUV422;
 
     switch (io) {
         case IO_METHOD_READ:
@@ -393,8 +420,6 @@ UvcCamera::Frame UvcCamera::readFrame(std::function<void(Frame)> processImageCal
             printf("Process image 1 %p %d\n", buffers[0].start, buffers[0].length);
             result.data = (uint8_t*)buffers[0].start;
             result.size = buffers[0].length;
-            if (processImageCallback != nullptr)
-                processImageCallback(result);
             break;
 
         case IO_METHOD_MMAP:
@@ -421,9 +446,6 @@ UvcCamera::Frame UvcCamera::readFrame(std::function<void(Frame)> processImageCal
             //printf("Process image 2 %p %d\n", buffers[buf.index].start, buf.bytesused);
             result.data = (uint8_t*)buffers[buf.index].start;
             result.size = buf.bytesused;
-            if (processImageCallback != nullptr)
-                processImageCallback(result);
-
             if (-1 == xioctl(fd, VIDIOC_QBUF, &buf))
                 throw UvcException(UvcException::Type::IoCtlError);
             break;
@@ -454,12 +476,9 @@ UvcCamera::Frame UvcCamera::readFrame(std::function<void(Frame)> processImageCal
                     && buf.length == buffers[i].length)
                     break;
 
-            printf("Process image 3 %p %d\n", (void *)buf.m.userptr, buf.bytesused);
+            //printf("Process image 3 %p %d\n", (void *)buf.m.userptr, buf.bytesused);
             result.data = (uint8_t*)buf.m.userptr;
             result.size = buf.bytesused;
-            if (processImageCallback != nullptr)
-                processImageCallback(result);
-            
             if (-1 == xioctl(fd, VIDIOC_QBUF, &buf))
                 throw UvcException(UvcException::Type::IoCtlError);
             break;
@@ -468,6 +487,26 @@ UvcCamera::Frame UvcCamera::readFrame(std::function<void(Frame)> processImageCal
     return result;
 }
 
-int UvcCamera::getFd() {
-    return fd;
+bool UvcCamera::waitNextFrame() {
+    fd_set fds;
+    struct timeval tv;
+    int r;
+
+    FD_ZERO(&fds);
+    FD_SET(fd, &fds);
+
+    /* Timeout. */
+    tv.tv_sec = 2;
+    tv.tv_usec = 0;
+
+    r = select(fd + 1, &fds, NULL, NULL, &tv);
+
+    if (0 == r) {
+        throw UvcException(UvcException::Type::FrameTimout);
+    }
+    return r > 0;
+}
+
+std::vector<Source::FrameFormat> UvcCamera::getSupportedFrameFormats() {
+    return { Source::FrameFormat::YUV422 };
 }

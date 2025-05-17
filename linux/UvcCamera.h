@@ -3,7 +3,7 @@
 #include <exception>
 #include <stdint.h>
 #include <chrono>
-#include <functional>
+#include "Source.h"
 
 class UvcException : public std::exception {
     public:
@@ -14,22 +14,21 @@ class UvcException : public std::exception {
         CantCloseDevice,
         IoCtlError,
         MmapError,
-        ReadError
+        ReadError,
+        FrameTimout
     };
     private:
         Type errorType;
     public:
-    UvcException(Type type) : errorType(type) {
-
-    }
+    UvcException(Type type) : errorType(type) {}
+    const char* what() const noexcept override;
 };
 
-class UvcCamera {
+class UvcCamera: public Source {
     public:
-        struct Frame {
-            uint8_t* data {nullptr};
-            size_t size {0};
-            std::chrono::high_resolution_clock::time_point timestamp {std::chrono::high_resolution_clock::now()};
+        struct Configuration  {
+            const char* dev_name;
+            Source::ConnectConfiguration source;
         };
         enum io_method {
             IO_METHOD_READ,
@@ -42,29 +41,27 @@ class UvcCamera {
             size_t  length;
         };
     
-        uint32_t width {0};
-        uint32_t height {0};
-    private:
+    protected:
         int fd = -1;
         struct buffer *buffers;
         unsigned int n_buffers;
         enum io_method io = IO_METHOD_MMAP;
         int force_format = 1;
-    
+        Configuration uvcConfig;
     private:
         int xioctl(int fh, int request, void *arg);        
         void init_read(unsigned int buffer_size);
-        void init_mmap(const char* dev_name);
-        void init_userp(unsigned int buffer_size, const char* dev_name);
+        void init_mmap();
+        void init_userp(unsigned int buffer_size);
+        void init_device();
     public:
         UvcCamera();
         virtual ~UvcCamera();
-        void open_device(const char *dev_name);
-        void close_device();
-        void init_device(const char *dev_name);
-        void uninit_device(void);
-        void start_capturing(void);
-        void stop_capturing(void);
-        Frame readFrame(std::function<void(Frame)> processImageCallback = nullptr);
-        int getFd();
+        virtual void open(const UvcCamera::Configuration & config);
+        void close() override;
+        void startCapturing(const Source::CaptureConfigutation &config) override;
+        void stopCapturing() override;
+        Frame readFrame() override;
+        bool waitNextFrame() override;
+        std::vector<Source::FrameFormat> getSupportedFrameFormats() override;
     };

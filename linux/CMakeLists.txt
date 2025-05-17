@@ -21,7 +21,9 @@ find_package(SDL2 REQUIRED)
 
 add_executable(uvccapture
         SdlTools.cpp
+        Source.cpp
         UvcCamera.cpp
+        TestSource.cpp
         uvccapture.cpp
         ../libausbc/src/main/jni/UVCCamera/ImageUseCases.cpp
         )
