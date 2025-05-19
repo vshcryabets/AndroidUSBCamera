@@ -1,11 +1,11 @@
 #include "Source.h"
 
-const Source::ConnectConfiguration Source::getSourceConfgiuration()
+const Source::ConnectConfiguration Source::getSourceConfiguration()
 {
     return this->sourceConfig;
 }
 
-const Source::CaptureConfigutation Source::getCaptureConffiguration()
+const Source::CaptureConfiguration Source::getCaptureConfiguration()
 {
     return this->captureConfigutation;
 }

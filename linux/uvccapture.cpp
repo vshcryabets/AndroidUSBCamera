@@ -29,7 +29,7 @@ int main(void)
     {
         uvcCamera.open(deviceConfig);
 
-        Source::CaptureConfigutation captureConfig = {
+        Source::CaptureConfiguration captureConfig = {
             .width = 640,
             .height = 480,
             .fps = 30.0f};

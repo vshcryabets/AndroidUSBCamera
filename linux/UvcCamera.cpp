@@ -29,7 +29,7 @@ const char* UvcException::what() const noexcept {
             return "Mmap error";
         case ReadError:
             return "Read error";
-        case FrameTimout:
+        case FrameTimeout:
             return "Frame timeout";
         default:
             return "Unknown error";
@@ -288,7 +288,7 @@ void UvcCamera::init_device() {
 
     fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     if (force_format) {
-        auto config = getCaptureConffiguration();
+        auto config = getCaptureConfiguration();
         fmt.fmt.pix.width = config.width;
         fmt.fmt.pix.height = config.height;
         fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV; //V4L2_PIX_FMT_H264; //replace
@@ -327,7 +327,7 @@ void UvcCamera::init_device() {
     }
 }
 
-void UvcCamera::startCapturing(const Source::CaptureConfigutation &config)
+void UvcCamera::startCapturing(const Source::CaptureConfiguration &config)
 {
     Source::startCapturing(config);
     init_device();
@@ -502,7 +502,7 @@ bool UvcCamera::waitNextFrame() {
     r = select(fd + 1, &fds, NULL, NULL, &tv);
 
     if (0 == r) {
-        throw UvcException(UvcException::Type::FrameTimout);
+        throw UvcException(UvcException::Type::FrameTimeout);
     }
     return r > 0;
 }

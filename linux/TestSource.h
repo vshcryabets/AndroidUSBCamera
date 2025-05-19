@@ -11,7 +11,7 @@ class TestSource: public Source {
         TestSource();
         virtual ~TestSource();
         virtual Frame readFrame() override;
-        void startCapturing(const CaptureConfigutation &config) override;
+        void startCapturing(const CaptureConfiguration &config) override;
         void close() override;
         std::vector<Source::FrameFormat> getSupportedFrameFormats() override;
         void stopCapturing() override;

@@ -30,7 +30,7 @@ class Source {
         struct ConnectConfiguration {
 
         };
-        struct CaptureConfigutation {
+        struct CaptureConfiguration {
             uint32_t width;
             uint32_t height;
             float fps;
@@ -43,7 +43,7 @@ class Source {
         };
     protected:
         ConnectConfiguration sourceConfig;
-        CaptureConfigutation captureConfigutation;
+        CaptureConfiguration captureConfigutation;
     protected:
         uint32_t frameCounter {0};
     public:
@@ -55,13 +55,13 @@ class Source {
         }
         virtual void close() = 0;
     
-        virtual void startCapturing(const CaptureConfigutation &config) {
+        virtual void startCapturing(const CaptureConfiguration &config) {
             this->captureConfigutation = config;
         }
         virtual void stopCapturing() = 0;
     
-        const ConnectConfiguration getSourceConfgiuration();
-        const CaptureConfigutation getCaptureConffiguration();
+        const ConnectConfiguration getSourceConfiguration();
+        const CaptureConfiguration getCaptureConfiguration();
         virtual bool waitNextFrame() = 0;
         virtual std::vector<FrameFormat> getSupportedFrameFormats() = 0;
 };

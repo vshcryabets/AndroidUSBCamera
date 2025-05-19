@@ -15,7 +15,7 @@ class UvcException : public std::exception {
         IoCtlError,
         MmapError,
         ReadError,
-        FrameTimout
+        FrameTimeout
     };
     private:
         Type errorType;
@@ -59,7 +59,7 @@ class UvcCamera: public Source {
         virtual ~UvcCamera();
         virtual void open(const UvcCamera::Configuration & config);
         void close() override;
-        void startCapturing(const Source::CaptureConfigutation &config) override;
+        void startCapturing(const Source::CaptureConfiguration &config) override;
         void stopCapturing() override;
         Frame readFrame() override;
         bool waitNextFrame() override;

@@ -49,7 +49,7 @@ Source::Frame TestSource::readFrame()
     return frame;
 }
 
-void TestSource::startCapturing(const Source::CaptureConfigutation &config)
+void TestSource::startCapturing(const Source::CaptureConfiguration &config)
 {
     Source::startCapturing(config);
     if (config.width == 0 ||
