@@ -56,7 +56,7 @@ void TestSource::startCapturing(const Source::CaptureConfiguration &config)
         config.height == 0 ||
         (config.width % testRGBAColors.size() != 0))
     {
-        throw SourceError(SourceError::SOURCE_ERROR_WRONG_CONFIG, "Invalid capture configuration, width,height must be > 0 and width % 8 == 0");
+        throw SourceError(SourceError::SOURCE_ERROR_WRONG_CONFIG, "Invalid capture configuration, width,height must be > 0 and width % " + std::to_string(testRGBAColors.size()) + " == 0");
     }
     testDataSize = config.width * config.height * 4;
     testData = new uint8_t[testDataSize];
