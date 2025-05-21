@@ -1,65 +1,43 @@
 cmake_minimum_required(VERSION 3.22)
 
-project(LinuxUvcTests)
+project(LinuxUvcTests LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED True)
 
-find_package( Threads REQUIRED )
-find_package (JPEG REQUIRED)
-
-#set(USE_TURBOJPEG 1)
-set(USE_LIBJPEG 1)
+option(BUILD_SDL_MODULE "Build the SDL helper module" ON)
+option(BUILD_SOURCES_MODULE "Build the Sources module" ON)
+option(BUILD_JPEGBENCHMARK_APP "Build Jpegbenchmark app 1" OFF)
+option(BUILD_UVCCAPTURE_APP "Build UvcCapture app" ON)
 
 include_directories(
         ../libausbc/src/main/jni/UVCCamera/
 )
 
-find_package(SDL2 REQUIRED)
-
-add_executable(uvccapture
-        SdlTools.cpp
-        Source.cpp
-        UvcCamera.cpp
-        TestSource.cpp
-        uvccapture.cpp
-        ../libausbc/src/main/jni/UVCCamera/ImageUseCases.cpp
-        )
-
-target_link_libraries(
-        uvccapture
-        ${SDL2_LIBRARIES}
-        ${CMAKE_THREAD_LIBS_INIT})
-
-
-add_executable(jpegbenchmark
-        jpegdecodebenchmark.cpp
-        ../libausbc/src/main/jni/UVCCamera/ImageUseCases.cpp
-        ../libausbc/src/main/jni/UVCCamera/JpegBenchmark.cpp
-        ../libausbc/src/main/jni/UVCCamera/ProgressObserver.cpp
-        )
-
-if(USE_TURBOJPEG)
-        target_compile_definitions(jpegbenchmark PRIVATE -DUSE_TURBOJPEG)
-        add_library(turbojpeg SHARED IMPORTED)
-        set_target_properties(turbojpeg PROPERTIES
-                IMPORTED_LOCATION /usr/lib/libturbojpeg.so)
-        target_link_libraries(
-                jpegbenchmark
-                turbojpeg
-                ${CMAKE_THREAD_LIBS_INIT})         
+if(BUILD_SDL_MODULE)
+    add_subdirectory(modules/sdl)
 endif()
 
-if (USE_LIBJPEG)
-        target_compile_definitions(jpegbenchmark PRIVATE -DUSE_LIBJPEG)
-        target_link_libraries(
-                jpegbenchmark
-                ${JPEG_LIBRARIES}
-                ${CMAKE_THREAD_LIBS_INIT})        
+if(BUILD_SOURCES_MODULE)
+    add_subdirectory(modules/sources)
 endif()
 
-# add_executable(unix_socket_client unix_socket_client.cpp)
-# add_executable(unix_socket_server unix_socket_server.cpp)
+# Check if required modules are built before adding apps
+if(BUILD_JPEGBENCHMARK_APP)
+    add_subdirectory(apps/jpegbenchmark)
+else()
+    message(WARNING "Skipping Jpegbenchmark - not enabled.")
+endif()
+
+if(BUILD_UVCCAPTURE_APP AND BUILD_SOURCES_MODULE AND BUILD_SDL_MODULE)
+    add_subdirectory(apps/uvccapture)
+elseif(BUILD_UVCCAPTURE_APP)
+    message(WARNING "Skipping UvcCapture build because SDL helper or Sources module is not enabled.")
+endif()
+
+
+
+
         
