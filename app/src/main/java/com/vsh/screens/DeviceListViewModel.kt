@@ -34,7 +34,7 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 
 data class UsbDevice(
-    val usbDevcieId: Int,
+    val usbDeviceId: Int,
     val displayName: String,
     val vendorName: String,
     val classesStr: String
@@ -128,7 +128,7 @@ class DeviceListViewModel(
                     }
 
                     UsbDevice(
-                        usbDevcieId = device.deviceId,
+                        usbDeviceId = device.deviceId,
                         displayName = "$vidPidStr ${device.deviceName}",
                         vendorName = if (vendorName.isEmpty()) "${device.vendorId}" else vendorName,
                         classesStr = classesList.map{
@@ -163,7 +163,7 @@ class DeviceListViewModel(
     }
 
     fun onClick(device: UsbDevice) {
-        tryOpenDevice(device.usbDevcieId)
+        tryOpenDevice(device.usbDeviceId)
     }
 
     fun onPreviewOpened() {
