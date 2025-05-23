@@ -16,15 +16,14 @@
 
 package com.vsh.screens
 
-import android.content.Intent
 import android.hardware.usb.UsbConstants
 import android.hardware.usb.UsbManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.jiangdg.demo.BuildConfig
 import com.jiangdg.usb.USBVendorId
+import com.vsh.uvc.CheckRequirements
 import com.vsh.uvc.JpegBenchmark
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -43,7 +42,10 @@ data class UsbDevice(
 
 data class DeviceListViewState(
     val devices: List<UsbDevice> = emptyList(),
-    val openPreviewDeviceId: Int? = null
+    val openPreviewDeviceId: Int? = null,
+    val selectedDeviceId: Int? = null,
+    val requestCameraPermission: Boolean = false,
+    val requestUsbDevicePermission: Int? = null,
 )
 
 data class BenchmarkState(
@@ -54,19 +56,22 @@ data class BenchmarkState(
 
 class DeviceListViewModelFactory(
     private val usbManager: UsbManager,
-    private val jpegBenchmark: JpegBenchmark
+    private val jpegBenchmark: JpegBenchmark,
+    private val checkRequirements: CheckRequirements
 ): ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T =
         DeviceListViewModel(
             usbManager = usbManager,
-            jpegBenchmark = jpegBenchmark
+            jpegBenchmark = jpegBenchmark,
+            checkRequirements = checkRequirements
         ) as T
 }
 
 class DeviceListViewModel(
     private val usbManager: UsbManager,
-    private val jpegBenchmark: JpegBenchmark
+    private val jpegBenchmark: JpegBenchmark,
+    private val checkRequirements: CheckRequirements
 ) : ViewModel() {
     private val _state = MutableStateFlow(
         DeviceListViewState()
@@ -135,10 +140,30 @@ class DeviceListViewModel(
         }
     }
 
-    fun onClick(device: UsbDevice) {
-        _state.update {
-            it.copy(openPreviewDeviceId = device.usbDevcieId)
+    fun tryOpenDevice(usbDeviceId: Int) {
+        val requirements = checkRequirements(usbDeviceId)
+        if (requirements.isNotEmpty()) {
+            _state.update {
+                it.copy(
+                    selectedDeviceId = usbDeviceId,
+                    requestCameraPermission =
+                        requirements.contains(CheckRequirements.Requirements.CAMERA_PERMISSION_REQUIRED),
+                    requestUsbDevicePermission =
+                        if (requirements.contains(CheckRequirements.Requirements.USB_DEVICE_PERMISSION_REQUIRED))
+                            usbDeviceId
+                        else
+                            null
+                )
+            }
+        } else {
+            _state.update {
+                it.copy(openPreviewDeviceId = usbDeviceId)
+            }
         }
+    }
+
+    fun onClick(device: UsbDevice) {
+        tryOpenDevice(device.usbDevcieId)
     }
 
     fun onPreviewOpened() {
@@ -199,5 +224,15 @@ class DeviceListViewModel(
                 }
             }
         }
+    }
+
+    fun onCameraPermissionGranted() {
+        state.value.selectedDeviceId?.let {
+            tryOpenDevice(it)
+        }
+    }
+
+    fun onCameraPermissionDenied() {
+        Timber.d("Camera permission denied")
     }
 }

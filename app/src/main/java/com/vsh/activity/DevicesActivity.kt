@@ -32,10 +32,10 @@ import com.jiangdg.demo.MainActivity
 import com.vsh.screens.AusbcApp
 import com.vsh.screens.DeviceListViewModel
 import com.vsh.screens.DeviceListViewModelFactory
+import com.vsh.uvc.CheckRequirementsImpl
 import com.vsh.uvc.JpegBenchmark
 import kotlinx.coroutines.launch
 import timber.log.Timber
-
 
 class DevicesActivity : ComponentActivity() {
 
@@ -50,6 +50,10 @@ class DevicesActivity : ComponentActivity() {
                 usbManager = applicationContext.getSystemService(USB_SERVICE) as UsbManager,
                 jpegBenchmark = JpegBenchmark(
                     context = applicationContext
+                ),
+                checkRequirements = CheckRequirementsImpl(
+                    appContext = applicationContext,
+                    usbManager = applicationContext.getSystemService(USB_SERVICE) as UsbManager
                 )
             )
         ).get(DeviceListViewModel::class.java)
@@ -66,6 +70,12 @@ class DevicesActivity : ComponentActivity() {
 
         lifecycleScope.launch {
             viewModel.state.collect {
+                if (it.requestCameraPermission) {
+                    requestPermissions(
+                        arrayOf(android.Manifest.permission.CAMERA),
+                        CAMERA_PERMISSION_REQUEST_CODE
+                    )
+                }
                 if (it.openPreviewDeviceId != null) {
                     viewModel.onPreviewOpened()
                     val intent =
@@ -92,6 +102,28 @@ class DevicesActivity : ComponentActivity() {
     override fun onPause() {
         viewModel.stop()
         super.onPause()
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray,
+        deviceId: Int
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults, deviceId)
+        if (requestCode == CAMERA_PERMISSION_REQUEST_CODE) {
+            if (permissions.isNotEmpty() && grantResults[0] == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                Timber.d("Camera permission granted")
+                viewModel.onCameraPermissionGranted()
+            } else {
+                Timber.d("Camera permission denied")
+                viewModel.onCameraPermissionDenied()
+            }
+        }
+    }
+
+    companion object {
+        const val CAMERA_PERMISSION_REQUEST_CODE = 1
     }
 
 }
