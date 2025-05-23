@@ -159,9 +159,10 @@ public final class USBMonitor {
 	public synchronized void register() throws IllegalStateException {
 		if (destroyed) throw new IllegalStateException("already destroyed");
 		if (mPermissionIntent == null) {
-			Timber.i("register:");
+			Timber.i("ASD register mPermissionIntent");
 			final Context context = mWeakContext.get();
 			if (context != null) {
+				Timber.i("ASD register mPermissionIntent context not null");
 				if (Build.VERSION.SDK_INT >= 31) {
 					mPermissionIntent = PendingIntent.getBroadcast(context, 0, new Intent(ACTION_USB_PERMISSION), PendingIntent.FLAG_IMMUTABLE);
 				} else {
@@ -224,38 +225,36 @@ public final class USBMonitor {
 	 * @return true if fail to request permission
 	 */
 	public synchronized boolean requestPermission(final UsbDevice device) {
-//		Timber.v("requestPermission:device=" + device);
+		if (device == null) {
+			Timber.d("ASD requestPermission:device=null");
+			return false;
+		}
+		Timber.d("ASD requestPermission:device=" + device.getDeviceId());
 		boolean result = false;
 		if (isRegistered()) {
-			if (device != null) {
-				Timber.i("request permission, has permission: " + mUsbManager.hasPermission(device));
-				if (mUsbManager.hasPermission(device)) {
-					// call onConnect if app already has permission
-					processConnect(device);
-				} else {
-					try {
-						// パーミッションがなければ要求する
-						if (DEBUG) Timber.i("start request permission...");
-						mUsbManager.requestPermission(device, mPermissionIntent);
-					} catch (final Exception e) {
-						// Android5.1.xのGALAXY系でandroid.permission.sec.MDM_APP_MGMTという意味不明の例外生成するみたい
-						Timber.w("request permission failed, e = " + e.getLocalizedMessage() ,e);
-						processCancel(device);
-						result = true;
-					}
-				}
-			} else {
-				if (DEBUG)
-					Timber.w("request permission failed, device is null?");
-				processCancel(device);
-				result = true;
-			}
-		} else {
-			if (DEBUG)
-				Timber.w("request permission failed, not registered?");
+			Timber.d("ASD requestPermission 1");
+            Timber.i("ASD request permission, has permission: " + mUsbManager.hasPermission(device));
+            if (mUsbManager.hasPermission(device)) {
+                // call onConnect if app already has permission
+                processConnect(device);
+            } else {
+                try {
+                    // パーミッションがなければ要求する
+                    Timber.i("ASD start request permission... " + mPermissionIntent);
+                    mUsbManager.requestPermission(device, mPermissionIntent);
+                } catch (final Exception e) {
+                    // Android5.1.xのGALAXY系でandroid.permission.sec.MDM_APP_MGMTという意味不明の例外生成するみたい
+                    Timber.w("ASD request permission failed, e = " + e.getLocalizedMessage() ,e);
+                    processCancel(device);
+                    result = true;
+                }
+            }
+        } else {
+			Timber.w("ASD request permission failed, not registered?");
 			processCancel(device);
 			result = true;
 		}
+		Timber.d("ASD requestPermission:result=" + result);
 		return result;
 	}
 
@@ -844,5 +843,4 @@ public final class USBMonitor {
 			}
 		}
 	}
-
 }

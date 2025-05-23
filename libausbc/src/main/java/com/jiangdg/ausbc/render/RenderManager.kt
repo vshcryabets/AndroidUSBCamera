@@ -51,7 +51,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * @author Created by jiangdg on 2021/12/28
  */
 class RenderManager(
-    context: Context,
+    private val context: Context,
     private val surfaceWidth: Int,         // render surface width
     private val surfaceHeight: Int,        // render surface height
     private val mPreviewDataCbList: CopyOnWriteArrayList<IPreviewDataCallBack>?=null
@@ -71,7 +71,6 @@ class RenderManager(
     private var mWidth: Int = 0
     private var mHeight: Int = 0
     private var mFBOBufferId: Int = 0
-    private var mContext: Context = context
     private var mFrameRate = 0
     private var mEndTime: Long = 0L
     private var mStartTime = System.currentTimeMillis()
@@ -274,7 +273,7 @@ class RenderManager(
                     (message.obj as Pair<*, *>).apply {
                         val shareContext = first as EGLContext
                         val inputSurface = second as Surface
-                        mEncodeRender = EncodeRender(mContext)
+                        mEncodeRender = EncodeRender(context)
                         mEncodeRender?.initEGLEvn(shareContext)
                         mEncodeRender?.setupSurface(inputSurface)
                         mEncodeRender?.initGLES()
@@ -370,7 +369,7 @@ class RenderManager(
         values.put(MediaStore.Images.ImageColumns.DATE_TAKEN, date)
         values.put(MediaStore.Images.ImageColumns.WIDTH, width)
         values.put(MediaStore.Images.ImageColumns.HEIGHT, height)
-        mContext.contentResolver?.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+        context.contentResolver?.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
         mCaptureState.set(false)
         if (Utils.debugCamera) {
             Logger.i(TAG, "captureImageInternal save path = $path")

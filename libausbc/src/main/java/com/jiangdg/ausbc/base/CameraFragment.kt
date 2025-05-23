@@ -16,10 +16,13 @@
  */
 package com.jiangdg.ausbc.base
 
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.graphics.SurfaceTexture
 import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbManager
+import android.os.Build
 import android.view.Gravity
 import android.view.SurfaceHolder
 import android.view.SurfaceView
@@ -42,6 +45,7 @@ import com.jiangdg.usb.USBMonitor
 import timber.log.Timber
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+
 
 /**Extends from BaseFragment for one uvc camera
  *
@@ -94,8 +98,8 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
     }
 
     protected fun registerMultiCamera(deviceId: Int) {
+        Timber.i("ASD registerMultiCamera deviceId: $deviceId")
         mCameraClient = MultiCameraClient(requireContext(), object : IDeviceConnectCallBack {
-
             override fun onDetachDec(device: UsbDevice?) {
                 mCameraMap.remove(device?.deviceId)?.apply {
                     setUsbControlBlock(null)
@@ -129,7 +133,10 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
                 }
             }
 
-            override fun onDisConnectDec(device: UsbDevice?, ctrlBlock: USBMonitor.UsbControlBlock?) {
+            override fun onDisConnectDec(
+                device: UsbDevice?,
+                ctrlBlock: USBMonitor.UsbControlBlock?
+            ) {
                 closeCamera()
                 mRequestPermission.set(false)
             }
@@ -149,23 +156,28 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
     }
 
     fun openCamera(deviceId: Int) {
-        val usbManager = requireActivity().getSystemService(ComponentActivity.USB_SERVICE) as UsbManager
+        Timber.i("ASD openCamera deviceId: $deviceId")
+        if (mCameraMap.containsKey(deviceId)) {
+            Timber.e("Camera already opened, deviceId: ${deviceId}")
+            return
+        }
+        val usbManager =
+            requireActivity().getSystemService(ComponentActivity.USB_SERVICE) as UsbManager
         val device = usbManager.deviceList.values.find { it.deviceId == deviceId } ?: return
+        Timber.i("ASD openCamera got USB device")
         context?.let {
-            if (mCameraMap.containsKey(device.deviceId)) {
-                return
-            }
-            generateCamera(it, device).apply {
-                mCameraMap[device.deviceId] = this
-            }
+            mCameraMap[deviceId] = generateCamera(it, device)
             // Initiate permission request when device insertion is detected
             // If you want to open the specified camera, you need to override getDefaultCamera()
             if (mRequestPermission.get()) {
+                Timber.d("ASD openCamera requestPermission")
                 return@let
             }
+            Timber.d("ASD openCamera requestPermission 2")
             getDefaultCamera()?.apply {
+                Timber.d("ASD openCamera requestPermission 3")
                 if (vendorId == device.vendorId && productId == device.productId) {
-                    Timber.i("default camera pid: $productId, vid: $vendorId")
+                    Timber.i("ASD default camera pid: $productId, vid: $vendorId")
                     requestPermission(device)
                 }
                 return@let
@@ -252,9 +264,35 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
      *
      * @param device see [UsbDevice]
      */
-    protected fun requestPermission(device: UsbDevice?) {
+    protected fun requestPermission(device: UsbDevice) {
+        Timber.d("ASD requestPermission ${device.deviceId}")
         mRequestPermission.set(true)
-        mCameraClient?.requestPermission(device)
+//        mCameraClient!!.requestPermission(device)
+
+        Timber.d("ASD requestPermission:device=" + device.deviceId)
+        val mUsbManager = context!!.getSystemService(Context.USB_SERVICE) as UsbManager
+        if (mUsbManager.hasPermission(device)) {
+            // call onConnect if app already has permission
+//                processConnect(device)
+        } else {
+            try {
+                val mPermissionIntent =
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) { // Android 12 (API 31) and higher
+                        PendingIntent.getBroadcast(
+                            this.context, 0, Intent(CameraFragment.ACTION_USB_PERMISSION_BASE), PendingIntent.FLAG_IMMUTABLE
+                        )
+                    } else {
+                        PendingIntent.getBroadcast(this.context, 0, Intent(CameraFragment.ACTION_USB_PERMISSION_BASE), 0)
+                    }
+                Timber.i("ASD start request permission... $mPermissionIntent")
+                mUsbManager.requestPermission(device, mPermissionIntent)
+            } catch (e: java.lang.Exception) {
+                // Android5.1.xのGALAXY系でandroid.permission.sec.MDM_APP_MGMTという意味不明の例外生成するみたい
+//                    Timber.w("ASD request permission failed, e = " + e.localizedMessage, e)
+//                    processCancel(device)
+//                    result = true
+            }
+        }
     }
 
     /**
@@ -426,5 +464,9 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
             .setCaptureRawImage(false)
             .setRawPreviewData(false)
             .create()
+    }
+
+    companion object {
+        const val ACTION_USB_PERMISSION_BASE: String = "com.serenegiant.USB_PERMISSION"
     }
 }

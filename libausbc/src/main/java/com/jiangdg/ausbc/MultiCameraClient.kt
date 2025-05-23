@@ -28,6 +28,7 @@ import java.util.Locale
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
+import timber.log.Timber
 
 /** Multi-road camera client
  *
@@ -49,7 +50,10 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
              */
             override fun onDetach(device: UsbDevice?) {
                 if (Utils.debugCamera) {
-                    Logger.i(TAG, "detach device name/pid/vid:${device?.deviceName}&${device?.productId}&${device?.vendorId} ")
+                    Logger.i(
+                        TAG,
+                        "detach device name/pid/vid:${device?.deviceName}&${device?.productId}&${device?.vendorId} "
+                    )
                 }
                 device ?: return
                 if (!isUsbCamera(device) && !isFilterDevice(ctx, device)) {
@@ -71,7 +75,10 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
                 createNew: Boolean
             ) {
                 if (Utils.debugCamera) {
-                    Logger.i(TAG, "connect device name/pid/vid:${device?.deviceName}&${device?.productId}&${device?.vendorId} ")
+                    Logger.i(
+                        TAG,
+                        "connect device name/pid/vid:${device?.deviceName}&${device?.productId}&${device?.vendorId} "
+                    )
                 }
                 device ?: return
                 if (!isUsbCamera(device) && !isFilterDevice(ctx, device)) {
@@ -89,7 +96,10 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
              */
             override fun onDisconnect(device: UsbDevice?, ctrlBlock: USBMonitor.UsbControlBlock?) {
                 if (Utils.debugCamera) {
-                    Logger.i(TAG, "disconnect device name/pid/vid:${device?.deviceName}&${device?.productId}&${device?.vendorId} ")
+                    Logger.i(
+                        TAG,
+                        "disconnect device name/pid/vid:${device?.deviceName}&${device?.productId}&${device?.vendorId} "
+                    )
                 }
                 device ?: return
                 if (!isUsbCamera(device) && !isFilterDevice(ctx, device)) {
@@ -108,7 +118,10 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
              */
             override fun onCancel(device: UsbDevice?) {
                 if (Utils.debugCamera) {
-                    Logger.i(TAG, "cancel device name/pid/vid:${device?.deviceName}&${device?.productId}&${device?.vendorId} ")
+                    Logger.i(
+                        TAG,
+                        "cancel device name/pid/vid:${device?.deviceName}&${device?.productId}&${device?.vendorId} "
+                    )
                 }
                 device ?: return
                 if (!isUsbCamera(device) && !isFilterDevice(ctx, device)) {
@@ -153,9 +166,10 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
      * @param device see [UsbDevice]
      * @return true ready to request permission
      */
-    fun requestPermission(device: UsbDevice?): Boolean {
+    fun requestPermission(device: UsbDevice): Boolean {
+        Timber.d("ASD requestPermission: ${device.deviceId}")
         if (!isMonitorRegistered()) {
-            Logger.w(TAG, "Usb monitor haven't been registered.")
+            Timber.w("ASD Usb monitor haven't been registered.")
             return false
         }
         mUsbMonitor?.requestPermission(device)
@@ -179,9 +193,12 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
      * @property device see [UsbDevice]
      * @constructor Create camera by inherit it
      */
-    abstract class ICamera(val ctx: Context, val device: UsbDevice): Handler.Callback {
+    abstract class ICamera(
+        val ctx: Context,
+        val device: UsbDevice
+    ) : Handler.Callback {
         private var mCameraThread: HandlerThread? = null
-        private var mRenderManager: RenderManager?  = null
+        private var mRenderManager: RenderManager? = null
         private var mCameraView: Any? = null
         private var mCameraStateCallback: ICameraStateCallBack? = null
         private var mSizeChangedFuture: SettableFuture<Pair<Int, Int>>? = null
@@ -193,12 +210,6 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
         protected var mPreviewDataCbList = CopyOnWriteArrayList<IPreviewDataCallBack>()
         protected val mMainHandler: Handler by lazy {
             Handler(Looper.getMainLooper())
-        }
-        protected val mDateFormat by lazy {
-            SimpleDateFormat("yyyyMMddHHmmssSSS", Locale.getDefault())
-        }
-        protected val mCameraDir by lazy {
-            "${Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM)}/Camera"
         }
 
         override fun handleMessage(msg: Message): Boolean {
@@ -215,12 +226,14 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
                             }
                             cameraView
                         }
+
                         else -> {
                             null
                         }
-                    }.also { view->
-                        isNeedGLESRender = isGLESRender(renderMode == CameraRequest.RenderMode.OPENGL)
-                        if (! isNeedGLESRender && view != null) {
+                    }.also { view ->
+                        isNeedGLESRender =
+                            isGLESRender(renderMode == CameraRequest.RenderMode.OPENGL)
+                        if (!isNeedGLESRender && view != null) {
                             openCameraInternal(view)
                             return true
                         }
@@ -245,19 +258,27 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
                             mPreviewDataCbList
                         }
                         mRenderManager = RenderManager(ctx, previewWidth, previewHeight, previewCb)
-                        mRenderManager?.startRenderScreen(screenWidth, screenHeight, surface, object : RenderManager.CameraSurfaceTextureListener {
-                            override fun onSurfaceTextureAvailable(surfaceTexture: SurfaceTexture?) {
-                                if (surfaceTexture == null) {
-                                    closeCamera()
-                                    postStateEvent(ICameraStateCallBack.State.ERROR, "create camera surface failed")
-                                    return
+                        mRenderManager?.startRenderScreen(
+                            screenWidth,
+                            screenHeight,
+                            surface,
+                            object : RenderManager.CameraSurfaceTextureListener {
+                                override fun onSurfaceTextureAvailable(surfaceTexture: SurfaceTexture?) {
+                                    if (surfaceTexture == null) {
+                                        closeCamera()
+                                        postStateEvent(
+                                            ICameraStateCallBack.State.ERROR,
+                                            "create camera surface failed"
+                                        )
+                                        return
+                                    }
+                                    openCameraInternal(surfaceTexture)
                                 }
-                                openCameraInternal(surfaceTexture)
-                            }
-                        })
+                            })
                         mRenderManager?.setRotateType(mCameraRequest!!.defaultRotateType)
                     }
                 }
+
                 MSG_STOP_PREVIEW -> {
                     try {
                         mSizeChangedFuture?.cancel(true)
@@ -281,7 +302,8 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
          *
          * @return default depend on device opengl version, >=2.0 is true
          */
-        private fun isGLESRender(isGlesRenderOpen: Boolean): Boolean =isGlesRenderOpen && OpenGLUtils.isGlEsSupported(ctx)
+        private fun isGLESRender(isGlesRenderOpen: Boolean): Boolean =
+            isGlesRenderOpen && OpenGLUtils.isGlEsSupported(ctx)
 
         /**
          * Put video data
@@ -437,7 +459,7 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
          * @param callBack preview data call back
          */
         fun removePreviewDataCallBack(callBack: IPreviewDataCallBack) {
-            if (! mPreviewDataCbList.contains(callBack)) {
+            if (!mPreviewDataCbList.contains(callBack)) {
                 return
             }
             mPreviewDataCbList.remove(callBack)
