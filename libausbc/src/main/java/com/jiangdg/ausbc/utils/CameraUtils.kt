@@ -5,11 +5,9 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.hardware.usb.UsbConstants
 import android.hardware.usb.UsbDevice
-import android.media.Image
 import androidx.core.content.ContextCompat
 import com.jiangdg.ausbc.R
 import com.jiangdg.usb.DeviceFilter
-import timber.log.Timber
 
 /** Camera tools
  *
