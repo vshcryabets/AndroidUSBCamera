@@ -63,7 +63,7 @@ class DemoFragment2: Fragment() {
 
     companion object {
         const val KEY_USB_DEVICE = "usbDeviceId"
-        const val ACTION_USB_PERMISSION: String = "com.serenegiant.USB_PERMISSION.123"
+        const val ACTION_USB_PERMISSION: String = "com.jiangdg.demo.USB_PERMISSION"
 
         fun newInstance(usdDeviceId: Int): DemoFragment2 {
             val args = Bundle()
