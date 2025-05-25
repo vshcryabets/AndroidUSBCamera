@@ -54,7 +54,6 @@ dependencies {
     implementation(libs.baseRecyclerViewAdapterHelper)
     implementation(libs.core)
     implementation(libs.timber)
-
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
     implementation(libs.androidx.material)
@@ -64,4 +63,5 @@ dependencies {
     implementation(libs.androidx.navigation.runtime.ktx)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.material3.android)
+    testImplementation(libs.junit)
 }
