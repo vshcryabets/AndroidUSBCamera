@@ -10,7 +10,8 @@ set(CMAKE_C_STANDARD_REQUIRED True)
 option(BUILD_SDL_MODULE "Build the SDL helper module" ON)
 option(BUILD_SOURCES_MODULE "Build the Sources module" ON)
 option(BUILD_JPEGBENCHMARK_APP "Build Jpegbenchmark app 1" OFF)
-option(BUILD_UVCCAPTURE_APP "Build UvcCapture app" ON)
+option(BUILD_SDL_PREVIEW_APP "Build SDL UVC preview sample app" ON)
+option(BUILD_GTK_PREVIEW_APP "Build GTK UVC preview sample app" ON)
 
 include_directories(
         ../libausbc/src/main/jni/UVCCamera/
@@ -31,13 +32,14 @@ else()
     message(WARNING "Skipping Jpegbenchmark - not enabled.")
 endif()
 
-if(BUILD_UVCCAPTURE_APP AND BUILD_SOURCES_MODULE AND BUILD_SDL_MODULE)
-    add_subdirectory(apps/uvccapture)
-elseif(BUILD_UVCCAPTURE_APP)
+if(BUILD_SDL_PREVIEW_APP AND BUILD_SOURCES_MODULE AND BUILD_SDL_MODULE)
+    add_subdirectory(apps/sdl_preview)
+elseif(BUILD_SDL_PREVIEW_APP)
     message(WARNING "Skipping UvcCapture build because SDL helper or Sources module is not enabled.")
 endif()
 
-
-
-
-        
+if(BUILD_GTK_PREVIEW_APP AND BUILD_SOURCES_MODULE)
+    add_subdirectory(apps/gtk_preview)
+elseif(BUILD_GTK_PREVIEW_APP)
+    message(WARNING "Skipping UvcCapture build because Sources module is not enabled.")
+endif()
