@@ -2,9 +2,9 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "Source.h"
-#include "UvcCamera.h"
-#include "TestSource.h"
+// #include "Source.h"
+// #include "UvcCamera.h"
+// #include "TestSource.h"
 
 #include <gtk/gtk.h>
 #include <cairo.h>
@@ -36,7 +36,7 @@ private:
         gtk_window_set_title(GTK_WINDOW(window), "GTK4 C++ Sample");
         gtk_window_set_default_size(GTK_WINDOW(window), 640, 480);
 
-        draw_area_ = gtk_drawing_area_new();
+        //draw_area_ = gtk_drawing_area_new();
         // g_signal_connect(G_OBJECT(draw_area_), "draw", G_CALLBACK(&::Draw), this);
 
         button = gtk_button_new_with_label("Click Me!");
