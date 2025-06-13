@@ -28,7 +28,7 @@ if(BUILD_GTK_PREVIEW_APP)
                 )
         target_link_libraries(
                 gtk_preview
-                # SourcesB
+                Sources
                 ${GTK4_LIBRARIES}
                 ${CMAKE_THREAD_LIBS_INIT}
                 )
