@@ -87,7 +87,9 @@
         "stdfloat": "cpp",
         "text_encoding": "cpp",
         "typeindex": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "locale": "cpp",
+        "ios": "cpp"
     },
     "cmake.sourceDirectory": "${workspaceFolder}/linux/"
 }

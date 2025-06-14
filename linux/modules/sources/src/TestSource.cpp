@@ -45,7 +45,6 @@ Source::Frame TestSource::readFrame()
         frame.timestamp = std::chrono::high_resolution_clock::now();
         frame.format = FrameFormat::RGBA;
     }
-
     return frame;
 }
 

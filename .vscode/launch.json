@@ -5,6 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "(lldb) Launch",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/apps/gtk_preview/gtk_preview",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${fileDirname}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "lldb"
+        },
+        {
             "name": "GDB Debug JpegBenchmark",
             "type": "cppdbg",
             "request": "launch",

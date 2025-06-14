@@ -1,4 +1,3 @@
-#include "UvcCamera.h"
 #include <string.h> //memset
 #include <stdlib.h> //calloc
 #include <unistd.h> //close
