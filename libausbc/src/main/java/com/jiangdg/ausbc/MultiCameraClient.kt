@@ -140,13 +140,7 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
 
     private fun isMonitorRegistered() = mUsbMonitor?.isRegistered == true
 
-
-
     companion object {
         private const val TAG = "MultiCameraClient"
-        private const val MSG_START_PREVIEW = 0x01
-        private const val MSG_STOP_PREVIEW = 0x02
-        private const val DEFAULT_PREVIEW_WIDTH = 640
-        private const val DEFAULT_PREVIEW_HEIGHT = 480
     }
 }
