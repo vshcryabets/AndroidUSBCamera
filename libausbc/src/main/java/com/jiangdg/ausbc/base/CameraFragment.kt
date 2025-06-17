@@ -1,6 +1,6 @@
 /*
  * Copyright 2017-2023 Jiangdg
- * Copyright 2024 vschryabets@gmail.com
+ * Copyright 2024-2025 vschryabets@gmail.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ import com.jiangdg.ausbc.utils.CheckCameraPermiussionUseCaseImpl
 import com.jiangdg.ausbc.utils.ReadRawTextFileUseCaseImpl
 import com.jiangdg.ausbc.utils.SettableFuture
 import com.jiangdg.ausbc.widget.IAspectRatio
-import com.jiangdg.usb.USBMonitor
+import com.jiangdg.usb.UsbControlBlock
 import timber.log.Timber
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
@@ -112,7 +112,7 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
                 }
             }
 
-            override fun onConnectDev(device: UsbDevice?, ctrlBlock: USBMonitor.UsbControlBlock?) {
+            override fun onConnectDev(device: UsbDevice?, ctrlBlock: UsbControlBlock?) {
                 device ?: return
                 ctrlBlock ?: return
                 context ?: return
@@ -132,7 +132,7 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
                 }
             }
 
-            override fun onDisConnectDec(device: UsbDevice?, ctrlBlock: USBMonitor.UsbControlBlock?) {
+            override fun onDisConnectDec(device: UsbDevice?, ctrlBlock: UsbControlBlock?) {
                 closeCamera()
                 mRequestPermission.set(false)
             }

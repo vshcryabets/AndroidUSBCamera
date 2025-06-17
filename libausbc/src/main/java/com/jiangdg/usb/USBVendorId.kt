@@ -23,8 +23,6 @@
  */
 package com.jiangdg.usb
 
-import android.util.SparseArray
-
 object USBVendorId {
     val IDS = mapOf (
         10006 to "YUEN DA ELECTRONIC PRODUCTS FACTORY" ,

@@ -33,9 +33,9 @@ import com.jiangdg.ausbc.utils.ReadRawTextFileUseCase
 import com.jiangdg.ausbc.utils.SettableFuture
 import com.jiangdg.ausbc.widget.IAspectRatio
 import com.jiangdg.usb.USBMonitor
+import com.jiangdg.usb.UsbControlBlock
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
-
 
 /**
  * Camera strategy super class
@@ -58,7 +58,7 @@ abstract class ICamera(
     protected var mCameraHandler: Handler? = null
     protected var isPreviewed: Boolean = false
     protected var isNeedGLESRender: Boolean = false
-    protected var mCtrlBlock: USBMonitor.UsbControlBlock? = null
+    protected var mCtrlBlock: UsbControlBlock? = null
     protected val mMainHandler: Handler by lazy {
         Handler(Looper.getMainLooper())
     }
@@ -182,7 +182,7 @@ abstract class ICamera(
      *
      * @param ctrlBlock see [USBMonitor.OnDeviceConnectListener]#onConnectedDev
      */
-    fun setUsbControlBlock(ctrlBlock: USBMonitor.UsbControlBlock?) {
+    fun setUsbControlBlock(ctrlBlock: UsbControlBlock?) {
         this.mCtrlBlock = ctrlBlock
     }
 

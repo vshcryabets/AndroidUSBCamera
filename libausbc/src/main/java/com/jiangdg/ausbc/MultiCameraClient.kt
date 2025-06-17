@@ -8,6 +8,7 @@ import com.jiangdg.ausbc.callback.IDeviceConnectCallBack
 import com.jiangdg.ausbc.utils.Logger
 import com.jiangdg.ausbc.utils.Utils
 import com.jiangdg.usb.USBMonitor
+import com.jiangdg.usb.UsbControlBlock
 
 /** Multi-road camera client
  *
@@ -44,7 +45,7 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
              */
             override fun onConnect(
                 device: UsbDevice?,
-                ctrlBlock: USBMonitor.UsbControlBlock?,
+                ctrlBlock: UsbControlBlock?,
                 createNew: Boolean
             ) {
                 if (Utils.debugCamera) {
@@ -61,7 +62,7 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
              *
              * @param device usb device info,see [UsbDevice]
              */
-            override fun onDisconnect(device: UsbDevice?, ctrlBlock: USBMonitor.UsbControlBlock?) {
+            override fun onDisconnect(device: UsbDevice?, ctrlBlock: UsbControlBlock?) {
                 if (Utils.debugCamera) {
                     Logger.i(TAG, "disconnect device name/pid/vid:${device?.deviceName}&${device?.productId}&${device?.vendorId} ")
                 }
