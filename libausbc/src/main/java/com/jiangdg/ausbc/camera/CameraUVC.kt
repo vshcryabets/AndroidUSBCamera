@@ -15,29 +15,21 @@
  */
 package com.jiangdg.ausbc.camera
 
-import android.content.ContentValues
 import android.content.Context
 import android.graphics.SurfaceTexture
 import android.hardware.usb.UsbDevice
-import android.provider.MediaStore
 import android.view.Surface
 import android.view.SurfaceView
 import android.view.TextureView
 import com.jiangdg.ausbc.MultiCameraClient
-import com.jiangdg.ausbc.MultiCameraClient.Companion.CAPTURE_TIMES_OUT_SEC
-import com.jiangdg.ausbc.MultiCameraClient.Companion.MAX_NV21_DATA
 import com.jiangdg.ausbc.callback.ICameraStateCallBack
-import com.jiangdg.ausbc.callback.IPreviewDataCallBack
 import com.jiangdg.ausbc.camera.bean.CameraRequest
 import com.jiangdg.ausbc.camera.bean.PreviewSize
 import com.jiangdg.ausbc.utils.CameraUtils
 import com.jiangdg.ausbc.utils.Logger
-import com.jiangdg.ausbc.utils.MediaUtils
 import com.jiangdg.ausbc.utils.Utils
 import com.jiangdg.uvc.IFrameCallback
 import com.jiangdg.uvc.UVCCamera
-import java.io.File
-import java.util.concurrent.TimeUnit
 
 /** UVC Camera
  *
@@ -57,10 +49,6 @@ class CameraUVC(ctx: Context, device: UsbDevice) : MultiCameraClient.ICamera(ctx
             mCameraRequest?.apply {
                 if (data.size != previewWidth * previewHeight * 3 / 2) {
                     return@IFrameCallback
-                }
-                // for preview callback
-                mPreviewDataCbList.forEach { cb ->
-                    cb?.onPreviewData(data, previewWidth, previewHeight, IPreviewDataCallBack.DataFormat.NV21)
                 }
                 // for video
                 // avoid preview size changed

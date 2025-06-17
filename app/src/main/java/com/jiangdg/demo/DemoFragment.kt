@@ -26,7 +26,6 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.PopupWindow
 import android.widget.Toast
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.list.listItemsSingleChoice
@@ -44,7 +43,6 @@ import com.jiangdg.demo.databinding.FragmentDemoBinding
  * @author Created by jiangdg on 2022/1/28
  */
 class DemoFragment : CameraFragment(), View.OnClickListener {
-    private var mMoreMenu: PopupWindow? = null
     private lateinit var mViewBinding: FragmentDemoBinding
 
     override fun initView() {
@@ -125,7 +123,6 @@ class DemoFragment : CameraFragment(), View.OnClickListener {
 
     @SuppressLint("CheckResult")
     private fun showResolutionDialog() {
-        mMoreMenu?.dismiss()
         getAllPreviewSizes().let { previewSizes ->
             if (previewSizes.isNullOrEmpty()) {
                 Toast.makeText(requireContext(), "Get camera preview size failed", Toast.LENGTH_LONG).show()

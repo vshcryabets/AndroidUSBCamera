@@ -20,13 +20,23 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.SurfaceTexture
 import android.opengl.EGLContext
-import android.os.*
+import android.os.Environment
+import android.os.Handler
+import android.os.HandlerThread
+import android.os.Message
 import android.provider.MediaStore
 import android.view.Surface
 import com.jiangdg.ausbc.callback.IPreviewDataCallBack
 import com.jiangdg.ausbc.render.env.RotateType
-import com.jiangdg.ausbc.render.internal.*
-import com.jiangdg.ausbc.utils.*
+import com.jiangdg.ausbc.render.internal.CameraRender
+import com.jiangdg.ausbc.render.internal.CaptureRender
+import com.jiangdg.ausbc.render.internal.EncodeRender
+import com.jiangdg.ausbc.render.internal.ScreenRender
+import com.jiangdg.ausbc.utils.GLBitmapUtils
+import com.jiangdg.ausbc.utils.Logger
+import com.jiangdg.ausbc.utils.ReadRawTextFileUseCaseImpl
+import com.jiangdg.ausbc.utils.SettableFuture
+import com.jiangdg.ausbc.utils.Utils
 import com.jiangdg.ausbc.utils.bus.BusKey
 import com.jiangdg.ausbc.utils.bus.EventBus
 import java.io.File
@@ -35,7 +45,7 @@ import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Locale
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
@@ -89,9 +99,10 @@ class RenderManager(
     }
 
     init {
-        this.mCameraRender = CameraRender(context)
-        this.mScreenRender = ScreenRender(context)
-        this.mCaptureRender = CaptureRender(context)
+        val readRawUseCase = ReadRawTextFileUseCaseImpl(context)
+        this.mCameraRender = CameraRender(readRawUseCase)
+        this.mScreenRender = ScreenRender(readRawUseCase)
+        this.mCaptureRender = CaptureRender(readRawUseCase)
         Logger.i(TAG, "create RenderManager, Open ES version is ${Utils.getGLESVersion(context)}")
     }
 
@@ -274,7 +285,7 @@ class RenderManager(
                     (message.obj as Pair<*, *>).apply {
                         val shareContext = first as EGLContext
                         val inputSurface = second as Surface
-                        mEncodeRender = EncodeRender(mContext)
+                        mEncodeRender = EncodeRender(ReadRawTextFileUseCaseImpl(context = mContext))
                         mEncodeRender?.initEGLEvn(shareContext)
                         mEncodeRender?.setupSurface(inputSurface)
                         mEncodeRender?.initGLES()

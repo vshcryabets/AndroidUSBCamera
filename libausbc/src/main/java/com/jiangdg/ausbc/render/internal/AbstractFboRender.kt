@@ -15,10 +15,10 @@
 */
 package com.jiangdg.ausbc.render.internal
 
-import android.content.Context
 import android.opengl.GLES20
 import com.jiangdg.ausbc.utils.Logger
 import com.jiangdg.ausbc.utils.OpenGLUtils
+import com.jiangdg.ausbc.utils.ReadRawTextFileUseCase
 
 /** A AbstractRender subclass, also abstract
  *       create a fbo,and draw to it instead of screen.
@@ -28,7 +28,7 @@ import com.jiangdg.ausbc.utils.OpenGLUtils
  *
  * @author Created by jiangdg on 2021/12/27
  */
-abstract class AbstractFboRender(context: Context) : AbstractRender(context) {
+abstract class AbstractFboRender(readRawTextFileUseCase: ReadRawTextFileUseCase) : AbstractRender(readRawTextFileUseCase) {
     private val mFrameBuffers by lazy {
         IntArray(1)
     }
@@ -42,8 +42,6 @@ abstract class AbstractFboRender(context: Context) : AbstractRender(context) {
     // download image need when call
     // glBindFramebuffer()
     fun getFrameBufferId() = mFrameBuffers[0]
-
-    fun getFrameBufferTexture() = mFBOTextures[0]
 
     override fun drawFrame(textureId: Int): Int {
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFrameBuffers[0])

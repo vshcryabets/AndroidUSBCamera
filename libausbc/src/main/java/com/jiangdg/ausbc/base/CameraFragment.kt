@@ -276,21 +276,6 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
     protected open fun getDefaultCamera(): UsbDevice? = null
 
     /**
-     * Switch camera
-     *
-     * @param usbDevice camera usb device
-     */
-    protected fun switchCamera(usbDevice: UsbDevice) {
-        getCurrentCamera()?.closeCamera()
-        try {
-            Thread.sleep(500)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-        requestPermission(usbDevice)
-    }
-
-    /**
      * Update resolution
      *
      * @param width camera preview width

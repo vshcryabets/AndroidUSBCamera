@@ -44,8 +44,6 @@ import com.jiangdg.utils.HandlerThreadHandler;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -63,14 +61,13 @@ public final class USBMonitor {
 	/**
 	 * openしているUsbControlBlock
 	 */
-	private final ConcurrentHashMap<UsbDevice, UsbControlBlock> mCtrlBlocks = new ConcurrentHashMap<UsbDevice, UsbControlBlock>();
-	private final SparseArray<WeakReference<UsbDevice>> mHasPermissions = new SparseArray<WeakReference<UsbDevice>>();
+	private final ConcurrentHashMap<UsbDevice, UsbControlBlock> mCtrlBlocks = new ConcurrentHashMap<>();
+	private final SparseArray<WeakReference<UsbDevice>> mHasPermissions = new SparseArray<>();
 
 	private final WeakReference<Context> mWeakContext;
 	private final UsbManager mUsbManager;
 	private final OnDeviceConnectListener mOnDeviceConnectListener;
 	private PendingIntent mPermissionIntent = null;
-	private List<DeviceFilter> mDeviceFilters = new ArrayList<DeviceFilter>();
 
 	/**
 	 * コールバックをワーカースレッドで呼び出すためのハンドラー
@@ -83,25 +80,18 @@ public final class USBMonitor {
 	public interface OnDeviceConnectListener {
 		/**
 		 * called when device dettach(after onDisconnect)
-		 * @param device
 		 */
 		public void onDetach(UsbDevice device);
 		/**
 		 * called after device opend
-		 * @param device
-		 * @param ctrlBlock
-		 * @param createNew
 		 */
 		public void onConnect(UsbDevice device, UsbControlBlock ctrlBlock, boolean createNew);
 		/**
 		 * called when USB device removed or its power off (this callback is called after device closing)
-		 * @param device
-		 * @param ctrlBlock
 		 */
 		public void onDisconnect(UsbDevice device, UsbControlBlock ctrlBlock);
 		/**
 		 * called when canceled or could not get permission from user
-		 * @param device
 		 */
 		public void onCancel(UsbDevice device);
 	}
@@ -373,7 +363,7 @@ public final class USBMonitor {
 	 * @return
 	 */
 	@SuppressLint("NewApi")
-	public static final String getDeviceKeyName(final UsbDevice device, final String serial, final boolean useNewAPI) {
+	public static String getDeviceKeyName(final UsbDevice device, final String serial, final boolean useNewAPI) {
 		if (device == null) return "";
 		final StringBuilder sb = new StringBuilder();
 		sb.append(device.getVendorId());			sb.append("#");	// API >= 12
@@ -408,7 +398,7 @@ public final class USBMonitor {
 	 * @param useNewAPI
 	 * @return
 	 */
-	public static final int getDeviceKey(final UsbDevice device, final boolean useNewAPI) {
+	public static int getDeviceKey(final UsbDevice device, final boolean useNewAPI) {
 		return device != null ? getDeviceKeyName(device, null, useNewAPI).hashCode() : 0;
 	}
 

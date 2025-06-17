@@ -15,18 +15,18 @@
  */
 package com.jiangdg.ausbc.render.internal
 
-import android.content.Context
 import android.opengl.EGLContext
 import android.view.Surface
 import com.jiangdg.ausbc.R
 import com.jiangdg.ausbc.render.env.EGLEvn
+import com.jiangdg.ausbc.utils.ReadRawTextFileUseCase
 
 /** Inherit from AbstractFboRender
  *      render data to EGL from fbo and encode it
  *
  * @author Created by jiangdg on 2021/12/27
  */
-class EncodeRender(context: Context): AbstractRender(context) {
+class EncodeRender(readRawTextFileUseCase: ReadRawTextFileUseCase): AbstractRender(readRawTextFileUseCase) {
 
     private var mEgl: EGLEvn? = null
 
