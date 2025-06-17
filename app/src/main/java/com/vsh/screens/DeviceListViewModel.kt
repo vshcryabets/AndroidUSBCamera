@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 vschryabets@gmail.com
+ * Copyright 2024-2025 vschryabets@gmail.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,13 @@
 
 package com.vsh.screens
 
-import android.hardware.usb.UsbConstants
-import android.hardware.usb.UsbManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.jiangdg.demo.BuildConfig
-import com.jiangdg.usb.USBVendorId
 import com.vsh.uvc.CheckRequirements
 import com.vsh.uvc.JpegBenchmark
+import com.vsh.uvc.LoadUsbDevices
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,19 +31,16 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
-data class UsbDevice(
-    val usbDeviceId: Int,
-    val displayName: String,
-    val vendorName: String,
-    val classesStr: String
-)
 
 data class DeviceListViewState(
-    val devices: List<UsbDevice> = emptyList(),
-    val openPreviewDeviceId: Int? = null,
-    val selectedDeviceId: Int? = null,
+    val devices: List<LoadUsbDevices.UsbDevice> = emptyList(),
+    val openPreviewDevice: Boolean = false,
+    val selectedDeviceId: Int = 0,
     val requestCameraPermission: Boolean = false,
-    val requestUsbDevicePermission: Int? = null,
+    val requestUsbDevicePermission: Boolean = false,
+    val userInformedAboutPermission: Boolean = false,
+    val informUserAboutPermissions: Boolean = false,
+    val cantOpenWithoutCameraPermission: Boolean = false,
 )
 
 data class BenchmarkState(
@@ -55,29 +50,29 @@ data class BenchmarkState(
 )
 
 class DeviceListViewModelFactory(
-    private val usbManager: UsbManager,
     private val jpegBenchmark: JpegBenchmark,
-    private val checkRequirements: CheckRequirements
-): ViewModelProvider.Factory {
+    private val checkRequirements: CheckRequirements,
+    private val loadUsbDevices: LoadUsbDevices,
+) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T =
         DeviceListViewModel(
-            usbManager = usbManager,
             jpegBenchmark = jpegBenchmark,
-            checkRequirements = checkRequirements
+            checkRequirements = checkRequirements,
+            loadUsbDevices = loadUsbDevices
         ) as T
 }
 
 class DeviceListViewModel(
-    private val usbManager: UsbManager,
     private val jpegBenchmark: JpegBenchmark,
-    private val checkRequirements: CheckRequirements
+    private val checkRequirements: CheckRequirements,
+    private val loadUsbDevices: LoadUsbDevices,
 ) : ViewModel() {
     private val _state = MutableStateFlow(
         DeviceListViewState()
     )
     private val _benchmarkState = MutableStateFlow(BenchmarkState())
-    private var loadDevicesJob : Job? = null
+    private var loadDevicesJob: Job? = null
     private var isActive = false
 
     val state: StateFlow<DeviceListViewState> = _state
@@ -95,7 +90,7 @@ class DeviceListViewModel(
             loadDevicesJob = viewModelScope.launch {
                 isActive = true
                 while (isActive) {
-                    loadDevices()
+                    onEnumerate()
                     delay(1000L)
                 }
             }
@@ -109,67 +104,54 @@ class DeviceListViewModel(
     }
 
     fun onEnumerate() {
-        loadDevices()
-    }
-
-    fun loadDevices() {
-        val usbDevices = usbManager.deviceList
         _state.update {
             it.copy(
-                devices = usbDevices.values.map { device ->
-                    val vendorName = USBVendorId.vendorName(device.vendorId)
-                    val vidPidStr = String.format("%04x:%04x", device.vendorId, device.productId)
-                    val classesList = mutableSetOf<Int>()
-                    classesList.add(device.deviceClass)
-                    if (device.deviceClass == UsbConstants.USB_CLASS_MISC) {
-                        for (i in 0 until device.interfaceCount) {
-                            classesList.add(device.getInterface(i).interfaceClass)
-                        }
-                    }
-
-                    UsbDevice(
-                        usbDeviceId = device.deviceId,
-                        displayName = "$vidPidStr ${device.deviceName}",
-                        vendorName = if (vendorName.isEmpty()) "${device.vendorId}" else vendorName,
-                        classesStr = classesList.map{
-                            USBVendorId.CLASSES[it] ?: "$it"
-                        }.joinToString(",\n")
-                    )
-                }
+                devices = loadUsbDevices.load()
             )
         }
     }
 
-    fun tryOpenDevice(usbDeviceId: Int) {
+    fun onUserInformedAboutPermission() {
+        _state.update {
+            it.copy(
+                userInformedAboutPermission = true,
+                informUserAboutPermissions = false
+            )
+        }
+        tryOpenDevice()
+    }
+
+    fun tryOpenDevice() {
+        val usbDeviceId = state.value.selectedDeviceId
+        Timber.i("tryOpenDevice usbDeviceId $usbDeviceId")
         val requirements = checkRequirements(usbDeviceId)
         if (requirements.isNotEmpty()) {
-            _state.update {
-                it.copy(
-                    selectedDeviceId = usbDeviceId,
-                    requestCameraPermission =
-                        requirements.contains(CheckRequirements.Requirements.CAMERA_PERMISSION_REQUIRED),
-                    requestUsbDevicePermission =
-                        if (requirements.contains(CheckRequirements.Requirements.USB_DEVICE_PERMISSION_REQUIRED))
-                            usbDeviceId
-                        else
-                            null
-                )
+            Timber.i("To open device required: $requirements")
+            if (state.value.userInformedAboutPermission) {
+                _state.update {
+                    it.copy(
+                        requestCameraPermission =
+                            requirements.contains(CheckRequirements.Requirements.CAMERA_PERMISSION_REQUIRED),
+                        requestUsbDevicePermission =
+                            requirements.contains(CheckRequirements.Requirements.USB_DEVICE_PERMISSION_REQUIRED)
+                    )
+                }
+            } else {
+                _state.update {
+                    it.copy(
+                        informUserAboutPermissions = true,
+                    )
+                }
             }
+
         } else {
-            _state.update {
-                it.copy(openPreviewDeviceId = usbDeviceId)
-            }
+            _state.update { it.copy(openPreviewDevice = true) }
         }
     }
 
-    fun onClick(device: UsbDevice) {
-        tryOpenDevice(device.usbDeviceId)
-    }
-
-    fun onPreviewOpened() {
-        _state.update {
-            it.copy(openPreviewDeviceId = null)
-        }
+    fun onClick(device: LoadUsbDevices.UsbDevice) {
+        _state.update { it.copy(selectedDeviceId = device.usbDeviceId) }
+        tryOpenDevice()
     }
 
     fun onShareBenchmarkResults() {
@@ -177,35 +159,38 @@ class DeviceListViewModel(
         _benchmarkState.update { it.copy(needToShareText = true) }
     }
 
-    fun onShareBenchmarkResultsDismissed() =  _benchmarkState.update { it.copy(needToShareText = false) }
+    fun onShareBenchmarkResultsDismissed() =
+        _benchmarkState.update { it.copy(needToShareText = false) }
 
     fun onBenchmarks() {
         val iterations = 30
         val decoderName = jpegBenchmark.getDecoderName()
         _benchmarkState.update { it.copy(isRunning = true) }
-        val flow = jpegBenchmark.startBenchmark(JpegBenchmark.Arguments(
-            imageSamples = listOf(
-                Pair(10360, "jpeg_samples/sample1_0360.jpg"),
-                Pair(10480, "jpeg_samples/sample1_0480.jpg"),
-                Pair(10720, "jpeg_samples/sample1_0720.jpg"),
-                Pair(11080, "jpeg_samples/sample1_1080.jpg"),
-                Pair(11440, "jpeg_samples/sample1_1440.jpg"),
-                Pair(12160, "jpeg_samples/sample1_2160.jpg"),
-                Pair(20360, "jpeg_samples/sample2_0360.jpg"),
-                Pair(20480, "jpeg_samples/sample2_0480.jpg"),
-                Pair(20720, "jpeg_samples/sample2_0720.jpg"),
-                Pair(21080, "jpeg_samples/sample2_1080.jpg"),
-                Pair(21440, "jpeg_samples/sample2_1440.jpg"),
-                Pair(22160, "jpeg_samples/sample2_2160.jpg"),
-                Pair(30360, "jpeg_samples/sample3_0360.jpg"),
-                Pair(30480, "jpeg_samples/sample3_0480.jpg"),
-                Pair(30720, "jpeg_samples/sample3_0720.jpg"),
-                Pair(31080, "jpeg_samples/sample3_1080.jpg"),
-                Pair(31440, "jpeg_samples/sample3_1440.jpg"),
-                Pair(32160, "jpeg_samples/sample3_2160.jpg")
-            ),
-            iterations = iterations
-        ))
+        val flow = jpegBenchmark.startBenchmark(
+            JpegBenchmark.Arguments(
+                imageSamples = listOf(
+                    Pair(10360, "jpeg_samples/sample1_0360.jpg"),
+                    Pair(10480, "jpeg_samples/sample1_0480.jpg"),
+                    Pair(10720, "jpeg_samples/sample1_0720.jpg"),
+                    Pair(11080, "jpeg_samples/sample1_1080.jpg"),
+                    Pair(11440, "jpeg_samples/sample1_1440.jpg"),
+                    Pair(12160, "jpeg_samples/sample1_2160.jpg"),
+                    Pair(20360, "jpeg_samples/sample2_0360.jpg"),
+                    Pair(20480, "jpeg_samples/sample2_0480.jpg"),
+                    Pair(20720, "jpeg_samples/sample2_0720.jpg"),
+                    Pair(21080, "jpeg_samples/sample2_1080.jpg"),
+                    Pair(21440, "jpeg_samples/sample2_1440.jpg"),
+                    Pair(22160, "jpeg_samples/sample2_2160.jpg"),
+                    Pair(30360, "jpeg_samples/sample3_0360.jpg"),
+                    Pair(30480, "jpeg_samples/sample3_0480.jpg"),
+                    Pair(30720, "jpeg_samples/sample3_0720.jpg"),
+                    Pair(31080, "jpeg_samples/sample3_1080.jpg"),
+                    Pair(31440, "jpeg_samples/sample3_1440.jpg"),
+                    Pair(32160, "jpeg_samples/sample3_2160.jpg")
+                ),
+                iterations = iterations
+            )
+        )
         viewModelScope.launch {
             flow.collect { progress ->
                 if (progress.completed) {
@@ -227,12 +212,50 @@ class DeviceListViewModel(
     }
 
     fun onCameraPermissionGranted() {
-        state.value.selectedDeviceId?.let {
-            tryOpenDevice(it)
-        }
+        tryOpenDevice()
     }
 
     fun onCameraPermissionDenied() {
         Timber.d("Camera permission denied")
+        _state.update {
+            it.copy(
+                cantOpenWithoutCameraPermission = true,
+                selectedDeviceId = 0
+            )
+        }
+    }
+
+    fun onCantOpenShown() {
+        _state.update { it.copy(cantOpenWithoutCameraPermission = false) }
+    }
+
+    fun onCameraPermissionRequested() {
+        _state.update { it.copy(requestCameraPermission = false) }
+    }
+
+    fun onUsbDevicePermissionRequested() {
+        _state.update { it.copy(requestUsbDevicePermission = false) }
+    }
+
+    fun onPreviewOpened() {
+        _state.update { it.copy(openPreviewDevice = false) }
+    }
+
+    fun onUsbDevicePermissionResult(usbDeviceId: Int, permissionGranted: Boolean) {
+        if (usbDeviceId == state.value.selectedDeviceId) {
+            if (permissionGranted) {
+                Timber.i("USB device permission granted for device $usbDeviceId")
+                tryOpenDevice()
+            } else {
+                Timber.w("USB device permission denied for device $usbDeviceId")
+                _state.update { it.copy(selectedDeviceId = 0) }
+            }
+        } else {
+            Timber.w("USB device permission result for unknown device $usbDeviceId")
+        }
+    }
+
+    fun onUsbDeviceDetached(usbDeviceId: Int) {
+        Timber.d("USB device detached: $usbDeviceId")
     }
 }

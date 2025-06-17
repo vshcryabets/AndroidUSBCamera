@@ -46,11 +46,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.jiangdg.demo.R
+import com.vsh.uvc.LoadUsbDevices
 
 enum class AusbcScreen() {
     Start,
@@ -59,10 +61,14 @@ enum class AusbcScreen() {
 
 object DeviceListScreen {
     @Composable
-    fun ProductItem(product: UsbDevice, onItemClick: (UsbDevice) -> Unit) {
-        Column(modifier = Modifier
-            .clickable { onItemClick(product) }
-            .padding(8.dp)) {
+    fun ProductItem(
+        product: LoadUsbDevices.UsbDevice,
+        onItemClick: (LoadUsbDevices.UsbDevice) -> Unit
+    ) {
+        Column(
+            modifier = Modifier
+                .clickable { onItemClick(product) }
+                .padding(8.dp)) {
             Text(
                 text = "Vendor: ${product.vendorName}",
                 fontSize = 18.sp
@@ -86,8 +92,45 @@ object DeviceListScreen {
         uiState: DeviceListViewState,
         onBenchmarks: () -> Unit,
         onReload: () -> Unit,
-        onSelectUsbDevice: (UsbDevice) -> Unit
+        onUserInformedAboutPermission: () -> Unit,
+        onSelectUsbDevice: (LoadUsbDevices.UsbDevice) -> Unit,
+        onCantOpenShown: () -> Unit,
     ) {
+        if (uiState.cantOpenWithoutCameraPermission) {
+            androidx.compose.material3.AlertDialog(
+                onDismissRequest = { onCantOpenShown() },
+                confirmButton = {
+                    Button(onClick = { onCantOpenShown() }) {
+                        Text("OK")
+                    }
+                },
+                title = { Text("Can't open USB device") },
+                text = {
+                    Text(
+                        "This application requires Camera permission to work with USB webcams. " +
+                                "Please grant the permission in the app settings."
+                    )
+                }
+            )
+        }
+        if (uiState.informUserAboutPermissions) {
+            androidx.compose.material3.AlertDialog(
+                onDismissRequest = { /* TODO: handle dismiss */ },
+                confirmButton = {
+                    Button(onClick = { onUserInformedAboutPermission() }) {
+                        Text("OK")
+                    }
+                },
+                title = { Text("Permissions Required") },
+                text = {
+                    Text(
+                        "This application requires:\n\n" +
+                                "1. Android Camera permission to work with USB webcams.\n" +
+                                "2. Permission to access the selected USB device."
+                    )
+                }
+            )
+        }
         Column(
             modifier = Modifier
                 .padding(8.dp)
@@ -121,7 +164,7 @@ object DeviceListScreen {
     }
 
     @Composable
-    fun Benchmarks(benchmarkState: BenchmarkState, onShare: ()->Unit) {
+    fun Benchmarks(benchmarkState: BenchmarkState, onShare: () -> Unit) {
         Column {
             if (benchmarkState.isRunning) {
                 CircularProgressIndicator()
@@ -192,12 +235,16 @@ fun AusbcApp(
                         navController.navigate(AusbcScreen.Benchmarks.name)
                     },
                     onReload = { viewModel.onEnumerate() },
-                    onSelectUsbDevice = { viewModel.onClick(it) })
+                    onSelectUsbDevice = { viewModel.onClick(it) },
+                    onUserInformedAboutPermission = { viewModel.onUserInformedAboutPermission() },
+                    onCantOpenShown = { viewModel.onCantOpenShown() }
+                )
             }
             composable(route = AusbcScreen.Benchmarks.name) {
                 DeviceListScreen.Benchmarks(
                     benchmarkState = benchmarkState,
-                    onShare = viewModel::onShareBenchmarkResults )
+                    onShare = viewModel::onShareBenchmarkResults
+                )
             }
         }
     }
