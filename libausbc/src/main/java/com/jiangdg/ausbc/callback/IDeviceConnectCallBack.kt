@@ -1,7 +1,7 @@
 package com.jiangdg.ausbc.callback
 
 import android.hardware.usb.UsbDevice
-import com.jiangdg.usb.USBMonitor
+import com.jiangdg.usb.UsbControlBlock
 
 /**
  * I device connect call back
@@ -22,14 +22,14 @@ interface IDeviceConnectCallBack {
      *
      * @param device usb device
      */
-    fun onConnectDev(device: UsbDevice?, ctrlBlock: USBMonitor.UsbControlBlock? = null)
+    fun onConnectDev(device: UsbDevice?, ctrlBlock: UsbControlBlock? = null)
 
     /**
      * On dis connect dev
      *
      * @param device usb device
      */
-    fun onDisConnectDec(device: UsbDevice?, ctrlBlock: USBMonitor.UsbControlBlock? = null)
+    fun onDisConnectDec(device: UsbDevice?, ctrlBlock: UsbControlBlock? = null)
 
     /**
      * On cancel dev

@@ -15,15 +15,10 @@
  */
 package com.jiangdg.ausbc.utils
 
-import android.Manifest
-import android.app.ActivityManager
 import android.content.Context
 import android.content.pm.PackageManager
-import android.location.Location
-import android.location.LocationManager
 import android.os.Build
 import android.os.PowerManager
-import androidx.core.content.ContextCompat
 
 /** Common Utils
  *
@@ -43,17 +38,6 @@ object Utils  {
         return targetSdkVersion >= Build.VERSION_CODES.P
     }
 
-    fun getGpsLocation(context: Context?): Location? {
-        context?.let { ctx->
-            val locationManager = ctx.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-            val locPermission = ContextCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_FINE_LOCATION)
-            if (locPermission == PackageManager.PERMISSION_GRANTED) {
-                return locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER)
-            }
-        }
-        return null
-    }
-
     fun wakeLock(context: Context): PowerManager.WakeLock {
         val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
         val mWakeLock: PowerManager.WakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "jj:camera")
@@ -64,11 +48,5 @@ object Utils  {
 
     fun wakeUnLock(wakeLock: PowerManager.WakeLock?) {
         wakeLock?.release()
-    }
-
-    fun getGLESVersion(context: Context): String? {
-        (context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager).apply {
-            return deviceConfigurationInfo.glEsVersion
-        }
     }
 }

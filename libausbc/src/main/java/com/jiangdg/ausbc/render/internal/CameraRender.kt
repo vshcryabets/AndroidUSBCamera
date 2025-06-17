@@ -15,12 +15,12 @@
  */
 package com.jiangdg.ausbc.render.internal
 
-import android.content.Context
 import android.opengl.GLES11Ext
 import android.opengl.GLES20
 import android.opengl.Matrix
 import com.jiangdg.ausbc.R
 import com.jiangdg.ausbc.render.env.RotateType
+import com.jiangdg.ausbc.utils.ReadRawTextFileUseCase
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -29,7 +29,7 @@ import kotlin.math.sin
  *
  * @author Created by jiangdg on 2021/12/27
  */
-class CameraRender(context: Context) : AbstractFboRender(context) {
+class CameraRender(readRawTextFileUseCase: ReadRawTextFileUseCase) : AbstractFboRender(readRawTextFileUseCase) {
     private var mStMatrixHandle: Int = -1
     private var mMVPMatrixHandle: Int = -1
     private var mStMatrix = FloatArray(16)
@@ -105,8 +105,4 @@ class CameraRender(context: Context) : AbstractFboRender(context) {
     }
 
     fun getCameraTextureId() = mOESTextureId
-
-    companion object {
-        private const val TAG = "CameraRender"
-    }
 }

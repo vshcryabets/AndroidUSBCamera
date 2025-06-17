@@ -3,7 +3,7 @@ package com.jiangdg.uac;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.jiangdg.usb.USBMonitor;
+import com.jiangdg.usb.UsbControlBlock;
 
 /** usb audio engine
  *
@@ -26,7 +26,7 @@ public class UACAudio {
         System.loadLibrary("UACAudio");
     }
 
-    public void init(USBMonitor.UsbControlBlock ctrlBlock) {
+    public void init(UsbControlBlock ctrlBlock) {
         int result = -1;
         try {
             result = nativeInit(ctrlBlock.getVenderId(), ctrlBlock.getProductId(),
@@ -108,7 +108,7 @@ public class UACAudio {
         }
     }
 
-    private String getUSBFSName(final USBMonitor.UsbControlBlock ctrlBlock) {
+    private String getUSBFSName(final UsbControlBlock ctrlBlock) {
         String result = null;
         final String name = ctrlBlock.getDeviceName();
         final String[] v = !TextUtils.isEmpty(name) ? name.split("/") : null;

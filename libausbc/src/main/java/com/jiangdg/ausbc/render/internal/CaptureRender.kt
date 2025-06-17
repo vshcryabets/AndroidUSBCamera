@@ -15,10 +15,10 @@
  */
 package com.jiangdg.ausbc.render.internal
 
-import android.content.Context
 import android.opengl.GLES20
 import android.opengl.Matrix
 import com.jiangdg.ausbc.R
+import com.jiangdg.ausbc.utils.ReadRawTextFileUseCase
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -27,7 +27,7 @@ import kotlin.math.sin
  *
  * @author Created by jiangdg on 2021/12/27
  */
-class CaptureRender(context: Context) : AbstractFboRender(context) {
+class CaptureRender(readRawTextFileUseCase: ReadRawTextFileUseCase) : AbstractFboRender(readRawTextFileUseCase) {
     private var mMVPMatrixHandle: Int = -1
     private var mMVPMatrix = FloatArray(16)
 

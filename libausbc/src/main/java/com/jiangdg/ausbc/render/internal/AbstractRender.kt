@@ -15,12 +15,11 @@
  */
 package com.jiangdg.ausbc.render.internal
 
-import android.content.Context
 import android.opengl.GLES11Ext
 import android.opengl.GLES20
 import android.util.Log
 import com.jiangdg.ausbc.utils.Logger
-import com.jiangdg.ausbc.utils.MediaUtils
+import com.jiangdg.ausbc.utils.ReadRawTextFileUseCase
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
@@ -30,12 +29,12 @@ import java.nio.FloatBuffer
  *
  * @author Created by jiangdg on 2021/12/27
  */
-abstract class AbstractRender(context: Context) {
+abstract class AbstractRender(
+    private val readRawTextFileUseCase: ReadRawTextFileUseCase,
+) {
     private var mFragmentShader: Int = 0
     private var mVertexShader: Int = 0
-    private var mContext: Context? = null
     private var mStMatrixHandle = 0
-    private var mMVPMatrixHandle = 0
     protected var mWidth: Int = 0
     protected var mHeight: Int = 0
     protected var mProgram: Int = 0
@@ -48,7 +47,6 @@ abstract class AbstractRender(context: Context) {
     ).order(ByteOrder.nativeOrder()).asFloatBuffer()
 
     init {
-        this.mContext = context
         this.mTriangleVertices.put(mTriangleVerticesData).position(0)
     }
 
@@ -94,8 +92,8 @@ abstract class AbstractRender(context: Context) {
     protected abstract fun getFragmentSourceId(): Int
 
     fun initGLES() {
-        val vertexShaderSource = MediaUtils.readRawTextFile(mContext!!, getVertexSourceId())
-        val fragmentShaderSource = MediaUtils.readRawTextFile(mContext!!, getFragmentSourceId())
+        val vertexShaderSource = readRawTextFileUseCase(getVertexSourceId())
+        val fragmentShaderSource = readRawTextFileUseCase(getFragmentSourceId())
         mProgram = createProgram(vertexShaderSource, fragmentShaderSource)
         if (mProgram == 0) {
             Logger.e(TAG, "create program failed, err = ${GLES20.glGetError()}")

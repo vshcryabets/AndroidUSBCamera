@@ -15,16 +15,17 @@
  */
 package com.jiangdg.ausbc.render.internal
 
-import android.content.Context
 import android.view.Surface
 import com.jiangdg.ausbc.R
 import com.jiangdg.ausbc.render.env.EGLEvn
+import com.jiangdg.ausbc.utils.ReadRawTextFileUseCase
+
 /** Inherit from AbstractFboRender
  *      render data to screen from fbo with base_vertex.glsl and base_fragment.glsl
  *
  * @author Created by jiangdg on 2021/12/27
  */
-class ScreenRender(context: Context) : AbstractRender(context) {
+class ScreenRender(readRawTextFileUseCase: ReadRawTextFileUseCase) : AbstractRender(readRawTextFileUseCase) {
     private var mEgl: EGLEvn? = null
 
     fun initEGLEvn() {

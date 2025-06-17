@@ -1,6 +1,6 @@
 /*
  * Copyright 2017-2023 Jiangdg
- * Copyright 2024 vschryabets@gmail.com
+ * Copyright 2024-2025 vschryabets@gmail.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,12 +33,15 @@ import com.jiangdg.ausbc.MultiCameraClient
 import com.jiangdg.ausbc.callback.ICameraStateCallBack
 import com.jiangdg.ausbc.callback.IDeviceConnectCallBack
 import com.jiangdg.ausbc.camera.CameraUVC
+import com.jiangdg.ausbc.camera.ICamera
 import com.jiangdg.ausbc.camera.bean.CameraRequest
 import com.jiangdg.ausbc.camera.bean.PreviewSize
 import com.jiangdg.ausbc.render.env.RotateType
+import com.jiangdg.ausbc.utils.CheckCameraPermissionUseCaseImpl
+import com.jiangdg.ausbc.utils.ReadRawTextFileUseCaseImpl
 import com.jiangdg.ausbc.utils.SettableFuture
 import com.jiangdg.ausbc.widget.IAspectRatio
-import com.jiangdg.usb.USBMonitor
+import com.jiangdg.usb.UsbControlBlock
 import timber.log.Timber
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
@@ -50,8 +53,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
     private var mCameraView: IAspectRatio? = null
     private var mCameraClient: MultiCameraClient? = null
-    private val mCameraMap = hashMapOf<Int, MultiCameraClient.ICamera>()
-    private var mCurrentCamera: SettableFuture<MultiCameraClient.ICamera>? = null
+    private val mCameraMap = hashMapOf<Int, ICamera>()
+    private var mCurrentCamera: SettableFuture<ICamera>? = null
 
     private val mRequestPermission: AtomicBoolean by lazy {
         AtomicBoolean(false)
@@ -109,7 +112,7 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
                 }
             }
 
-            override fun onConnectDev(device: UsbDevice?, ctrlBlock: USBMonitor.UsbControlBlock?) {
+            override fun onConnectDev(device: UsbDevice?, ctrlBlock: UsbControlBlock?) {
                 device ?: return
                 ctrlBlock ?: return
                 context ?: return
@@ -129,7 +132,7 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
                 }
             }
 
-            override fun onDisConnectDec(device: UsbDevice?, ctrlBlock: USBMonitor.UsbControlBlock?) {
+            override fun onDisConnectDec(device: UsbDevice?, ctrlBlock: UsbControlBlock?) {
                 closeCamera()
                 mRequestPermission.set(false)
             }
@@ -236,9 +239,9 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
     /**
      * Get current opened camera
      *
-     * @return current camera, see [MultiCameraClient.ICamera]
+     * @return current camera, see [ICamera]
      */
-    protected fun getCurrentCamera(): MultiCameraClient.ICamera? {
+    protected fun getCurrentCamera(): ICamera? {
         return try {
             mCurrentCamera?.get(2, TimeUnit.SECONDS)
         } catch (e: Exception) {
@@ -264,8 +267,12 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
      * @param device Usb device, see [UsbDevice]
      * @return Inheritor assignment camera api policy
      */
-    protected open fun generateCamera(ctx: Context, device: UsbDevice): MultiCameraClient.ICamera {
-        return CameraUVC(ctx, device)
+    protected open fun generateCamera(ctx: Context, device: UsbDevice): ICamera {
+        return CameraUVC(
+            ctx = ctx,
+            device = device,
+            readRawTextFileUseCase = ReadRawTextFileUseCaseImpl(requireContext()),
+            checkCameraPermissionUseCase = CheckCameraPermissionUseCaseImpl(requireContext().applicationContext))
     }
 
     /**
@@ -274,21 +281,6 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
      * @return Open camera by default, should be [UsbDevice]
      */
     protected open fun getDefaultCamera(): UsbDevice? = null
-
-    /**
-     * Switch camera
-     *
-     * @param usbDevice camera usb device
-     */
-    protected fun switchCamera(usbDevice: UsbDevice) {
-        getCurrentCamera()?.closeCamera()
-        try {
-            Thread.sleep(500)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-        requestPermission(usbDevice)
-    }
 
     /**
      * Update resolution

@@ -16,9 +16,8 @@
 
 package com.vsh.uvc
 
-import android.content.Context
 import android.hardware.usb.UsbManager
-import androidx.core.content.ContextCompat
+import com.jiangdg.ausbc.utils.CheckCameraPermissionUseCase
 
 interface CheckRequirements {
     enum class Requirements {
@@ -30,14 +29,13 @@ interface CheckRequirements {
 }
 
 class CheckRequirementsImpl(
-    private val appContext: Context,
+    private val checkCameraPermissionUseCase: CheckCameraPermissionUseCase,
     private val usbManager: UsbManager,
 ) : CheckRequirements {
 
     override fun invoke(usbDeviceId: Int): Set<CheckRequirements.Requirements> {
         val result = mutableSetOf<CheckRequirements.Requirements>()
-        if (ContextCompat.checkSelfPermission(appContext, android.Manifest.permission.CAMERA) !=
-            android.content.pm.PackageManager.PERMISSION_GRANTED) {
+        if (!checkCameraPermissionUseCase()) {
             result.add(CheckRequirements.Requirements.CAMERA_PERMISSION_REQUIRED)
         }
         val usbDevice = usbManager.deviceList.values.firstOrNull {
