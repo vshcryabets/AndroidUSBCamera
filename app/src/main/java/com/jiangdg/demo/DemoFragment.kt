@@ -29,9 +29,9 @@ import android.view.ViewGroup
 import android.widget.Toast
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.list.listItemsSingleChoice
-import com.jiangdg.ausbc.MultiCameraClient
 import com.jiangdg.ausbc.base.CameraFragment
 import com.jiangdg.ausbc.callback.ICameraStateCallBack
+import com.jiangdg.ausbc.camera.ICamera
 import com.jiangdg.ausbc.utils.bus.BusKey
 import com.jiangdg.ausbc.utils.bus.EventBus
 import com.jiangdg.ausbc.widget.AspectRatioTextureView
@@ -62,7 +62,7 @@ class DemoFragment : CameraFragment(), View.OnClickListener {
     }
 
     override fun onCameraState(
-        self: MultiCameraClient.ICamera,
+        self: ICamera,
         code: ICameraStateCallBack.State,
         msg: String?
     ) {

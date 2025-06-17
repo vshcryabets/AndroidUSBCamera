@@ -36,11 +36,8 @@ class CameraRequest private constructor() {
     var audioSource: AudioSource = AudioSource.SOURCE_AUTO
     var previewFormat: PreviewFormat = PreviewFormat.FORMAT_MJPEG
 
-    @kotlin.Deprecated("Deprecated since version 3.3.0")
+    @Deprecated("Deprecated since version 3.3.0")
     var cameraId: String = ""
-
-    @kotlin.Deprecated("Deprecated since version 3.3.0")
-    var isFrontCamera: Boolean = false
 
     /**
      * Camera request builder
@@ -50,18 +47,6 @@ class CameraRequest private constructor() {
     class Builder {
         private val mRequest by lazy {
             CameraRequest()
-        }
-
-        /**
-         * Set front camera
-         *
-         * @param isFrontCamera front camera flag
-         * @return [Builder]
-         */
-        @kotlin.Deprecated("Deprecated since version 3.3.0")
-        fun setFrontCamera(isFrontCamera: Boolean): Builder {
-            mRequest.isFrontCamera = isFrontCamera
-            return this
         }
 
         /**
@@ -92,7 +77,7 @@ class CameraRequest private constructor() {
          * @param cameraId camera id
          * @return see [Builder]
          */
-        @kotlin.Deprecated("Deprecated since version 3.3.0")
+        @Deprecated("Deprecated since version 3.3.0")
         fun setCameraId(cameraId: String): Builder {
             mRequest.cameraId = cameraId
             return this

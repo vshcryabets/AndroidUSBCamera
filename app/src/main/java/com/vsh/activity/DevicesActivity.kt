@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.example.cupcake.ui.theme.AusbcTheme
+import com.jiangdg.ausbc.utils.CheckCameraPermiussionUseCaseImpl
 import com.jiangdg.demo.MainActivity
 import com.vsh.screens.AusbcApp
 import com.vsh.screens.DeviceListViewModel
@@ -50,20 +51,15 @@ class DevicesActivity : ComponentActivity() {
 
     private val usbReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            Timber.d("ASD got message $intent")
             if (intent.action == ACTION_USB_PERMISSION) {
-                Timber.d("ASD got USB permission action")
                 val device = intent.getParcelableExtra<UsbDevice>(UsbManager.EXTRA_DEVICE)
                 val granted = intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)
                 if (device != null && granted) {
-                    Timber.d("ASD USB device: $device")
                     viewModel.onUsbDevicePermissionResult(device.deviceId, true)
                 } else {
-                    Timber.d("ASD USB device is null")
                     viewModel.onUsbDevicePermissionResult(0, false)
                 }
             } else if (intent.action == UsbManager.ACTION_USB_DEVICE_DETACHED) {
-                Timber.d("ASD USB device detached")
                 val device = intent.getParcelableExtra<UsbDevice>(UsbManager.EXTRA_DEVICE)
                 if (device != null)
                     viewModel.onUsbDeviceDetached(device.deviceId)
@@ -82,7 +78,7 @@ class DevicesActivity : ComponentActivity() {
                 ),
                 jpegBenchmark = JpegBenchmarkImpl(),
                 checkRequirements = CheckRequirementsImpl(
-                    appContext = applicationContext,
+                    checkCameraPermiussionUseCase = CheckCameraPermiussionUseCaseImpl(applicationContext),
                     usbManager = applicationContext.getSystemService(USB_SERVICE) as UsbManager
                 )
             )

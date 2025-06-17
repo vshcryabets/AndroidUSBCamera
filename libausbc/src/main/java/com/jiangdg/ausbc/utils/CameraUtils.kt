@@ -1,11 +1,7 @@
 package com.jiangdg.ausbc.utils
 
-import android.Manifest
-import android.content.Context
-import android.content.pm.PackageManager
 import android.hardware.usb.UsbConstants
 import android.hardware.usb.UsbDevice
-import androidx.core.content.ContextCompat
 
 /** Camera tools
  *
@@ -30,10 +26,5 @@ object CameraUtils {
             }
         }
         return hasMic
-    }
-
-    fun hasCameraPermission(ctx: Context): Boolean{
-        val locPermission = ContextCompat.checkSelfPermission(ctx, Manifest.permission.CAMERA)
-        return locPermission == PackageManager.PERMISSION_GRANTED
     }
 }
