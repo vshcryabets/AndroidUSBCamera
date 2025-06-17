@@ -17,7 +17,7 @@
 package com.vsh.uvc
 
 import android.hardware.usb.UsbManager
-import com.jiangdg.ausbc.utils.CheckCameraPermiussionUseCase
+import com.jiangdg.ausbc.utils.CheckCameraPermissionUseCase
 
 interface CheckRequirements {
     enum class Requirements {
@@ -29,13 +29,13 @@ interface CheckRequirements {
 }
 
 class CheckRequirementsImpl(
-    private val checkCameraPermiussionUseCase: CheckCameraPermiussionUseCase,
+    private val checkCameraPermissionUseCase: CheckCameraPermissionUseCase,
     private val usbManager: UsbManager,
 ) : CheckRequirements {
 
     override fun invoke(usbDeviceId: Int): Set<CheckRequirements.Requirements> {
         val result = mutableSetOf<CheckRequirements.Requirements>()
-        if (!checkCameraPermiussionUseCase()) {
+        if (!checkCameraPermissionUseCase()) {
             result.add(CheckRequirements.Requirements.CAMERA_PERMISSION_REQUIRED)
         }
         val usbDevice = usbManager.deviceList.values.firstOrNull {

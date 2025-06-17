@@ -37,7 +37,7 @@ import com.jiangdg.ausbc.camera.ICamera
 import com.jiangdg.ausbc.camera.bean.CameraRequest
 import com.jiangdg.ausbc.camera.bean.PreviewSize
 import com.jiangdg.ausbc.render.env.RotateType
-import com.jiangdg.ausbc.utils.CheckCameraPermiussionUseCaseImpl
+import com.jiangdg.ausbc.utils.CheckCameraPermissionUseCaseImpl
 import com.jiangdg.ausbc.utils.ReadRawTextFileUseCaseImpl
 import com.jiangdg.ausbc.utils.SettableFuture
 import com.jiangdg.ausbc.widget.IAspectRatio
@@ -272,7 +272,7 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
             ctx = ctx,
             device = device,
             readRawTextFileUseCase = ReadRawTextFileUseCaseImpl(requireContext()),
-            checkCameraPermiussionUseCase = CheckCameraPermiussionUseCaseImpl(requireContext().applicationContext))
+            checkCameraPermissionUseCase = CheckCameraPermissionUseCaseImpl(requireContext().applicationContext))
     }
 
     /**

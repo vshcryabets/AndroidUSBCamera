@@ -33,7 +33,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.example.cupcake.ui.theme.AusbcTheme
-import com.jiangdg.ausbc.utils.CheckCameraPermiussionUseCaseImpl
+import com.jiangdg.ausbc.utils.CheckCameraPermissionUseCaseImpl
 import com.jiangdg.demo.MainActivity
 import com.vsh.screens.AusbcApp
 import com.vsh.screens.DeviceListViewModel
@@ -78,7 +78,7 @@ class DevicesActivity : ComponentActivity() {
                 ),
                 jpegBenchmark = JpegBenchmarkImpl(),
                 checkRequirements = CheckRequirementsImpl(
-                    checkCameraPermiussionUseCase = CheckCameraPermiussionUseCaseImpl(applicationContext),
+                    checkCameraPermissionUseCase = CheckCameraPermissionUseCaseImpl(applicationContext),
                     usbManager = applicationContext.getSystemService(USB_SERVICE) as UsbManager
                 )
             )

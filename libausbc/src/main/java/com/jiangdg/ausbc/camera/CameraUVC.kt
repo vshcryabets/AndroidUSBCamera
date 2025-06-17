@@ -25,7 +25,7 @@ import com.jiangdg.ausbc.callback.ICameraStateCallBack
 import com.jiangdg.ausbc.camera.bean.CameraRequest
 import com.jiangdg.ausbc.camera.bean.PreviewSize
 import com.jiangdg.ausbc.utils.CameraUtils
-import com.jiangdg.ausbc.utils.CheckCameraPermiussionUseCase
+import com.jiangdg.ausbc.utils.CheckCameraPermissionUseCase
 import com.jiangdg.ausbc.utils.Logger
 import com.jiangdg.ausbc.utils.ReadRawTextFileUseCase
 import com.jiangdg.ausbc.utils.Utils
@@ -40,7 +40,7 @@ class CameraUVC(
     ctx: Context,
     device: UsbDevice,
     readRawTextFileUseCase: ReadRawTextFileUseCase,
-    private val checkCameraPermiussionUseCase: CheckCameraPermiussionUseCase,
+    private val checkCameraPermissionUseCase: CheckCameraPermissionUseCase,
 ) : ICamera(
     ctx = ctx,
     device = device,
@@ -97,7 +97,7 @@ class CameraUVC(
     }
 
     override fun <T> openCameraInternal(cameraView: T) {
-        if (Utils.isTargetSdkOverP(ctx) && !checkCameraPermiussionUseCase()) {
+        if (Utils.isTargetSdkOverP(ctx) && !checkCameraPermissionUseCase()) {
             closeCamera()
             postStateEvent(ICameraStateCallBack.State.ERROR, "Has no CAMERA permission.")
             Logger.e(

@@ -20,13 +20,13 @@ import android.content.Context
 import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
 
-interface CheckCameraPermiussionUseCase {
+interface CheckCameraPermissionUseCase {
     operator fun invoke(): Boolean
 }
 
-class CheckCameraPermiussionUseCaseImpl(
+class CheckCameraPermissionUseCaseImpl(
     private val appContext: Context
-) : CheckCameraPermiussionUseCase {
+) : CheckCameraPermissionUseCase {
     override fun invoke(): Boolean {
         val locPermission = ContextCompat.checkSelfPermission(appContext, Manifest.permission.CAMERA)
         return locPermission == PackageManager.PERMISSION_GRANTED
