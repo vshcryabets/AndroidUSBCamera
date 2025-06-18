@@ -69,8 +69,8 @@ class UsbDeviceMonitorImpl(
 
     override fun getUsbDevices(): List<UsbDevicesMonitor.UsbDevice> = usbDevices.value
     override fun usbDevices(): Flow<List<UsbDevicesMonitor.UsbDevice>> = usbDevices
-    override fun attached(): Flow<List<UsbDevicesMonitor.UsbDevice>> = detached
-    override fun detached(): Flow<List<UsbDevicesMonitor.UsbDevice>> = attached
+    override fun attached(): Flow<List<UsbDevicesMonitor.UsbDevice>> = attached
+    override fun detached(): Flow<List<UsbDevicesMonitor.UsbDevice>> = detached
 
     override fun startSession(): Int {
         val id = sessionCounter.incrementAndGet()
