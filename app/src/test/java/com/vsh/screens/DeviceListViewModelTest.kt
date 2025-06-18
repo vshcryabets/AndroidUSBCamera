@@ -2,7 +2,8 @@ package com.vsh.screens
 
 import com.vsh.uvc.CheckRequirements
 import com.vsh.uvc.JpegBenchmark
-import com.vsh.uvc.LoadUsbDevices
+import com.vsh.uvc.UsbDevicesMonitor
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 import org.junit.Assert
 import org.junit.Test
@@ -13,9 +14,33 @@ class DeviceListViewModelTest {
             return emptySet()
         }
     }
-    val loadUsbDevices = object: LoadUsbDevices {
-        override fun load(): List<LoadUsbDevices.UsbDevice> {
-            return emptyList()
+    val usbDevicesMonitor = object: UsbDevicesMonitor {
+        override fun getUsbDevices(): List<UsbDevicesMonitor.UsbDevice> {
+            TODO("Not yet implemented")
+        }
+
+        override fun usbDevices(): Flow<List<UsbDevicesMonitor.UsbDevice>> {
+            TODO("Not yet implemented")
+        }
+
+        override fun attached(): Flow<List<UsbDevicesMonitor.UsbDevice>> {
+            TODO("Not yet implemented")
+        }
+
+        override fun detached(): Flow<List<UsbDevicesMonitor.UsbDevice>> {
+            TODO("Not yet implemented")
+        }
+
+        override fun startSession(): Int {
+            TODO("Not yet implemented")
+        }
+
+        override fun stopSesstion(sessionId: Int) {
+            TODO("Not yet implemented")
+        }
+
+        override fun forceReload() {
+            TODO("Not yet implemented")
         }
     }
     val checkRequirementsNoUsb = object: CheckRequirements {
@@ -37,7 +62,7 @@ class DeviceListViewModelTest {
             TODO("Not yet implemented")
         }
     }
-    val testUsbDevice = LoadUsbDevices.UsbDevice(
+    val testUsbDevice = UsbDevicesMonitor.UsbDevice(
         usbDeviceId = 1,
         displayName = "Test Device",
         vendorName = "Test Vendor",
@@ -49,7 +74,7 @@ class DeviceListViewModelTest {
         val vm = DeviceListViewModel(
             jpegBenchmark = jpegBenchmark,
             checkRequirements =checkRequirementsAllGranted,
-            loadUsbDevices = loadUsbDevices
+            usbDevicesMonitor = usbDevicesMonitor
         )
         vm.onClick(testUsbDevice)
         val state = vm.state.value
@@ -62,7 +87,7 @@ class DeviceListViewModelTest {
         val vm = DeviceListViewModel(
             jpegBenchmark = jpegBenchmark,
             checkRequirements = checkRequirementsNoUsb,
-            loadUsbDevices = loadUsbDevices
+            usbDevicesMonitor = usbDevicesMonitor
         )
         vm.onClick(testUsbDevice)
         var state = vm.state.value
@@ -79,7 +104,7 @@ class DeviceListViewModelTest {
         val vm = DeviceListViewModel(
             jpegBenchmark = jpegBenchmark,
             checkRequirements = checkRequirementsNoCamera,
-            loadUsbDevices = loadUsbDevices
+            usbDevicesMonitor = usbDevicesMonitor
         )
         vm.onClick(testUsbDevice)
         var state = vm.state.value

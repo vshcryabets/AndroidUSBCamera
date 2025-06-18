@@ -1,3 +1,25 @@
+/*
+ *  UVCCamera
+ *  library and sample to access to UVC web camera on non-rooted Android device
+ *
+ * Copyright (c) 2014-2017 saki t_saki@serenegiant.com
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *
+ *  All files in the folder are under this Apache License, Version 2.0.
+ *  Files in the libjpeg-turbo, libusb, libuvc, rapidjson folder
+ *  may have a different license, see the respective files.
+ */
 package com.jiangdg.usb;
 
 import android.hardware.usb.UsbDevice;
@@ -19,13 +41,13 @@ public class UsbControlBlock implements Cloneable {
     private final WeakReference<USBMonitor> mWeakMonitor;
     private final WeakReference<UsbDevice> mWeakDevice;
     protected UsbDeviceConnection mConnection;
-    protected final UsbDeviceInfo mInfo;
     private final int mBusNum;
     private final int mDevNum;
     private final SparseArray<SparseArray<UsbInterface>> mInterfaces = new SparseArray<SparseArray<UsbInterface>>();
 
     /**
      * this class needs permission to access USB device before constructing
+     *
      * @param monitor
      * @param device
      */
@@ -43,14 +65,13 @@ public class UsbControlBlock implements Cloneable {
             }
             mConnection = monitor.mUsbManager.openDevice(device);
         }
-        mInfo = monitor.updateDeviceInfo(monitor.mUsbManager, device, null);
         final String name = device.getDeviceName();
         final String[] v = !TextUtils.isEmpty(name) ? name.split("/") : null;
         int busnum = 0;
         int devnum = 0;
         if (v != null) {
-            busnum = Integer.parseInt(v[v.length-2]);
-            devnum = Integer.parseInt(v[v.length-1]);
+            busnum = Integer.parseInt(v[v.length - 2]);
+            devnum = Integer.parseInt(v[v.length - 1]);
         }
         mBusNum = busnum;
         mDevNum = devnum;
@@ -67,6 +88,7 @@ public class UsbControlBlock implements Cloneable {
 
     /**
      * copy constructor
+     *
      * @param src
      * @throws IllegalStateException
      */
@@ -89,7 +111,6 @@ public class UsbControlBlock implements Cloneable {
                 throw new IllegalStateException("openDevice failed. device may already be removed or have no permission, dev = " + device);
             }
         }
-        mInfo = monitor.updateDeviceInfo(monitor.mUsbManager, device, null);
         mWeakMonitor = new WeakReference<USBMonitor>(monitor);
         mWeakDevice = new WeakReference<UsbDevice>(device);
         mBusNum = src.mBusNum;
@@ -101,6 +122,7 @@ public class UsbControlBlock implements Cloneable {
      * duplicate by clone
      * need permission
      * USBMonitor never handle cloned UsbControlBlock, you should release it after using it.
+     *
      * @return
      * @throws CloneNotSupportedException
      */
@@ -125,7 +147,6 @@ public class UsbControlBlock implements Cloneable {
 
     /**
      * get device name
-     * @return
      */
     public String getDeviceName() {
         final UsbDevice device = mWeakDevice.get();
@@ -134,7 +155,6 @@ public class UsbControlBlock implements Cloneable {
 
     /**
      * get UsbDeviceConnection
-     * @return
      */
     public synchronized UsbDeviceConnection getConnection() {
         return mConnection;
@@ -142,8 +162,6 @@ public class UsbControlBlock implements Cloneable {
 
     /**
      * get file descriptor to access USB device
-     * @return
-     * @throws IllegalStateException
      */
     public synchronized int getFileDescriptor() throws IllegalStateException {
         checkConnection();
@@ -152,7 +170,6 @@ public class UsbControlBlock implements Cloneable {
 
     /**
      * get vendor id
-     * @return
      */
     public int getVenderId() {
         final UsbDevice device = mWeakDevice.get();
@@ -161,27 +178,10 @@ public class UsbControlBlock implements Cloneable {
 
     /**
      * get product id
-     * @return
      */
     public int getProductId() {
         final UsbDevice device = mWeakDevice.get();
         return device != null ? device.getProductId() : 0;
-    }
-
-    /**
-     * get version
-     * @return
-     */
-    public String getVersion() {
-        return mInfo.getVersion();
-    }
-
-    /**
-     * get serial number
-     * @return
-     */
-    public String getSerial() {
-        return mInfo.getSerial();
     }
 
     public int getBusNum() {
@@ -237,6 +237,7 @@ public class UsbControlBlock implements Cloneable {
         }
         return super.equals(o);
     }
+
     private synchronized void checkConnection() throws IllegalStateException {
         if (mConnection == null) {
             throw new IllegalStateException("already closed");
