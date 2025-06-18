@@ -22,9 +22,8 @@ import androidx.lifecycle.viewModelScope
 import com.jiangdg.demo.BuildConfig
 import com.vsh.uvc.CheckRequirements
 import com.vsh.uvc.JpegBenchmark
-import com.vsh.uvc.LoadUsbDevices
+import com.vsh.uvc.UsbDevicesMonitor
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -33,7 +32,7 @@ import timber.log.Timber
 
 
 data class DeviceListViewState(
-    val devices: List<LoadUsbDevices.UsbDevice> = emptyList(),
+    val devices: List<UsbDevicesMonitor.UsbDevice> = emptyList(),
     val openPreviewDevice: Boolean = false,
     val selectedDeviceId: Int = 0,
     val requestCameraPermission: Boolean = false,
@@ -41,6 +40,7 @@ data class DeviceListViewState(
     val userInformedAboutPermission: Boolean = false,
     val informUserAboutPermissions: Boolean = false,
     val cantOpenWithoutCameraPermission: Boolean = false,
+    val usbMonitorSession: Int = -1,
 )
 
 data class BenchmarkState(
@@ -52,21 +52,21 @@ data class BenchmarkState(
 class DeviceListViewModelFactory(
     private val jpegBenchmark: JpegBenchmark,
     private val checkRequirements: CheckRequirements,
-    private val loadUsbDevices: LoadUsbDevices,
+    private val usbDevicesMonitor: UsbDevicesMonitor,
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T =
         DeviceListViewModel(
             jpegBenchmark = jpegBenchmark,
             checkRequirements = checkRequirements,
-            loadUsbDevices = loadUsbDevices
+            usbDevicesMonitor = usbDevicesMonitor,
         ) as T
 }
 
 class DeviceListViewModel(
     private val jpegBenchmark: JpegBenchmark,
     private val checkRequirements: CheckRequirements,
-    private val loadUsbDevices: LoadUsbDevices,
+    private val usbDevicesMonitor: UsbDevicesMonitor,
 ) : ViewModel() {
     private val _state = MutableStateFlow(
         DeviceListViewState()
@@ -89,27 +89,29 @@ class DeviceListViewModel(
             loadDevicesJob?.cancel()
             loadDevicesJob = viewModelScope.launch {
                 isActive = true
-                while (isActive) {
-                    onEnumerate()
-                    delay(1000L)
+                usbDevicesMonitor.usbDevices().collect { devices ->
+                    Timber.d("USB devices updated: ${devices.size}")
+                    _state.update { it.copy(devices = devices) }
                 }
             }
+        }
+        val usbSessionId = usbDevicesMonitor.startSession()
+        _state.update {
+            it.copy(
+                usbMonitorSession = usbSessionId,
+            )
         }
     }
 
     fun stop() {
+        usbDevicesMonitor.stopSesstion(state.value.usbMonitorSession)
+        _state.update { it.copy(usbMonitorSession = -1) }
         isActive = false
         loadDevicesJob?.cancel()
         loadDevicesJob = null
     }
 
-    fun onEnumerate() {
-        _state.update {
-            it.copy(
-                devices = loadUsbDevices.load()
-            )
-        }
-    }
+    fun onReloadUsbDevices() { usbDevicesMonitor.forceReload() }
 
     fun onUserInformedAboutPermission() {
         _state.update {
@@ -149,7 +151,7 @@ class DeviceListViewModel(
         }
     }
 
-    fun onClick(device: LoadUsbDevices.UsbDevice) {
+    fun onClick(device: UsbDevicesMonitor.UsbDevice) {
         _state.update { it.copy(selectedDeviceId = device.usbDeviceId) }
         tryOpenDevice()
     }
@@ -253,9 +255,5 @@ class DeviceListViewModel(
         } else {
             Timber.w("USB device permission result for unknown device $usbDeviceId")
         }
-    }
-
-    fun onUsbDeviceDetached(usbDeviceId: Int) {
-        Timber.d("USB device detached: $usbDeviceId")
     }
 }

@@ -23,14 +23,12 @@
 package com.jiangdg.usb;
 
 import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.hardware.usb.UsbDevice;
-import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 import android.os.Build;
 import android.os.Handler;
@@ -40,7 +38,6 @@ import android.util.SparseArray;
 import com.jiangdg.utils.BuildCheck;
 import com.jiangdg.utils.HandlerThreadHandler;
 
-import java.io.UnsupportedEncodingException;
 import java.lang.ref.WeakReference;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -188,7 +185,7 @@ public final class USBMonitor {
     private boolean updatePermission(final UsbDevice device, final boolean hasPermission) {
         // fix api >= 29, permission SecurityException
         try {
-            final int deviceKey = getDeviceKey(device, true);
+            final int deviceKey = getDeviceKey(device);
             synchronized (mHasPermissions) {
                 if (hasPermission) {
                     if (mHasPermissions.get(deviceKey) == null) {
@@ -355,11 +352,9 @@ public final class USBMonitor {
      *
      * @param device    nullなら空文字列を返す
      * @param serial    UsbDeviceConnection#getSerialで取得したシリアル番号を渡す, nullでuseNewAPI=trueでAPI>=21なら内部で取得
-     * @param useNewAPI API>=21またはAPI>=23のみで使用可能なメソッドも使用する(ただし機器によってはnullが返ってくるので有効かどうかは機器による)
-     * @return
      */
     @SuppressLint("NewApi")
-    public static String getDeviceKeyName(final UsbDevice device, final String serial, final boolean useNewAPI) {
+    public String getDeviceKeyName(final UsbDevice device, final String serial) {
         if (device == null) return "";
         final StringBuilder sb = new StringBuilder();
         sb.append(device.getVendorId());
@@ -375,24 +370,22 @@ public final class USBMonitor {
             sb.append("#");
             sb.append(serial);
         }
-        if (useNewAPI && BuildCheck.isAndroid5()) {
-            sb.append("#");
-            if (TextUtils.isEmpty(serial)) {
-                try {
-                    sb.append(device.getSerialNumber());
-                    sb.append("#");
-                } // API >= 21 & targetSdkVersion has to be <= 28
-                catch (SecurityException ignore) {
-                }
+        sb.append("#");
+        if (TextUtils.isEmpty(serial)) {
+            try {
+                sb.append(device.getSerialNumber());
+                sb.append("#");
+            } // API >= 21 & targetSdkVersion has to be <= 28
+            catch (SecurityException ignore) {
             }
-            sb.append(device.getManufacturerName());
-            sb.append("#");    // API >= 21
-            sb.append(device.getConfigurationCount());
-            sb.append("#");    // API >= 21
-            if (BuildCheck.isMarshmallow()) {
-                sb.append(device.getVersion());
-                sb.append("#");    // API >= 23
-            }
+        }
+        sb.append(device.getManufacturerName());
+        sb.append("#");    // API >= 21
+        sb.append(device.getConfigurationCount());
+        sb.append("#");    // API >= 21
+        if (BuildCheck.isMarshmallow()) {
+            sb.append(device.getVersion());
+            sb.append("#");    // API >= 23
         }
         return sb.toString();
     }
@@ -401,186 +394,9 @@ public final class USBMonitor {
      * デバイスキーを整数として取得
      * getDeviceKeyNameで得られる文字列のhasCodeを取得
      * useNewAPI=falseで同種の製品だと同じデバイスキーになるので注意
-     *
-     * @param device
-     * @param useNewAPI
-     * @return
      */
-    public static int getDeviceKey(final UsbDevice device, final boolean useNewAPI) {
-        return device != null ? getDeviceKeyName(device, null, useNewAPI).hashCode() : 0;
+    public int getDeviceKey(final UsbDevice device) {
+        return device != null ? getDeviceKeyName(device, null).hashCode() : 0;
     }
 
-    private static final int USB_DIR_OUT = 0;
-    private static final int USB_DIR_IN = 0x80;
-    private static final int USB_TYPE_MASK = (0x03 << 5);
-    private static final int USB_TYPE_STANDARD = (0x00 << 5);
-    private static final int USB_TYPE_CLASS = (0x01 << 5);
-    private static final int USB_TYPE_VENDOR = (0x02 << 5);
-    private static final int USB_TYPE_RESERVED = (0x03 << 5);
-    private static final int USB_RECIP_MASK = 0x1f;
-    private static final int USB_RECIP_DEVICE = 0x00;
-    private static final int USB_RECIP_INTERFACE = 0x01;
-    private static final int USB_RECIP_ENDPOINT = 0x02;
-    private static final int USB_RECIP_OTHER = 0x03;
-    private static final int USB_RECIP_PORT = 0x04;
-    private static final int USB_RECIP_RPIPE = 0x05;
-    private static final int USB_REQ_GET_STATUS = 0x00;
-    private static final int USB_REQ_CLEAR_FEATURE = 0x01;
-    private static final int USB_REQ_SET_FEATURE = 0x03;
-    private static final int USB_REQ_SET_ADDRESS = 0x05;
-    private static final int USB_REQ_GET_DESCRIPTOR = 0x06;
-    private static final int USB_REQ_SET_DESCRIPTOR = 0x07;
-    private static final int USB_REQ_GET_CONFIGURATION = 0x08;
-    private static final int USB_REQ_SET_CONFIGURATION = 0x09;
-    private static final int USB_REQ_GET_INTERFACE = 0x0A;
-    private static final int USB_REQ_SET_INTERFACE = 0x0B;
-    private static final int USB_REQ_SYNCH_FRAME = 0x0C;
-    private static final int USB_REQ_SET_SEL = 0x30;
-    private static final int USB_REQ_SET_ISOCH_DELAY = 0x31;
-    private static final int USB_REQ_SET_ENCRYPTION = 0x0D;
-    private static final int USB_REQ_GET_ENCRYPTION = 0x0E;
-    private static final int USB_REQ_RPIPE_ABORT = 0x0E;
-    private static final int USB_REQ_SET_HANDSHAKE = 0x0F;
-    private static final int USB_REQ_RPIPE_RESET = 0x0F;
-    private static final int USB_REQ_GET_HANDSHAKE = 0x10;
-    private static final int USB_REQ_SET_CONNECTION = 0x11;
-    private static final int USB_REQ_SET_SECURITY_DATA = 0x12;
-    private static final int USB_REQ_GET_SECURITY_DATA = 0x13;
-    private static final int USB_REQ_SET_WUSB_DATA = 0x14;
-    private static final int USB_REQ_LOOPBACK_DATA_WRITE = 0x15;
-    private static final int USB_REQ_LOOPBACK_DATA_READ = 0x16;
-    private static final int USB_REQ_SET_INTERFACE_DS = 0x17;
-
-    private static final int USB_REQ_STANDARD_DEVICE_SET = (USB_DIR_OUT | USB_TYPE_STANDARD | USB_RECIP_DEVICE);        // 0x10
-    private static final int USB_REQ_STANDARD_DEVICE_GET = (USB_DIR_IN | USB_TYPE_STANDARD | USB_RECIP_DEVICE);            // 0x90
-    private static final int USB_REQ_STANDARD_INTERFACE_SET = (USB_DIR_OUT | USB_TYPE_STANDARD | USB_RECIP_INTERFACE);    // 0x11
-    private static final int USB_REQ_STANDARD_INTERFACE_GET = (USB_DIR_IN | USB_TYPE_STANDARD | USB_RECIP_INTERFACE);    // 0x91
-    private static final int USB_REQ_STANDARD_ENDPOINT_SET = (USB_DIR_OUT | USB_TYPE_STANDARD | USB_RECIP_ENDPOINT);    // 0x12
-    private static final int USB_REQ_STANDARD_ENDPOINT_GET = (USB_DIR_IN | USB_TYPE_STANDARD | USB_RECIP_ENDPOINT);        // 0x92
-
-    private static final int USB_REQ_CS_DEVICE_SET = (USB_DIR_OUT | USB_TYPE_CLASS | USB_RECIP_DEVICE);                // 0x20
-    private static final int USB_REQ_CS_DEVICE_GET = (USB_DIR_IN | USB_TYPE_CLASS | USB_RECIP_DEVICE);                    // 0xa0
-    private static final int USB_REQ_CS_INTERFACE_SET = (USB_DIR_OUT | USB_TYPE_CLASS | USB_RECIP_INTERFACE);            // 0x21
-    private static final int USB_REQ_CS_INTERFACE_GET = (USB_DIR_IN | USB_TYPE_CLASS | USB_RECIP_INTERFACE);            // 0xa1
-    private static final int USB_REQ_CS_ENDPOINT_SET = (USB_DIR_OUT | USB_TYPE_CLASS | USB_RECIP_ENDPOINT);                // 0x22
-    private static final int USB_REQ_CS_ENDPOINT_GET = (USB_DIR_IN | USB_TYPE_CLASS | USB_RECIP_ENDPOINT);                // 0xa2
-
-    private static final int USB_REQ_VENDER_DEVICE_SET = (USB_DIR_OUT | USB_TYPE_CLASS | USB_RECIP_DEVICE);                // 0x40
-    private static final int USB_REQ_VENDER_DEVICE_GET = (USB_DIR_IN | USB_TYPE_CLASS | USB_RECIP_DEVICE);                // 0xc0
-    private static final int USB_REQ_VENDER_INTERFACE_SET = (USB_DIR_OUT | USB_TYPE_CLASS | USB_RECIP_INTERFACE);        // 0x41
-    private static final int USB_REQ_VENDER_INTERFACE_GET = (USB_DIR_IN | USB_TYPE_CLASS | USB_RECIP_INTERFACE);        // 0xc1
-    private static final int USB_REQ_VENDER_ENDPOINT_SET = (USB_DIR_OUT | USB_TYPE_CLASS | USB_RECIP_ENDPOINT);            // 0x42
-    private static final int USB_REQ_VENDER_ENDPOINT_GET = (USB_DIR_IN | USB_TYPE_CLASS | USB_RECIP_ENDPOINT);            // 0xc2
-
-    private static final int USB_DT_DEVICE = 0x01;
-    private static final int USB_DT_CONFIG = 0x02;
-    private static final int USB_DT_STRING = 0x03;
-    private static final int USB_DT_INTERFACE = 0x04;
-    private static final int USB_DT_ENDPOINT = 0x05;
-
-    /**
-     * Get a string from the String descriptor with the specified ID. Returns null if it cannot be obtained.
-     */
-    private static String getString(final UsbDeviceConnection connection,
-                                    final int id,
-                                    final int languageCount,
-                                    final byte[] languages) {
-        final byte[] work = new byte[256];
-        String result = "";
-        for (int i = 1; i <= languageCount; i++) {
-            int ret = connection.controlTransfer(
-                    USB_REQ_STANDARD_DEVICE_GET, // USB_DIR_IN | USB_TYPE_STANDARD | USB_RECIP_DEVICE
-                    USB_REQ_GET_DESCRIPTOR,
-                    (USB_DT_STRING << 8) | id, languages[i], work, 256, 0);
-            if ((ret > 2) && (work[0] == ret) && (work[1] == USB_DT_STRING)) {
-                // skip first two bytes(bLength & bDescriptorType), and copy the rest to the string
-                try {
-                    result = new String(work, 2, ret - 2, "UTF-16LE");
-                    if (!"Љ".equals(result)) {    // Sometimes strange garbage is returned
-                        break;
-                    } else {
-                        result = "";
-                    }
-                } catch (final UnsupportedEncodingException e) {
-                    // ignore
-                }
-            }
-        }
-        return result;
-    }
-
-    /**
-     * Get vendor name, product name, version, and serial number
-     */
-    @TargetApi(Build.VERSION_CODES.M)
-    public static UsbDeviceInfo updateDeviceInfo(final UsbManager manager,
-                                                 final UsbDevice device,
-                                                 final UsbDeviceInfo _info) {
-        final UsbDeviceInfo info = _info != null ? _info : new UsbDeviceInfo();
-        info.clear();
-
-        if (device != null) {
-            if (BuildCheck.isLollipop()) {
-                info.setManufacturer(device.getManufacturerName() != null ? device.getManufacturerName() : "");
-                info.setProduct(device.getProductName() != null ? device.getProductName() : "");
-                info.setSerial(device.getSerialNumber() != null ? device.getSerialNumber() : "");
-            }
-            if (BuildCheck.isMarshmallow()) {
-                info.setUsb_version(device.getVersion());
-            }
-            if ((manager != null) && manager.hasPermission(device)) {
-                final UsbDeviceConnection connection = manager.openDevice(device);
-                if (connection == null) {
-                    return null;
-                }
-                final byte[] desc = connection.getRawDescriptors();
-
-                if (TextUtils.isEmpty(info.getUsb_version())) {
-                    info.setUsb_version(String.format("%x.%02x", ((int) desc[3] & 0xff), ((int) desc[2] & 0xff)));
-                }
-                if (TextUtils.isEmpty(info.getVersion())) {
-                    info.setVersion(String.format("%x.%02x", ((int) desc[13] & 0xff), ((int) desc[12] & 0xff)));
-                }
-                if (TextUtils.isEmpty(info.getSerial())) {
-                    info.setSerial(connection.getSerial());
-                }
-
-                final byte[] languages = new byte[256];
-                int languageCount = 0;
-                // controlTransfer(int requestType, int request, int value, int index, byte[] buffer, int length, int timeout)
-                try {
-                    int result = connection.controlTransfer(
-                            USB_REQ_STANDARD_DEVICE_GET, // USB_DIR_IN | USB_TYPE_STANDARD | USB_RECIP_DEVICE
-                            USB_REQ_GET_DESCRIPTOR,
-                            (USB_DT_STRING << 8) | 0, 0, languages, 256, 0);
-                    if (result > 0) {
-                        languageCount = (result - 2) / 2;
-                    }
-                    if (languageCount > 0) {
-                        if (TextUtils.isEmpty(info.getManufacturer())) {
-                            info.setManufacturer(getString(connection, desc[14], languageCount, languages));
-                        }
-                        if (TextUtils.isEmpty(info.getProduct())) {
-                            info.setProduct(getString(connection, desc[15], languageCount, languages));
-                        }
-                        if (TextUtils.isEmpty(info.getSerial())) {
-                            info.setSerial(getString(connection, desc[16], languageCount, languages));
-                        }
-                    }
-                } finally {
-                    connection.close();
-                }
-            }
-            if (TextUtils.isEmpty(info.getManufacturer())) {
-                info.setManufacturer(USBVendorId.INSTANCE.vendorName(device.getVendorId()));
-            }
-            if (TextUtils.isEmpty(info.getManufacturer())) {
-                info.setManufacturer(String.format("%04x", device.getVendorId()));
-            }
-            if (TextUtils.isEmpty(info.getProduct())) {
-                info.setProduct(String.format("%04x", device.getProductId()));
-            }
-        }
-        return info;
-    }
 }

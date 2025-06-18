@@ -48,20 +48,6 @@ public final class BuildCheck {
     }
 
     /**
-     * Lollipop.  A flat one with beautiful shadows.  But still tasty., API>=21
-     */
-    public static boolean isAndroid5() {
-        return check(Build.VERSION_CODES.LOLLIPOP);
-    }
-
-    /**
-     * Lollipop with an extra sugar coating on the outside!, API>=22
-     */
-    public static boolean isLollipopMR1() {
-        return (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1);
-    }
-
-    /**
      * Marshmallow.  A flat one with beautiful shadows.  But still tasty., API>=23
      */
     public static boolean isM() {

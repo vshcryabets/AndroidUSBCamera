@@ -40,7 +40,7 @@ import com.vsh.screens.DeviceListViewModel
 import com.vsh.screens.DeviceListViewModelFactory
 import com.vsh.uvc.CheckRequirementsImpl
 import com.vsh.uvc.JpegBenchmarkImpl
-import com.vsh.uvc.LoadUsbDevicesImpl
+import com.vsh.uvc.UsbDeviceMonitorImpl
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -59,10 +59,6 @@ class DevicesActivity : ComponentActivity() {
                 } else {
                     viewModel.onUsbDevicePermissionResult(0, false)
                 }
-            } else if (intent.action == UsbManager.ACTION_USB_DEVICE_DETACHED) {
-                val device = intent.getParcelableExtra<UsbDevice>(UsbManager.EXTRA_DEVICE)
-                if (device != null)
-                    viewModel.onUsbDeviceDetached(device.deviceId)
             }
         }
     }
@@ -73,8 +69,9 @@ class DevicesActivity : ComponentActivity() {
         getWindow().getDecorView().setBackgroundColor(Color.White.toArgb())
         viewModel = ViewModelProvider(
             this, DeviceListViewModelFactory(
-                loadUsbDevices = LoadUsbDevicesImpl(
+                usbDevicesMonitor = UsbDeviceMonitorImpl(
                     usbManager = applicationContext.getSystemService(USB_SERVICE) as UsbManager,
+                    contextWrapper = contextWrapper
                 ),
                 jpegBenchmark = JpegBenchmarkImpl(),
                 checkRequirements = CheckRequirementsImpl(
@@ -94,7 +91,6 @@ class DevicesActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         val filter = IntentFilter(ACTION_USB_PERMISSION)
-        filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED)
         contextWrapper.registerReceiver(usbReceiver, filter, Context.RECEIVER_EXPORTED)
         viewModel.begin()
 
