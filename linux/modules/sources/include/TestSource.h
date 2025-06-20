@@ -7,8 +7,12 @@ class TestSource: public Source {
         uint8_t* testData {nullptr};
         size_t testDataSize {0};
         std::vector<uint32_t> testRGBAColors;
+        const uint8_t *customFont;
+    private:
+        void drawString(std::string str, uint16_t x, uint16_t y, uint8_t upscale = 1);
+        void drawChar(char c, uint16_t x, uint16_t y, uint8_t upscale = 1);
     public:
-        TestSource();
+        TestSource(const uint8_t *customFont);
         virtual ~TestSource();
         virtual Frame readFrame() override;
         void startCapturing(const CaptureConfiguration &config) override;
