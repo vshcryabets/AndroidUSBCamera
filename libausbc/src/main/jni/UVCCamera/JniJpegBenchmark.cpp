@@ -29,7 +29,7 @@
 extern "C" {
 
 JNIEXPORT void JNICALL
-Java_com_vsh_uvc_JpegBenchmark_nativeStartBenchmark(JNIEnv *env,
+Java_com_vsh_uvc_JpegBenchmarkImpl_nativeStartBenchmark(JNIEnv *env,
                                                     jobject thiz,
                                                     jlong ptr,
                                                     jint iterations,
@@ -63,31 +63,31 @@ Java_com_vsh_uvc_JpegBenchmark_nativeStartBenchmark(JNIEnv *env,
 }
 
 JNIEXPORT void JNICALL
-Java_com_vsh_uvc_JpegBenchmark_nativeCancelBenchmark(JNIEnv *env,
+Java_com_vsh_uvc_JpegBenchmarkImpl_nativeCancelBenchmark(JNIEnv *env,
                                                      jobject thiz,
                                                      jlong ptr) {
     // TODO: implement nativeCancelBenchmark()
 }
 
 JNIEXPORT jobject JNICALL
-Java_com_vsh_uvc_JpegBenchmark_nativeGetBenchamrkResults(JNIEnv *env, jobject thiz, jlong id) {
+Java_com_vsh_uvc_JpegBenchmarkImpl_nativeGetBenchamrkResults(JNIEnv *env, jobject thiz, jlong id) {
     // TODO: implement nativeGetBenchamrkResults()
 }
 
 JNIEXPORT jlong JNICALL
-Java_com_vsh_uvc_JpegBenchmark_nativeCreateBenchmark(JNIEnv *env, jobject thiz) {
+Java_com_vsh_uvc_JpegBenchmarkImpl_nativeCreateBenchmark(JNIEnv *env, jobject thiz) {
     auto *result = new JniJpegBenchmark();
     return reinterpret_cast<jlong>(result);
 }
 
 JNIEXPORT void JNICALL
-Java_com_vsh_uvc_JpegBenchmark_nativeDestroyBenchmark(JNIEnv *env, jobject thiz, jlong ptr) {
+Java_com_vsh_uvc_JpegBenchmarkImpl_nativeDestroyBenchmark(JNIEnv *env, jobject thiz, jlong ptr) {
     auto *result = reinterpret_cast<JniJpegBenchmark *>(ptr);
     delete result;
 }
 
 JNIEXPORT jstring JNICALL
-Java_com_vsh_uvc_JpegBenchmark_getDecoderName(JNIEnv *env, jobject thiz, jlong ptr) {
+Java_com_vsh_uvc_JpegBenchmarkImpl_getDecoderName(JNIEnv *env, jobject thiz, jlong ptr) {
     auto decoderName = DI::getInstance()->getUseCases()->imageDecoder->getDecoderName();
     return env->NewStringUTF(decoderName.c_str());
 }

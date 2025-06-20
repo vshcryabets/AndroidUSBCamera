@@ -22,6 +22,8 @@ ndk = "25.2.9519653"
 navigationRuntimeKtx = "2.8.9"
 navigationCompose = "2.8.9"
 material3Android = "1.3.2"
+junitJupiter = "5.8.1"
+junit = "4.12"
 
 [libraries]
 android-maven-gradle-plugin = { module = "com.github.dcendents:android-maven-gradle-plugin", version.ref = "androidMavenGradlePlugin" }
@@ -46,5 +48,7 @@ timber = "com.jakewharton.timber:timber:5.0.1"
 androidx-navigation-runtime-ktx = { group = "androidx.navigation", name = "navigation-runtime-ktx", version.ref = "navigationRuntimeKtx" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 androidx-material3-android = { group = "androidx.compose.material3", name = "material3-android", version.ref = "material3Android" }
+junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junitJupiter" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
 
 [plugins]

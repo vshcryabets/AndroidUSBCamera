@@ -1,6 +1,21 @@
+/*
+ * Copyright 2025 vschryabets@gmail.com
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.vsh.uvc
 
-import android.content.Context
 import android.os.ParcelFileDescriptor
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -9,11 +24,7 @@ import java.io.BufferedInputStream
 import java.io.DataInputStream
 import java.io.FileInputStream
 
-
-class JpegBenchmark(
-    private val context: Context
-) {
-
+interface JpegBenchmark {
     data class JpegBenchmarkProgress(
         val currentSampleNumber: Int = 0,
         val results: MutableList<Pair<Int, Long>> = mutableListOf(),
@@ -21,7 +32,17 @@ class JpegBenchmark(
         val completed: Boolean = false
     )
 
-    private fun deserializer(reader: DataInputStream): JpegBenchmarkProgress {
+    data class Arguments(
+        val imageSamples: List<Pair<Int, String>>,
+        val iterations: Int,
+    )
+
+    fun getDecoderName(): String
+    fun startBenchmark(args: Arguments): SharedFlow<JpegBenchmarkProgress>
+}
+
+class JpegBenchmarkImpl: JpegBenchmark {
+    private fun deserializer(reader: DataInputStream): JpegBenchmark.JpegBenchmarkProgress {
         // Read currentSampleNumber
         val currentSampleNumber = reader.readInt()
         // Read itemsCount
@@ -35,7 +56,7 @@ class JpegBenchmark(
         }
         // Read totalTime
         val totalTime = reader.readLong()
-        return JpegBenchmarkProgress(
+        return JpegBenchmark.JpegBenchmarkProgress(
             currentSampleNumber = currentSampleNumber,
             totalTime = totalTime,
             completed = false,
@@ -43,18 +64,13 @@ class JpegBenchmark(
         )
     }
 
-    data class Arguments(
-        val imageSamples: List<Pair<Int, String>>,
-        val iterations: Int,
-    )
-
     var ptr: Long = 0
 
     init {
         ptr = nativeCreateBenchmark()
     }
 
-    fun startBenchmark(args: Arguments): SharedFlow<JpegBenchmarkProgress> {
+    override fun startBenchmark(args: JpegBenchmark.Arguments): SharedFlow<JpegBenchmark.JpegBenchmarkProgress> {
         val pipes = ParcelFileDescriptor.createPipe()
         val sampleIds = args.imageSamples.map { it.first }.toIntArray()
         val sampelStrings = args.imageSamples.map { it.second }.toTypedArray()
@@ -65,7 +81,7 @@ class JpegBenchmark(
             sampleStrings = sampelStrings,
             writeFd = pipes[1].fd
         )
-        val resultsFlow = MutableSharedFlow<JpegBenchmarkProgress>(
+        val resultsFlow = MutableSharedFlow<JpegBenchmark.JpegBenchmarkProgress>(
             replay = 0,
             extraBufferCapacity = 1
         )
@@ -107,7 +123,7 @@ class JpegBenchmark(
 
     }
 
-    public external fun getDecoderName(): String
+    public external override fun getDecoderName(): String
     private external fun nativeCreateBenchmark(): Long
     private external fun nativeDestroyBenchmark(ptr: Long)
 

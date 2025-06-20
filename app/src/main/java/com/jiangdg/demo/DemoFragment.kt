@@ -84,7 +84,7 @@ class DemoFragment : CameraFragment(), View.OnClickListener {
     private fun handleCameraClosed() {
         mViewBinding.uvcLogoIv.visibility = View.VISIBLE
         mViewBinding.frameRateTv.visibility = View.GONE
-        Toast.makeText(requireContext(), "camera closed success", Toast.LENGTH_LONG).show()
+//        Toast.makeText(requireContext(), "camera closed success", Toast.LENGTH_LONG).show()
     }
 
     private fun handleCameraOpened() {
