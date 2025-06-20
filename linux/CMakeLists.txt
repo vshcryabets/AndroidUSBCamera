@@ -1,12 +1,13 @@
 cmake_minimum_required(VERSION 3.22)
 
-project(LinuxUvcTests LANGUAGES CXX)
+project(LinuxUvcTests LANGUAGES CXX C)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED True)
 
+option(BUILD_U8X8FONT_MODULE "Build U8X8 fonts" ON)
 option(BUILD_SDL_MODULE "Build the SDL helper module" OFF)
 option(BUILD_SOURCES_MODULE_V4L2 "Build the Sources module with Video for Linux v2" OFF)
 option(BUILD_SOURCES_MODULE "Build the Sources module" ON)
@@ -26,6 +27,10 @@ if(BUILD_SOURCES_MODULE)
     add_subdirectory(modules/sources)
 endif()
 
+if(BUILD_U8X8FONT_MODULE)
+    add_subdirectory(modules/font)
+endif()
+
 # Check if required modules are built before adding apps
 if(BUILD_JPEGBENCHMARK_APP)
     add_subdirectory(apps/jpegbenchmark)
@@ -39,8 +44,8 @@ elseif(BUILD_SDL_PREVIEW_APP)
     message(WARNING "Skipping UvcCapture build because SDL helper or Sources module is not enabled.")
 endif()
 
-if(BUILD_GTK_PREVIEW_APP AND BUILD_SOURCES_MODULE)
+if(BUILD_GTK_PREVIEW_APP AND BUILD_SOURCES_MODULE AND BUILD_U8X8FONT_MODULE)
     add_subdirectory(apps/gtk_preview)
 elseif(BUILD_GTK_PREVIEW_APP)
-    message(WARNING "Skipping GtkPreview build because Sources module is not enabled.")
+    message(WARNING "Skipping GtkPreview build because Sources or U8X8 module is not enabled.")
 endif()

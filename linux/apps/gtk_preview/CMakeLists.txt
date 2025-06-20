@@ -29,6 +29,7 @@ if(BUILD_GTK_PREVIEW_APP)
         target_link_libraries(
                 gtk_preview
                 Sources
+                U8x8Font
                 ${GTK4_LIBRARIES}
                 ${CMAKE_THREAD_LIBS_INIT}
                 )

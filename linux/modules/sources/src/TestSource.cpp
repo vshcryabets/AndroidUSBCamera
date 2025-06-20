@@ -1,7 +1,7 @@
 #include "TestSource.h"
 #include <iostream>
 
-TestSource::TestSource()
+TestSource::TestSource(const uint8_t *customFont): customFont(customFont)
 {
     testRGBAColors = {
         0x000000FF, // Black
@@ -40,6 +40,8 @@ Source::Frame TestSource::readFrame()
                 pixelOffset += 4;
             }
         }
+        drawString("Test Source", 20, 20, 1);
+        drawString("Frame: " + std::to_string(frameCounter), 20, 30, 1);
         frame.data = testData;
         frame.size = testDataSize;
         frame.timestamp = std::chrono::high_resolution_clock::now();
@@ -83,4 +85,52 @@ void TestSource::stopCapturing()
 bool TestSource::waitNextFrame()
 {
     return true; // Always return true for test source
+}
+
+void TestSource::drawChar(char c, uint16_t x, uint16_t y, uint8_t upscale) 
+{
+    if (customFont && testData)
+    {
+        if (upscale < 1) {
+            upscale = 1; // Ensure upscale is at least 1u   
+        }
+        uint16_t stride = captureConfigutation.width * 4; // 4 bytes per pixel (RGBA)
+        uint8_t min = customFont[0];
+        uint8_t max = customFont[1];
+        if (c < min || c > max) {
+            return;
+        }
+        uint32_t color = 0xFFFFFFFF; // White color for the character;
+        uint16_t idx = c - min;
+        const uint8_t* verticalSymbols = customFont + 2 + idx * 8;
+        for (uint8_t sy = 0; sy < 8; sy++) {
+            uint8_t mask = 1 << sy;
+            uint32_t lineOffset = (y + sy) * stride + x * 4;
+            for (uint8_t sx = 0; sx < 8; sx++) {
+                if (verticalSymbols[sx] & mask) {
+                    uint32_t pixelOffset = lineOffset + (sx * 4);
+                    if (pixelOffset + 3 < testDataSize) {
+                        testData[pixelOffset + 0] = (color >> 24) & 0xFF; // R
+                        testData[pixelOffset + 1] = (color >> 16) & 0xFF; // G
+                        testData[pixelOffset + 2] = (color >> 8) & 0xFF; // B
+                        testData[pixelOffset + 3] = 0xFF; // A
+                    }
+                }
+            }
+        }
+    }
+}
+
+void TestSource::drawString(std::string str, uint16_t x, uint16_t y, uint8_t upscale)
+{
+    if (customFont && testData)
+    {
+        if (upscale < 1) {
+            upscale = 1; // Ensure upscale is at least 1u   
+        }
+        for (size_t i = 0; i < str.size(); i++)
+        {
+            drawChar(str[i], x + i * 8 * upscale, y, upscale);
+        }
+    }
 }

@@ -9,6 +9,7 @@
 #include <gtk/gtk.h>
 #include <cairo.h>
 #include <iostream>
+#include "u8x8.h"
 
 // Callback for GtkGestureClick on the drawing area
 static void on_drawing_area_clicked(GtkGestureClick *gesture, int n_press, double x, double y, gpointer user_data)
@@ -31,6 +32,12 @@ private:
     TestSource testSource;
 
 private:
+    static gboolean staticTimeout(gpointer user_data)
+    {
+        static_cast<GtkPreviewApplication *>(user_data)->onTimeout();
+        return true; // Continue calling this function
+    }
+
     static void staticActivate(GtkApplication *app, gpointer user_data)
     {
         static_cast<GtkPreviewApplication *>(user_data)->activate();
@@ -51,7 +58,6 @@ private:
         auto captureConfig = testSource.getCaptureConfiguration();
         cairo_format_t format = CAIRO_FORMAT_ARGB32;
         uint8_t* data = frame.data;
-        printf("PX1 %d %d %d %d\n", data[0], data[1], data[2], data[3]);
         cairo_surface_t* surface = cairo_image_surface_create_for_data(
             frame.data, 
             format, 
@@ -101,10 +107,16 @@ private:
         gtk_widget_set_hexpand(draw_area, TRUE); // Horizontal expand (to fill width too)
 
         gtk_window_present(GTK_WINDOW(window));
+
+        g_timeout_add(33, this->staticTimeout, this);
     }
 
+    void onTimeout()
+    {
+        gtk_widget_queue_draw(draw_area);
+    }
 public:
-    GtkPreviewApplication()
+    GtkPreviewApplication(): testSource(u8x8_font_amstrad_cpc_extended_f)
     {
         app = gtk_application_new("org.vsh.gtk4preview", G_APPLICATION_DEFAULT_FLAGS);
         g_signal_connect(app, "activate", G_CALLBACK(&staticActivate), this);
