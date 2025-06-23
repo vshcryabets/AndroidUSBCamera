@@ -18,7 +18,7 @@
 #include <string>
 #include <cstdint>
 #include <chrono>
-#include "ImageUseCases.h"
+#include "JpegUseCases.h"
 
 struct UseCases {
     LoadJpegImageUseCase* imageLoader;
