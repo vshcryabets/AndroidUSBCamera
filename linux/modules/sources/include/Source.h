@@ -21,7 +21,7 @@ class SourceError : public std::exception {
 class Source {
     public:
         enum FrameFormat {
-            YUV422,
+            YUYV,
             RGBA,
             RGB,
             RGBX,

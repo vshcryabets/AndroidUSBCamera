@@ -4,6 +4,7 @@ if(BUILD_SOURCES_MODULE)
         list(APPEND SOURCES 
                 src/Source.cpp
                 src/TestSource.cpp
+                src/TestSourceYUV420.cpp
                 )
 
         if(BUILD_SOURCES_MODULE_V4L2)

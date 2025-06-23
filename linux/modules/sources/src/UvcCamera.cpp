@@ -400,7 +400,7 @@ UvcCamera::Frame UvcCamera::readFrame(){
     struct v4l2_buffer buf;
     unsigned int i;
     Frame result;
-    result.format = Source::FrameFormat::YUV422;
+    result.format = Source::FrameFormat::YUYV;
 
     switch (io) {
         case IO_METHOD_READ:

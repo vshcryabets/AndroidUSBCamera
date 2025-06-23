@@ -44,7 +44,7 @@ ConvertBitmapUseCase::Buffer ConvertRGBtoRGBAUseCase::convertToNew(const Buffer 
     return convert(newBuffer, src);
 }
 
-ConvertBitmapUseCase::Buffer ConvertYUV422toRGBAUseCase::convert(Buffer dst, const Buffer &src) {
+ConvertBitmapUseCase::Buffer ConvertYUYVtoRGBAUseCase::convert(Buffer dst, const Buffer &src) {
     size_t pixelsCount = src.width * src.height;
     size_t rgbaSize = pixelsCount * 4;
     if (dst.capacity < rgbaSize) {
@@ -84,7 +84,7 @@ ConvertBitmapUseCase::Buffer ConvertYUV422toRGBAUseCase::convert(Buffer dst, con
     return dst;
 }
 
-ConvertBitmapUseCase::Buffer ConvertYUV422toRGBAUseCase::convertToNew(const Buffer &src) {
+ConvertBitmapUseCase::Buffer ConvertYUYVtoRGBAUseCase::convertToNew(const Buffer &src) {
     size_t pixelsCount = src.width * src.height;
     Buffer newBuffer = {
         .buffer = new uint8_t[pixelsCount * 4],
