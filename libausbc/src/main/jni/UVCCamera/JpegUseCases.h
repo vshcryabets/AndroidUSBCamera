@@ -56,27 +56,6 @@ class SaveBitmapImageUseCase {
         virtual void save(std::string imageId, uint8_t* buffer, size_t size) = 0;
 };
 
-class ConvertBitmapUseCase {
-    public:
-        class Exception : public std::exception {
-            public:
-                Exception(const char* message) : message(message) {}
-                const char* what() const noexcept override { return message; }
-            private:
-                const char* message;
-        };
-        struct Buffer {
-            uint8_t* buffer;
-            size_t capacity;
-            size_t size;
-            uint32_t width;
-            uint32_t height;
-        };
-    public:
-        virtual Buffer convertToNew(const Buffer &src) = 0;
-        virtual Buffer convert(Buffer dst, const Buffer &src) = 0;
-};
-
 class LoadJpegImageFromFileUseCase : public LoadJpegImageUseCase {
     public:
         Result load(std::string imageId) override;
@@ -114,15 +93,3 @@ class DecodeJpegImageLibJpeg9UseCase : public DecodeJpegImageUseCase {
             size_t encodedBufferSize) override;
 };
 #endif
-
-class ConvertRGBtoRGBAUseCase : public ConvertBitmapUseCase {
-    public:
-        Buffer convertToNew(const Buffer &src) override;
-        Buffer convert(Buffer dst, const Buffer &src) override;
-};
-
-class ConvertYUV422toRGBAUseCase : public ConvertBitmapUseCase {
-    public:
-        Buffer convertToNew(const Buffer &src) override;
-        Buffer convert(Buffer dst, const Buffer &src) override;
-};

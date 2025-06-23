@@ -13,24 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#pragma once
+package com.vsh.uvc
 
-#include <string>
-#include <cstdint>
-#include <chrono>
-#include "JpegUseCases.h"
+import kotlinx.coroutines.flow.Flow
 
-struct UseCases {
-    LoadJpegImageUseCase* imageLoader;
-    DecodeJpegImageUseCase* imageDecoder;
-    SaveBitmapImageUseCase* imageSaver;
-};
+interface UsbDevicesMonitor {
+    data class UsbDevice(
+        val usbDeviceId: Int,
+        val displayName: String = "",
+        val vendorName: String = "",
+        val classesStr: String = "",
+        val timestamp: Long = System.currentTimeMillis()
+    )
 
-class DI {
-    private:
-        static DI* instance;    
-    public:
-        static DI* getInstance() { return instance; }
-        static void setInstance(DI* instance) { DI::instance = instance; }
-        virtual UseCases* getUseCases() = 0;
-};
+    fun getUsbDevices(): List<UsbDevice>
+    fun usbDevices(): Flow<List<UsbDevice>>
+    fun attached(): Flow<List<UsbDevice>>
+    fun detached(): Flow<List<UsbDevice>>
+    fun startSession(): Int
+    fun stopSesstion(sessionId: Int)
+    fun forceReload()
+}

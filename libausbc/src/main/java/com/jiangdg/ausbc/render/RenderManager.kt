@@ -15,30 +15,27 @@
  */
 package com.jiangdg.ausbc.render
 
-import android.content.ContentValues
-import android.content.Context
-import android.graphics.Bitmap
 import android.graphics.SurfaceTexture
-import android.opengl.EGLContext
-import android.os.*
-import android.provider.MediaStore
+import android.os.Handler
+import android.os.HandlerThread
+import android.os.Message
 import android.view.Surface
 import com.jiangdg.ausbc.callback.IPreviewDataCallBack
 import com.jiangdg.ausbc.render.env.RotateType
-import com.jiangdg.ausbc.render.internal.*
-import com.jiangdg.ausbc.utils.*
+import com.jiangdg.ausbc.render.internal.CameraRender
+import com.jiangdg.ausbc.render.internal.CaptureRender
+import com.jiangdg.ausbc.render.internal.ScreenRender
+import com.jiangdg.ausbc.utils.GLBitmapUtils
+import com.jiangdg.ausbc.utils.Logger
+import com.jiangdg.ausbc.utils.ReadRawTextFileUseCase
+import com.jiangdg.ausbc.utils.SettableFuture
+import com.jiangdg.ausbc.utils.Utils
 import com.jiangdg.ausbc.utils.bus.BusKey
 import com.jiangdg.ausbc.utils.bus.EventBus
-import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import java.text.SimpleDateFormat
-import java.util.*
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Render manager
@@ -46,53 +43,37 @@ import java.util.concurrent.atomic.AtomicBoolean
  * @property surfaceWidth camera preview width
  * @property surfaceHeight camera preview height
  *
- * @param context context
- *
  * @author Created by jiangdg on 2021/12/28
  */
 class RenderManager(
-    context: Context,
     private val surfaceWidth: Int,         // render surface width
     private val surfaceHeight: Int,        // render surface height
-    private val mPreviewDataCbList: CopyOnWriteArrayList<IPreviewDataCallBack>?=null
+    private val mPreviewDataCbList: CopyOnWriteArrayList<IPreviewDataCallBack>? = null,
+    readRawTextFileUseCase: ReadRawTextFileUseCase,
 ) : SurfaceTexture.OnFrameAvailableListener, Handler.Callback {
     private var mPreviewByteBuffer: ByteBuffer? = null
     private var mEOSTextureId: Int? = null
     private var mRenderThread: HandlerThread? = null
     private var mRenderHandler: Handler? = null
-    private var mRenderCodecThread: HandlerThread? = null
-    private var mRenderCodecHandler: Handler? = null
     private var mCameraRender: CameraRender? = null
     private var mScreenRender: ScreenRender? = null
-    private var mEncodeRender: EncodeRender? = null
     private var mCaptureRender: CaptureRender? = null
     private var mCameraSurfaceTexture: SurfaceTexture? = null
     private var mTransformMatrix: FloatArray = FloatArray(16)
     private var mWidth: Int = 0
     private var mHeight: Int = 0
     private var mFBOBufferId: Int = 0
-    private var mContext: Context = context
     private var mFrameRate = 0
     private var mEndTime: Long = 0L
     private var mStartTime = System.currentTimeMillis()
     private val mStFuture by lazy {
         SettableFuture<SurfaceTexture>()
     }
-    private val mCaptureState: AtomicBoolean by lazy {
-        AtomicBoolean(false)
-    }
-    private val mDateFormat by lazy {
-        SimpleDateFormat("yyyyMMddHHmmssSSS", Locale.getDefault())
-    }
-    private val mCameraDir by lazy {
-        "${Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM)}/Camera"
-    }
 
     init {
-        this.mCameraRender = CameraRender(context)
-        this.mScreenRender = ScreenRender(context)
-        this.mCaptureRender = CaptureRender(context)
-        Logger.i(TAG, "create RenderManager, Open ES version is ${Utils.getGLESVersion(context)}")
+        this.mCameraRender = CameraRender(readRawTextFileUseCase)
+        this.mScreenRender = ScreenRender(readRawTextFileUseCase)
+        this.mCaptureRender = CaptureRender(readRawTextFileUseCase)
     }
 
     /**
@@ -128,20 +109,6 @@ class RenderManager(
                     mCameraSurfaceTexture?.setDefaultBufferSize(mWidth, mHeight)
                 }
             }
-            MSG_GL_SAVE_IMAGE -> {
-                saveImageInternal(msg.obj as? String)
-            }
-            MSG_GL_START_RENDER_CODEC -> {
-                (msg.obj as Triple<*, *, *>).apply {
-                    val surface = first as Surface
-                    val width = second as Int
-                    val height = third as Int
-                    startRenderCodecInternal(surface, width, height)
-                }
-            }
-            MSG_GL_STOP_RENDER_CODEC -> {
-                stopRenderCodecInternal()
-            }
             MSG_GL_ROUTE_ANGLE -> {
                 (msg.obj as? RotateType)?.apply {
                     mCameraRender?.setRotateAngle(this)
@@ -158,7 +125,6 @@ class RenderManager(
                 textureId?.let { id ->
                     mScreenRender?.drawFrame(id)
                     drawFrame2Capture(id)
-                    drawFrame2Codec(id, mCameraSurfaceTexture?.timestamp ?: 0)
                 }
                 mScreenRender?.swapBuffers(mCameraSurfaceTexture?.timestamp ?: 0)
             }
@@ -264,119 +230,6 @@ class RenderManager(
         mRenderHandler?.obtainMessage(MSG_GL_DRAW)?.sendToTarget()
     }
 
-    private fun startRenderCodecInternal(surface: Surface, w: Int, h: Int) {
-        stopRenderCodecInternal()
-        mRenderCodecThread = HandlerThread(RENDER_CODEC_THREAD)
-        mRenderCodecThread?.start()
-        mRenderCodecHandler = Handler(mRenderCodecThread!!.looper) { message ->
-            when (message.what) {
-                MSG_GL_RENDER_CODEC_INIT -> {
-                    (message.obj as Pair<*, *>).apply {
-                        val shareContext = first as EGLContext
-                        val inputSurface = second as Surface
-                        mEncodeRender = EncodeRender(mContext)
-                        mEncodeRender?.initEGLEvn(shareContext)
-                        mEncodeRender?.setupSurface(inputSurface)
-                        mEncodeRender?.initGLES()
-                    }
-                }
-                MSG_GL_RENDER_CODEC_CHANGED_SIZE -> {
-                    (message.obj as Pair<*, *>).apply {
-                        val width = first as Int
-                        val height = second as Int
-                        mEncodeRender?.setSize(width, height)
-                    }
-                }
-                MSG_GL_RENDER_CODEC_DRAW -> {
-                    (message.obj as Pair<*, *>).apply {
-                        val textureId = first as Int
-                        val timeStamps = second as Long
-                        mEncodeRender?.drawFrame(textureId)
-                        mEncodeRender?.swapBuffers(timeStamps)
-                    }
-                }
-                MSG_GL_RENDER_CODEC_RELEASE -> {
-                    mEncodeRender?.releaseGLES()
-                    mEncodeRender = null
-                }
-            }
-            true
-        }
-        mScreenRender?.getCurrentContext().let {
-            if (it == null) {
-                throw NullPointerException("Current EGLContext can't be null.")
-            }
-            mRenderCodecHandler?.obtainMessage(MSG_GL_RENDER_CODEC_INIT, Pair(it, surface))?.sendToTarget()
-        }
-        mRenderCodecHandler?.obtainMessage(MSG_GL_RENDER_CODEC_CHANGED_SIZE, Pair(w, h))?.sendToTarget()
-    }
-
-    private fun drawFrame2Codec(textureId: Int, timeStamps: Long) {
-        Pair(textureId, timeStamps).apply {
-            mRenderCodecHandler?.obtainMessage(MSG_GL_RENDER_CODEC_DRAW, this)?.sendToTarget()
-        }
-    }
-
-    private fun stopRenderCodecInternal() {
-        mRenderCodecHandler?.obtainMessage(MSG_GL_RENDER_CODEC_RELEASE)?.sendToTarget()
-        mRenderCodecThread?.quitSafely()
-        mRenderCodecThread = null
-        mRenderCodecHandler = null
-    }
-
-    private fun saveImageInternal(savePath: String?) {
-        if (mCaptureState.get()) {
-            return
-        }
-        mCaptureState.set(true)
-        val date = mDateFormat.format(System.currentTimeMillis())
-        val title = savePath ?: "IMG_AUSBC_$date"
-        val displayName = savePath ?: "$title.jpg"
-        val path = savePath ?: "$mCameraDir/$displayName"
-        val width = mWidth
-        val height = mHeight
-        // 写入文件
-        // glReadPixels读取的是大端数据，但是我们保存的是小端
-        // 故需要将图片上下颠倒为正
-        var fos: FileOutputStream? = null
-        try {
-            fos = FileOutputStream(path)
-            GLBitmapUtils.transFrameBufferToBitmap(mFBOBufferId, width, height).apply {
-                compress(Bitmap.CompressFormat.JPEG, 100, fos)
-                recycle()
-            }
-        } catch (e: IOException) {
-            Logger.e(TAG, "Failed to write file, err = ${e.localizedMessage}", e)
-        } finally {
-            try {
-                fos?.close()
-            } catch (e: IOException) {
-                Logger.e(TAG, "Failed to write file, err = ${e.localizedMessage}", e)
-            }
-        }
-        //Judge whether it is saved successfully
-        //Update gallery if successful
-        val file = File(path)
-        if (file.length() == 0L) {
-            Logger.e(TAG, "Failed to save file $path")
-            file.delete()
-            mCaptureState.set(false)
-            return
-        }
-        val values = ContentValues()
-        values.put(MediaStore.Images.ImageColumns.TITLE, title)
-        values.put(MediaStore.Images.ImageColumns.DISPLAY_NAME, displayName)
-        values.put(MediaStore.Images.ImageColumns.DATA, path)
-        values.put(MediaStore.Images.ImageColumns.DATE_TAKEN, date)
-        values.put(MediaStore.Images.ImageColumns.WIDTH, width)
-        values.put(MediaStore.Images.ImageColumns.HEIGHT, height)
-        mContext.contentResolver?.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
-        mCaptureState.set(false)
-        if (Utils.debugCamera) {
-            Logger.i(TAG, "captureImageInternal save path = $path")
-        }
-    }
-
     private fun emitFrameRate() {
         mFrameRate++
         mEndTime = System.currentTimeMillis()
@@ -412,16 +265,7 @@ class RenderManager(
         private const val MSG_GL_INIT = 0x00
         private const val MSG_GL_DRAW = 0x01
         private const val MSG_GL_RELEASE = 0x02
-        private const val MSG_GL_START_RENDER_CODEC = 0x03
-        private const val MSG_GL_STOP_RENDER_CODEC = 0x04
         private const val MSG_GL_CHANGED_SIZE = 0x05
-        private const val MSG_GL_SAVE_IMAGE = 0x08
         private const val MSG_GL_ROUTE_ANGLE = 0x09
-
-        // codec
-        private const val MSG_GL_RENDER_CODEC_INIT = 0x11
-        private const val MSG_GL_RENDER_CODEC_CHANGED_SIZE = 0x12
-        private const val MSG_GL_RENDER_CODEC_DRAW = 0x13
-        private const val MSG_GL_RENDER_CODEC_RELEASE = 0x14
     }
 }

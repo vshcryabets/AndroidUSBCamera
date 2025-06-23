@@ -6,13 +6,13 @@ if(BUILD_SDL_PREVIEW_APP)
 
         add_executable(sdk_preview
                 uvccapture.cpp
-                ../../../libausbc/src/main/jni/UVCCamera/ImageUseCases.cpp
                 )
 
         target_link_libraries(
                 sdk_preview
                 Sources
                 SdlHelper
+                Images
                 ${SDL2_LIBRARIES}
                 ${CMAKE_THREAD_LIBS_INIT}
                 )

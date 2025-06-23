@@ -30,7 +30,7 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 
 import com.jiangdg.usb.USBMonitor;
-import com.jiangdg.usb.USBMonitor.UsbControlBlock;
+import com.jiangdg.usb.UsbControlBlock;
 import com.vsh.uvc.UvcCameraResolution;
 
 import java.util.ArrayList;
@@ -117,7 +117,7 @@ public class UVCCamera {
 		}
 	}
 
-	private UsbControlBlock mCtrlBlock;
+	private com.jiangdg.usb.UsbControlBlock mCtrlBlock;
     protected long mControlSupports;			// カメラコントロールでサポートしている機能フラグ
     protected long mProcSupports;				// プロセッシングユニットでサポートしている機能フラグ
     protected int mCurrentFrameFormat = FRAME_FORMAT_MJPEG;
@@ -178,7 +178,7 @@ public class UVCCamera {
      * USB permission is necessary before this method is called
      * @param ctrlBlock
      */
-    public synchronized void open(final UsbControlBlock ctrlBlock) {
+    public synchronized void open(final com.jiangdg.usb.UsbControlBlock ctrlBlock) {
     	int result = -2;
 		close();
     	try {
@@ -991,7 +991,7 @@ public class UVCCamera {
     	}
     }
 
-	private final String getUSBFSName(final UsbControlBlock ctrlBlock) {
+	private final String getUSBFSName(final com.jiangdg.usb.UsbControlBlock ctrlBlock) {
 		String result = null;
 		final String name = ctrlBlock.getDeviceName();
 		final String[] v = !TextUtils.isEmpty(name) ? name.split("/") : null;

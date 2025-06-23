@@ -15,7 +15,6 @@
  */
 package com.jiangdg.ausbc.utils
 
-import android.app.Application
 import timber.log.Timber
 
 /** Logger utils

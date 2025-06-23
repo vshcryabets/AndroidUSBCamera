@@ -5,7 +5,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 
-import com.jiangdg.usb.USBMonitor;
+import com.jiangdg.usb.UsbControlBlock;
 
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
@@ -25,7 +25,7 @@ public class UACAudioHandler extends Handler {
     private volatile boolean mIsReleased;
     private final WeakReference<AudioThread> mThreadWf;
 
-    public static UACAudioHandler createHandler(USBMonitor.UsbControlBlock ctrlBlock) {
+    public static UACAudioHandler createHandler(UsbControlBlock ctrlBlock) {
         AudioThread audioThread = new AudioThread(UACAudioHandler.class, ctrlBlock);
         audioThread.start();
         return audioThread.getHandler();
@@ -159,14 +159,14 @@ public class UACAudioHandler extends Handler {
         private final static String TAG = "AudioThread";
         private final static long TIMES_OUT_MS = 1500;
         private final Object mSync = new Object();
-        private final USBMonitor.UsbControlBlock mCtrlBlock;
+        private final UsbControlBlock mCtrlBlock;
         private final Class<UACAudioHandler> mHandlerClass;
         private UACAudioHandler mUACHandler;
         private UACAudio mUACAudio;
 
         private final Set<UACAudioCallBack> mCallBackList = new CopyOnWriteArraySet<>();
 
-        public AudioThread(Class<UACAudioHandler> handlerClass, USBMonitor.UsbControlBlock ctrlBlock) {
+        public AudioThread(Class<UACAudioHandler> handlerClass, UsbControlBlock ctrlBlock) {
             this.mCtrlBlock = ctrlBlock;
             this.mHandlerClass = handlerClass;
         }

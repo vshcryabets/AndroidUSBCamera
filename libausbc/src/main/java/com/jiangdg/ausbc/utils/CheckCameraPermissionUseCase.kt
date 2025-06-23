@@ -13,24 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#pragma once
+package com.jiangdg.ausbc.utils
 
-#include <string>
-#include <cstdint>
-#include <chrono>
-#include "JpegUseCases.h"
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
 
-struct UseCases {
-    LoadJpegImageUseCase* imageLoader;
-    DecodeJpegImageUseCase* imageDecoder;
-    SaveBitmapImageUseCase* imageSaver;
-};
+interface CheckCameraPermissionUseCase {
+    operator fun invoke(): Boolean
+}
 
-class DI {
-    private:
-        static DI* instance;    
-    public:
-        static DI* getInstance() { return instance; }
-        static void setInstance(DI* instance) { DI::instance = instance; }
-        virtual UseCases* getUseCases() = 0;
-};
+class CheckCameraPermissionUseCaseImpl(
+    private val appContext: Context
+) : CheckCameraPermissionUseCase {
+    override fun invoke(): Boolean {
+        val locPermission = ContextCompat.checkSelfPermission(appContext, Manifest.permission.CAMERA)
+        return locPermission == PackageManager.PERMISSION_GRANTED
+    }
+}
