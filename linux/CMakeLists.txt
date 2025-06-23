@@ -7,14 +7,15 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED True)
 
+option(BUILD_IMAGES_MODULE "Build the Images module" ON)
 option(BUILD_SDL_MODULE "Build the SDL helper module" ON)
 option(BUILD_SOURCES_MODULE "Build the Sources module" ON)
 option(BUILD_JPEGBENCHMARK_APP "Build Jpegbenchmark app 1" OFF)
 option(BUILD_UVCCAPTURE_APP "Build UvcCapture app" ON)
 
-include_directories(
-        ../libausbc/src/main/jni/UVCCamera/
-)
+if(BUILD_IMAGES_MODULE)
+    add_subdirectory(../libausbc/src/main/jni/modules/images modules/images)
+endif()
 
 if(BUILD_SDL_MODULE)
     add_subdirectory(modules/sdl)
