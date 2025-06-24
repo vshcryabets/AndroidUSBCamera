@@ -45,7 +45,13 @@ class ConvertRGBtoRGBAUseCase : public ConvertBitmapUseCase {
         Buffer convert(Buffer dst, const Buffer &src) override;
 };
 
-class ConvertYUV422toRGBAUseCase : public ConvertBitmapUseCase {
+class ConvertYUYVtoRGBAUseCase : public ConvertBitmapUseCase {
+    public:
+        Buffer convertToNew(const Buffer &src) override;
+        Buffer convert(Buffer dst, const Buffer &src) override;
+};
+
+class ConvertYUV420ptoRGBAUseCase : public ConvertBitmapUseCase {
     public:
         Buffer convertToNew(const Buffer &src) override;
         Buffer convert(Buffer dst, const Buffer &src) override;

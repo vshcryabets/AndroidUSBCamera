@@ -2,7 +2,7 @@
 
 #include "Source.h"
 
-class TestSource: public Source {
+class TestSourceYUV420: public Source {
     private:
         uint8_t* testData {nullptr};
         size_t testDataSize {0};
@@ -12,8 +12,8 @@ class TestSource: public Source {
         void drawString(std::string str, uint16_t x, uint16_t y, uint8_t upscale = 1);
         void drawChar(char c, uint16_t x, uint16_t y, uint8_t upscale = 1);
     public:
-        TestSource(const uint8_t *customFont);
-        virtual ~TestSource();
+        TestSourceYUV420(const uint8_t *customFont);
+        virtual ~TestSourceYUV420();
         virtual Frame readFrame() override;
         void startCapturing(const CaptureConfiguration &config) override;
         void close() override;

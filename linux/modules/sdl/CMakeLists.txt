@@ -10,5 +10,5 @@ if(BUILD_SDL_MODULE)
         target_include_directories(SdlHelper PUBLIC
                 $<INSTALL_INTERFACE:include>
                 $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-                )                
+                )
 endif()                

@@ -1,7 +1,7 @@
-#include "TestSource.h"
+#include "TestSourceYUV420.h"
 #include <iostream>
 
-TestSource::TestSource(const uint8_t *customFont): customFont(customFont)
+TestSourceYUV420::TestSourceYUV420(const uint8_t *customFont): customFont(customFont)
 {
     testRGBAColors = {
         0x000000FF, // Black
@@ -14,12 +14,12 @@ TestSource::TestSource(const uint8_t *customFont): customFont(customFont)
         0xFFFFFFFF, // White
     };
 }
-TestSource::~TestSource()
+TestSourceYUV420::~TestSourceYUV420()
 {
     close();
 }
 
-Source::Frame TestSource::readFrame()
+Source::Frame TestSourceYUV420::readFrame()
 {
     frameCounter++;
     Frame frame;
@@ -50,7 +50,7 @@ Source::Frame TestSource::readFrame()
     return frame;
 }
 
-void TestSource::startCapturing(const Source::CaptureConfiguration &config)
+void TestSourceYUV420::startCapturing(const Source::CaptureConfiguration &config)
 {
     Source::startCapturing(config);
     if (config.width == 0 ||
@@ -63,17 +63,17 @@ void TestSource::startCapturing(const Source::CaptureConfiguration &config)
     testData = new uint8_t[testDataSize];
 }
 
-void TestSource::close()
+void TestSourceYUV420::close()
 {
     stopCapturing();
 }
 
-std::vector<Source::FrameFormat> TestSource::getSupportedFrameFormats()
+std::vector<Source::FrameFormat> TestSourceYUV420::getSupportedFrameFormats()
 {
     return {Source::FrameFormat::RGBA};
 }
 
-void TestSource::stopCapturing()
+void TestSourceYUV420::stopCapturing()
 {
     if (testData)
     {
@@ -82,12 +82,12 @@ void TestSource::stopCapturing()
     }
 }
 
-bool TestSource::waitNextFrame()
+bool TestSourceYUV420::waitNextFrame()
 {
     return true; // Always return true for test source
 }
 
-void TestSource::drawChar(char c, uint16_t x, uint16_t y, uint8_t upscale) 
+void TestSourceYUV420::drawChar(char c, uint16_t x, uint16_t y, uint8_t upscale) 
 {
     if (customFont && testData)
     {
@@ -121,7 +121,7 @@ void TestSource::drawChar(char c, uint16_t x, uint16_t y, uint8_t upscale)
     }
 }
 
-void TestSource::drawString(std::string str, uint16_t x, uint16_t y, uint8_t upscale)
+void TestSourceYUV420::drawString(std::string str, uint16_t x, uint16_t y, uint8_t upscale)
 {
     if (customFont && testData)
     {
