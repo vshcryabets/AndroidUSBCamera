@@ -3,7 +3,7 @@
  * library and sample to access to UVC web camera on non-rooted Android device
  *
  * Copyright (c) 2014-2017 saki t_saki@serenegiant.com
- * Copyright (c) 2024 vshcryabets@gmail.com
+ * Copyright (c) 2024-2025 vshcryabets@gmail.com
  *
  * File name: UVCPreviewJni.h
  *
@@ -30,7 +30,7 @@
 class UVCPreviewJni: public UVCCaptureBase, UvcCaptureListener {
 private:
     ANativeWindow *mPreviewWindow;
-    ANativeWindow *mCaptureWindow;
+//    ANativeWindow *mCaptureWindow;
     jobject mFrameCallbackObj;
 private:
     void clearDisplay();
@@ -46,7 +46,7 @@ public:
     ~UVCPreviewJni();
 
     int setPreviewDisplay(ANativeWindow *preview_window);
-    int setCaptureDisplay(ANativeWindow *capture_window);
-    virtual int stopCapture() override;
+//    int setCaptureDisplay(ANativeWindow *capture_window);
+    int stopCapture() override;
     int setFrameCallback(JNIEnv *env, jobject frame_callback_obj, int pixel_format);
 };

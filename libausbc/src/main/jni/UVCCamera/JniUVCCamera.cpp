@@ -230,20 +230,6 @@ static jint nativeSetFrameCallback(JNIEnv *env, jobject thiz,
     return result;
 }
 
-static jint nativeSetCaptureDisplay(JNIEnv *env, jobject thiz,
-                                    ID_TYPE id_camera, jobject jSurface) {
-    jint result = JNI_ERR;
-    UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
-    if (LIKELY(camera)) {
-        ANativeWindow *capture_window = jSurface ? ANativeWindow_fromSurface(env, jSurface) : NULL;
-        auto preview = std::dynamic_pointer_cast<UVCPreviewJni>(camera->getPreview());
-        if (preview != nullptr) {
-            result = preview->setCaptureDisplay(capture_window);
-        }
-    }
-    return result;
-}
-
 //======================================================================
 // カメラコントロールでサポートしている機能を取得する
 static jlong nativeGetCtrlSupports(JNIEnv *env, jobject thiz,
@@ -1991,8 +1977,6 @@ static JNINativeMethod methods[] = {
         {"nativeStopPreview",                       "(J)I",                                  (void *) nativeStopPreview},
         {"nativeSetPreviewDisplay",                 "(JLandroid/view/Surface;)I",            (void *) nativeSetPreviewDisplay},
         {"nativeSetFrameCallback",                  "(JLcom/jiangdg/uvc/IFrameCallback;I)I", (void *) nativeSetFrameCallback},
-
-        {"nativeSetCaptureDisplay",                 "(JLandroid/view/Surface;)I",            (void *) nativeSetCaptureDisplay},
 
         {"nativeGetCtrlSupports",                   "(J)J",                                  (void *) nativeGetCtrlSupports},
         {"nativeGetProcSupports",                   "(J)J",                                  (void *) nativeGetProcSupports},

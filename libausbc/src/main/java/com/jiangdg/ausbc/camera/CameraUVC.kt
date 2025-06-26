@@ -30,6 +30,7 @@ import com.jiangdg.ausbc.utils.Logger
 import com.jiangdg.ausbc.utils.ReadRawTextFileUseCase
 import com.jiangdg.ausbc.utils.Utils
 import com.jiangdg.uvc.IFrameCallback
+import com.jiangdg.uvc.PixelFormat
 import com.jiangdg.uvc.UVCCamera
 
 /** UVC Camera
@@ -197,7 +198,7 @@ class CameraUVC(
         // if not opengl render or opengl render with preview callback
         // there should opened
         if (!isNeedGLESRender || mCameraRequest!!.isRawPreviewData || mCameraRequest!!.isCaptureRawImage) {
-            mUvcCamera?.setFrameCallback(frameCallBack, UVCCamera.PIXEL_FORMAT_YUV420SP)
+            mUvcCamera?.setFrameCallback(frameCallBack, PixelFormat.PIXEL_FORMAT_YUV420SP)
         }
         // 3. start preview
         when (cameraView) {
