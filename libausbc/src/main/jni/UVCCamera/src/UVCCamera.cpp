@@ -36,12 +36,13 @@
 #define GET_RAW_DESCRIPTOR
 #endif
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <unistd.h>
 #include "UVCCamera.h"
 #include "libuvc/libuvc_internal.h"
 #include "uvchacks.h"
 #include <vector>
+#include "UVCPreviewJni.h"
 
 #define    LOCAL_DEBUG 0
 

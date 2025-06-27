@@ -11,29 +11,19 @@ set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} ${COMPILATION_RELEASE_FLAGS}")
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} ${COMPILATION_DEBUG_FLAGS}")
 
 option(BUILD_IMAGES_MODULE "Build the Images module" ON)
+option(BUILD_JNIWRAPPER_MODULE "Build the JniWrapper module" ON)
+option(BUILD_LIBUVC "Build the LibUVC library" ON)
+option(BUILD_LIBUSB "Build the LibUSB library" ON)
 
 set(ANDROID_ARM_NEON TRUE)
 set(REQUIRE_SIMD ON)
 set(ENABLE_SHARED FALSE)
 set(ENABLE_STATIC TRUE)
-
-if(BUILD_IMAGES_MODULE)
-    add_subdirectory(./src/main/jni/modules/images)
-endif()
-
 add_compile_definitions(LIBUVC_HAS_JPEG)
 
 include(./src/main/jni/libjpeg-turbo-3.1.1-static/CMakeLists.txt)
-include(./src/main/jni/hacks/CMakeLists.txt)
-include(./src/main/jni/common/CMakeLists.txt)
-include(./src/main/jni/libusb/android/jni/CMakeLists.txt)
-include(./src/main/jni/libuvc/android/jni/CMakeLists.txt)
-include(./src/main/jni/UVCCamera/CMakeLists.txt)
-
-add_library(native SHARED ${SOURCES})
-
-target_link_libraries(native
-        Images
-        jpeg-static
-        android
-        log)
+add_subdirectory(./src/main/jni/modules/images)
+add_subdirectory(./src/main/jni/common/)
+add_subdirectory(./src/main/jni/libusb/android/jni/)
+add_subdirectory(./src/main/jni/libuvc/android/jni/)
+add_subdirectory(./src/main/jni/UVCCamera)

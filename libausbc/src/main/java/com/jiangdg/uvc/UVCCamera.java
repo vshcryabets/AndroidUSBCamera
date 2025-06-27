@@ -38,16 +38,14 @@ import java.util.List;
 
 import timber.log.Timber;
 
-public class UVCCamera {
+public class UVCCamera implements IUvcCamera {
 	public static boolean DEBUG = false;	// TODO set false when releasing
 	private static final String TAG = UVCCamera.class.getSimpleName();
 	private static final String DEFAULT_USBFS = "/dev/bus/usb";
-	public static final int FRAME_FORMAT_YUYV = 0;
-	public static final int FRAME_FORMAT_MJPEG = 1;
 
 	public static final int DEFAULT_PREVIEW_FPS = 0;
 	public static final float DEFAULT_BANDWIDTH = 1.0f;
-	public static final int DEFAULT_PREVIEW_MODE = FRAME_FORMAT_MJPEG;
+	public static final UvcFrameFormat DEFAULT_PREVIEW_MODE = UvcFrameFormat.FRAME_FORMAT_MJPEG;
 
 	private static boolean isLoaded;
 	static {
@@ -60,7 +58,7 @@ public class UVCCamera {
 	private com.jiangdg.usb.UsbControlBlock mCtrlBlock;
     protected long mControlSupports;			// カメラコントロールでサポートしている機能フラグ
     protected long mProcSupports;				// プロセッシングユニットでサポートしている機能フラグ
-    protected int mCurrentFrameFormat = FRAME_FORMAT_MJPEG;
+    protected UvcFrameFormat mCurrentFrameFormat = UvcFrameFormat.FRAME_FORMAT_MJPEG;
 	protected int mCurrentWidth = 640, mCurrentHeight = 480;
 	protected float mCurrentBandwidthFactor = DEFAULT_BANDWIDTH;
     protected List<UvcCameraResolution> mSupportedSize = Collections.emptyList();
@@ -116,9 +114,9 @@ public class UVCCamera {
     /**
      * connect to a UVC camera
      * USB permission is necessary before this method is called
-     * @param ctrlBlock
      */
-    public synchronized void open(final com.jiangdg.usb.UsbControlBlock ctrlBlock) {
+	@Override
+    public synchronized void open(final UsbControlBlock ctrlBlock) {
     	int result = -2;
 		close();
     	try {
@@ -142,7 +140,7 @@ public class UVCCamera {
 					+";busNum="+(mCtrlBlock==null ? "": mCtrlBlock.getBusNum())+";devAddr="+(mCtrlBlock==null ? "": mCtrlBlock.getDevNum())
 					+";usbfs="+(mCtrlBlock==null ? "": getUSBFSName(mCtrlBlock)));
 		}
-		mCurrentFrameFormat = FRAME_FORMAT_MJPEG;
+		mCurrentFrameFormat = UvcFrameFormat.FRAME_FORMAT_MJPEG;
     	if (mNativePtr != 0 && mSupportedSize.isEmpty()) {
     		mSupportedSize = nativeGetSupportedSize(mNativePtr);
 			Timber.d("Camera supported formats %s", mSupportedSize.toString());
@@ -160,6 +158,7 @@ public class UVCCamera {
     /**
      * close and release UVC camera
      */
+	@Override
     public synchronized void close() {
     	stopPreview();
     	if (mNativePtr != 0) {
@@ -171,7 +170,7 @@ public class UVCCamera {
    			mCtrlBlock = null;
 		}
 		mControlSupports = mProcSupports = 0;
-		mCurrentFrameFormat = -1;
+		mCurrentFrameFormat = UvcFrameFormat.FRAME_FORMAT_NONE;
 		mCurrentBandwidthFactor = 0;
 		mSupportedSize = Collections.emptyList();
     	Timber.v("close:finished");
@@ -208,7 +207,7 @@ public class UVCCamera {
 	 * @param height
 	 * @param frameFormat either FRAME_FORMAT_YUYV(0) or FRAME_FORMAT_MJPEG(1)
 	 */
-	public void setPreviewSize(final int width, final int height, final int frameFormat) {
+	public void setPreviewSize(final int width, final int height, final UvcFrameFormat frameFormat) {
 		setPreviewSize(width, height, DEFAULT_PREVIEW_FPS, frameFormat, mCurrentBandwidthFactor);
 	}
 
@@ -219,7 +218,7 @@ public class UVCCamera {
 	   @param frameFormat either FRAME_FORMAT_YUYV(0) or FRAME_FORMAT_MJPEG(1)
 	   @param bandwidth [0.0f,1.0f]
 	 */
-	public void setPreviewSize(final int width, final int height, final int frameFormat, final float bandwidth) {
+	public void setPreviewSize(final int width, final int height, final UvcFrameFormat frameFormat, final float bandwidth) {
 		setPreviewSize(width, height, DEFAULT_PREVIEW_FPS, frameFormat, bandwidth);
 	}
 
@@ -234,12 +233,13 @@ public class UVCCamera {
 	public void setPreviewSize(final int width,
 							   final int height,
 							   final int fps,
-							   final int frameFormat,
+							   final UvcFrameFormat frameFormat,
 							   final float bandwidthFactor) {
 		if ((width == 0) || (height == 0))
 			throw new IllegalArgumentException("invalid preview size");
 		if (mNativePtr != 0) {
-			final int result = nativeSetPreviewSize(mNativePtr, width, height, fps, frameFormat, bandwidthFactor);
+			final int result = nativeSetPreviewSize(mNativePtr, width, height, fps,
+					frameFormat.getValue(), bandwidthFactor);
 			if (result != 0)
 				throw new IllegalArgumentException("Failed to set preview size " + width + "x" + height);
 			mCurrentFrameFormat = frameFormat;
@@ -250,14 +250,11 @@ public class UVCCamera {
 	}
 
 	public List<UvcCameraResolution> getSupportedSizeList2() {
-		if (mCurrentFrameFormat < 0) {
-			mCurrentFrameFormat = FRAME_FORMAT_MJPEG;
-		}
-		return getSupportedSize2((mCurrentFrameFormat > 0) ? 6 : 4, getSupportedSize());
+		return getSupportedSize2((mCurrentFrameFormat != UvcFrameFormat.FRAME_FORMAT_YUYV) ? 6 : 4, getSupportedSize());
 	}
 
-	public List<UvcCameraResolution> getSupportedSizeList2(int frameFormat) {
-		return getSupportedSize2((frameFormat > 0) ? 6 : 4, getSupportedSize());
+	public List<UvcCameraResolution> getSupportedSizeList2(UvcFrameFormat frameFormat) {
+		return getSupportedSize2((frameFormat != UvcFrameFormat.FRAME_FORMAT_YUYV) ? 6 : 4, getSupportedSize());
 	}
 
 	public List<UvcCameraResolution> getSupportedSize2(final int type, final List<UvcCameraResolution> supportedSize) {

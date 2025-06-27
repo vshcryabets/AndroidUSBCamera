@@ -30,7 +30,7 @@
 #include <pthread.h>
 #include <android/native_window.h>
 #include "UVCCameraAdjustments.h"
-#include "UVCPreviewJni.h"
+#include "UVCPreviewBase.h"
 #include <memory>
 #include <chrono>
 #include <vector>

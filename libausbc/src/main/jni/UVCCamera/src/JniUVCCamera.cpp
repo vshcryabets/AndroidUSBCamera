@@ -42,6 +42,7 @@
 #include "libuvc/libuvc.h"
 #include "utilbase.h"
 #include "UVCCamera.h"
+#include "UVCPreviewJni.h"
 
 /**
  * set the value into the long field
