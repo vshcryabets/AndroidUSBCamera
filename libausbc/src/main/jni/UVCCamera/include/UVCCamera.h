@@ -34,17 +34,18 @@
 #include <memory>
 #include <chrono>
 #include <vector>
+#include "Camera.h"
 
-struct UvcCameraResolution {
-    const uint8_t id;
-    const uint8_t subtype;
-    const uint8_t frameIndex;
-    const uint16_t width;
-    const uint16_t height;
-    std::vector<uint32_t> frameIntervals; // in 100ns units
-};
-
-class UVCCamera {
+class UVCCamera: public Camera {
+public:
+    struct ConnectConfiguration {
+        int vid;
+        int pid;
+        int fd;
+        int busnum;
+        int devaddr;
+        std::string usbfs;
+    };
 private:
 	std::string mUsbFs;
 	uvc_context_t *mContext;
@@ -61,14 +62,14 @@ public:
 	UVCCamera();
 	virtual ~UVCCamera();
 
-	virtual int connect(int vid, int pid, int fd, int busnum, int devaddr, std::string usbfs);
-    virtual int release();
+	int connect(const ConnectConfiguration & connectConfiguration);
+    void disconnect();
 
-	std::vector<UvcCameraResolution> getSupportedSize();
-	int getCtrlSupports(uint64_t *supports);
+    std::vector<CameraResolution> getSupportedSize() override;
+    int getCtrlSupports(uint64_t *supports);
 	int getProcSupports(uint64_t *supports);
-    std::shared_ptr<UVCCaptureBase> getPreview() const;
-    std::shared_ptr<UVCCameraAdjustments> getAdjustments() const;
+    [[nodiscard]] std::shared_ptr<UVCCaptureBase> getPreview() const;
+    [[nodiscard]] std::shared_ptr<UVCCameraAdjustments> getAdjustments() const;
 
     // hacks for UAC
     virtual uvc_device_t *getUvcDevice();
@@ -80,5 +81,5 @@ protected:
     std::shared_ptr<UVCCaptureBase> constructPreview(uvc_device_handle_t *deviceHandle) override;
 public:
     UVCCameraJniImpl();
-    ~UVCCameraJniImpl() override {};
+    ~UVCCameraJniImpl() override = default;
 };

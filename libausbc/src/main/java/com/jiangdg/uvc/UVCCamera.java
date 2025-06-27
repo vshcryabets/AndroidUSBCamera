@@ -935,7 +935,13 @@ public class UVCCamera implements IUvcCamera {
 	private final native long nativeCreate();
 	private final native void nativeDestroy(final long id_camera);
 
-	private final native int nativeConnect(long id_camera, int venderId, int productId, int fileDescriptor, int busNum, int devAddr, String usbfs);
+	private native int nativeConnect(long id_camera,
+                                     int venderId,
+                                     int productId,
+                                     int fileDescriptor,
+                                     int busNum,
+                                     int devAddr,
+                                     String usbfs);
 	private static final native int nativeRelease(final long id_camera);
 
 	private static final native int nativeSetStatusCallback(final long mNativePtr, final IStatusCallback callback);

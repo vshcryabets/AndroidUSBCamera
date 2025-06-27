@@ -27,7 +27,8 @@ if(BUILD_JNIWRAPPER_MODULE)
             src/UVCPreviewJni.cpp
             src/JpegUseCases.cpp
             src/UVCCamera.cpp
-            src/uvchacks.cpp
+            src/LibUvcHacks.cpp
+            src/Camera.cpp
     )
 
     target_link_libraries(native
