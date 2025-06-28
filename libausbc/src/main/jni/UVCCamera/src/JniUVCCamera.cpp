@@ -42,6 +42,7 @@
 #include "libuvc/libuvc.h"
 #include "utilbase.h"
 #include "UVCCamera.h"
+#include "UVCPreviewJni.h"
 
 /**
  * set the value into the long field
@@ -141,41 +142,12 @@ static jint nativeRelease(JNIEnv *env, jobject thiz,
                           ID_TYPE id_camera) {
 
 
-    int result = JNI_ERR;
-    UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
+    auto *camera = reinterpret_cast<UVCCamera *>(id_camera);
     if (LIKELY(camera)) {
-        result = camera->release();
+        camera->disconnect();
     }
-    RETURN(result, jint);
+    return 0;
 }
-
-//======================================================================
-//static jint nativeSetStatusCallback(JNIEnv *env, jobject thiz,
-//                                    ID_TYPE id_camera, jobject jIStatusCallback) {
-//
-//    jint result = JNI_ERR;
-//
-//    UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
-//    if (LIKELY(camera)) {
-//        jobject status_callback_obj = env->NewGlobalRef(jIStatusCallback);
-//        result = camera->setStatusCallback(env, status_callback_obj);
-//    }
-//    RETURN(result, jint);
-//}
-//
-//static jint nativeSetButtonCallback(JNIEnv *env, jobject thiz,
-//                                    ID_TYPE id_camera,
-//                                    jobject jIButtonCallback) {
-//
-//    jint result = JNI_ERR;
-//
-//    UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
-//    if (LIKELY(camera)) {
-//        jobject button_callback_obj = env->NewGlobalRef(jIButtonCallback);
-//        result = camera->setButtonCallback(env, button_callback_obj);
-//    }
-//    RETURN(result, jint);
-//}
 
 static jint nativeStartPreview(JNIEnv *env,
                                jobject thiz,
@@ -225,20 +197,6 @@ static jint nativeSetFrameCallback(JNIEnv *env, jobject thiz,
         auto preview = std::dynamic_pointer_cast<UVCPreviewJni>(camera->getPreview());
         if (preview != nullptr) {
             result = preview->setFrameCallback(env, frame_callback_obj, pixel_format);
-        }
-    }
-    return result;
-}
-
-static jint nativeSetCaptureDisplay(JNIEnv *env, jobject thiz,
-                                    ID_TYPE id_camera, jobject jSurface) {
-    jint result = JNI_ERR;
-    UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
-    if (LIKELY(camera)) {
-        ANativeWindow *capture_window = jSurface ? ANativeWindow_fromSurface(env, jSurface) : NULL;
-        auto preview = std::dynamic_pointer_cast<UVCPreviewJni>(camera->getPreview());
-        if (preview != nullptr) {
-            result = preview->setCaptureDisplay(capture_window);
         }
     }
     return result;
@@ -1992,8 +1950,6 @@ static JNINativeMethod methods[] = {
         {"nativeSetPreviewDisplay",                 "(JLandroid/view/Surface;)I",            (void *) nativeSetPreviewDisplay},
         {"nativeSetFrameCallback",                  "(JLcom/jiangdg/uvc/IFrameCallback;I)I", (void *) nativeSetFrameCallback},
 
-        {"nativeSetCaptureDisplay",                 "(JLandroid/view/Surface;)I",            (void *) nativeSetCaptureDisplay},
-
         {"nativeGetCtrlSupports",                   "(J)J",                                  (void *) nativeGetCtrlSupports},
         {"nativeGetProcSupports",                   "(J)J",                                  (void *) nativeGetProcSupports},
 
@@ -2218,12 +2174,19 @@ Java_com_jiangdg_uvc_UVCCamera_nativeConnect(JNIEnv *env, jobject thiz,
                                              jint dev_addr,
                                              jstring usbfs) {
     int result = JNI_ERR;
-    UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
+    auto *camera = reinterpret_cast<UVCCamera *>(id_camera);
     const char *c_usbfs = env->GetStringUTFChars(usbfs, JNI_FALSE);
     LOGI("connect to %d:%d %s", vid, pid, c_usbfs);
     if (LIKELY(camera && (file_descriptor > 0))) {
 //		libusb_set_debug(NULL, LIBUSB_LOG_LEVEL_DEBUG);
-        result = camera->connect(vid, pid, file_descriptor, bus_num, dev_addr, c_usbfs);
+        result = camera->connect({
+            .vid = (uint16_t) vid,
+            .pid = (uint16_t) pid,
+            .fd = file_descriptor,
+            .busnum = (uint8_t) bus_num,
+            .devaddr = (uint8_t) dev_addr,
+            .usbfs = c_usbfs
+        });
     }
     env->ReleaseStringUTFChars(usbfs, c_usbfs);
     return result;

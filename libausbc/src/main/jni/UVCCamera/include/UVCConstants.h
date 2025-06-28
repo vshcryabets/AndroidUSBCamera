@@ -3,6 +3,13 @@
 //
 #pragma once
 
+#define PIXEL_FORMAT_RAW 0        // same as PIXEL_FORMAT_YUV
+#define PIXEL_FORMAT_YUV 1
+#define PIXEL_FORMAT_RGB565 2
+#define PIXEL_FORMAT_RGBX 3
+#define PIXEL_FORMAT_YUV20SP 4
+#define PIXEL_FORMAT_NV21 5        // YVU420SemiPlanar
+
 #define	CTRL_SCANNING		0x000001	// D0:  Scanning Mode
 #define	CTRL_AE				0x000002	// D1:  Auto-Exposure Mode
 #define	CTRL_AE_PRIORITY	0x000004	// D2:  Auto-Exposure Priority

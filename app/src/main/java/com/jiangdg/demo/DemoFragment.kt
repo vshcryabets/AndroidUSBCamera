@@ -31,7 +31,7 @@ import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.list.listItemsSingleChoice
 import com.jiangdg.ausbc.base.CameraFragment
 import com.jiangdg.ausbc.callback.ICameraStateCallBack
-import com.jiangdg.ausbc.camera.ICamera
+import com.jiangdg.ausbc.camera.CameraUVC
 import com.jiangdg.ausbc.utils.bus.BusKey
 import com.jiangdg.ausbc.utils.bus.EventBus
 import com.jiangdg.ausbc.widget.AspectRatioTextureView
@@ -62,7 +62,7 @@ class DemoFragment : CameraFragment(), View.OnClickListener {
     }
 
     override fun onCameraState(
-        self: ICamera,
+        self: CameraUVC,
         code: ICameraStateCallBack.State,
         msg: String?
     ) {

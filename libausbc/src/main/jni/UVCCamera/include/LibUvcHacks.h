@@ -22,8 +22,8 @@
  * Files in the jni/libjpeg-turbo-1.50, libjpegturb0-2.1.1, jni/libusb folder may have a different license, see the respective files.
 */
 
-#ifndef ANDROIDUSBCAMERA_UVCHACKS_H
-#define ANDROIDUSBCAMERA_UVCHACKS_H
+#ifndef ANDROIDUSBCAMERA_LIBUVCHACKS_H
+#define ANDROIDUSBCAMERA_LIBUVCHACKS_H
 
 #include "libuvc/libuvc.h"
 #include "libusb.h"
@@ -36,4 +36,4 @@ uvc_error_t uvchack_get_device_with_fd(uvc_context_t *ctx,
 
 libusb_device* uvchack_get_usb_device(uvc_device_t *device);
 
-#endif //ANDROIDUSBCAMERA_UVCHACKS_H
+#endif //ANDROIDUSBCAMERA_LIBUVCHACKS_H

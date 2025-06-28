@@ -28,7 +28,7 @@
 #include "utilbase.h"
 #include "UVCPreviewBase.h"
 #include "libuvc/libuvc_internal.h"
-#include "uvchacks.h"
+#include "LibUvcHacks.h"
 
 #define LOCAL_DEBUG 1
 

@@ -44,13 +44,6 @@
 
 typedef uvc_error_t (*convFunc_t)(uvc_frame_t *in, uvc_frame_t *out);
 
-#define PIXEL_FORMAT_RAW 0        // same as PIXEL_FORMAT_YUV
-#define PIXEL_FORMAT_YUV 1
-#define PIXEL_FORMAT_RGB565 2
-#define PIXEL_FORMAT_RGBX 3
-#define PIXEL_FORMAT_YUV20SP 4
-#define PIXEL_FORMAT_NV21 5        // YVU420SemiPlanar
-
 struct UvcPreviewFrame {
     uvc_frame_t *mFrame = nullptr;
     std::chrono::steady_clock::time_point mTimestamp;
@@ -118,22 +111,14 @@ protected:
     volatile uint16_t mBrokenFramesCounter = 0;
 private:
     void clear_pool();
-
     static void uvc_preview_frame_callback(uvc_frame_t *frame, void *vptr_args);
-
     void addPreviewFrame(uvc_frame_t *frame, std::chrono::steady_clock::time_point timestamp);
-
     void clearPreviewFramesQueue();
-
     void previewThreadFunc();
-
 protected:
     uvc_frame_t *get_frame(size_t data_bytes);
-
     void recycle_frame(uvc_frame_t *frame);
-
     const UvcPreviewFrame waitPreviewFrame();
-
 public:
     UVCCaptureBase(uvc_device_handle_t *devh,
                    uint16_t deviceId,
@@ -158,6 +143,5 @@ public:
     virtual int stopCapture();
     uint16_t getBrokenFramesCounter() { return mBrokenFramesCounter; }
     uint16_t getAllocatedFramesCounter() { return  mAllocatedFramesCounter; };
-
     void onBrokenFrame(std::chrono::steady_clock::time_point point);
 };

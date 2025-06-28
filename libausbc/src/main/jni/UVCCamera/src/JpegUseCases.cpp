@@ -20,7 +20,7 @@
     #include "jpeglib.h"
 #endif
 #ifdef USE_TURBOJPEG
-    #include <turbojpeg.h>
+    #include "turbojpeg.h"
 #endif
 
 LoadJpegImageUseCase::Result LoadJpegImageFromFileUseCase::load(std::string imageId) {
