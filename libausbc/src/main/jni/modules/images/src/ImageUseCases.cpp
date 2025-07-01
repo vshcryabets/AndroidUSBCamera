@@ -16,7 +16,7 @@
 #include "ImageUseCases.h"
 #include <algorithm>
 
-ConvertBitmapUseCase::Buffer ConvertRGBtoRGBAUseCase::convert(Buffer dst, const Buffer &src) {
+ConvertBitmapUseCase::Buffer ConvertRGBtoRGBAUseCase::convert(Buffer &dst, const Buffer &src) {
     size_t pixelsCount = src.width * src.height;
     size_t rgbaSize = pixelsCount * 4;
     if (dst.capacity < rgbaSize) {
@@ -44,7 +44,7 @@ ConvertBitmapUseCase::Buffer ConvertRGBtoRGBAUseCase::convertToNew(const Buffer 
     return convert(newBuffer, src);
 }
 
-ConvertBitmapUseCase::Buffer ConvertYUYVtoRGBAUseCase::convert(Buffer dst, const Buffer &src) {
+ConvertBitmapUseCase::Buffer ConvertYUYVtoRGBAUseCase::convert(Buffer &dst, const Buffer &src) {
     size_t pixelsCount = src.width * src.height;
     size_t rgbaSize = pixelsCount * 4;
     if (dst.capacity < rgbaSize) {
@@ -98,7 +98,7 @@ ConvertBitmapUseCase::Buffer ConvertYUYVtoRGBAUseCase::convertToNew(const Buffer
 
 
 ConvertBitmapUseCase::Buffer ConvertYUV420ptoRGBAUseCase::convert(
-    Buffer dst, 
+    Buffer &dst, 
     const Buffer &src) {
     size_t pixelsCount = src.width * src.height;
     size_t rgbaSize = pixelsCount * 4;

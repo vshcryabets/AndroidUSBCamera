@@ -4,6 +4,7 @@
 
 #include "Source.h"
 #include "TestSource.h"
+#include "TestSourceYUV420.h"
 #include "ImageUseCases.h"
 
 #include <gtk/gtk.h>
@@ -30,6 +31,8 @@ private:
     int status;
     ConvertBitmapUseCase::Buffer draw_buffer;
     TestSource testSource;
+    ConvertYUV420ptoRGBAUseCase convertUseCase;
+    ConvertBitmapUseCase::Buffer *rgbaBuffer;
 
 private:
     static gboolean staticTimeout(gpointer user_data)
@@ -56,8 +59,30 @@ private:
     {
         Source::Frame frame = testSource.readFrame();
         auto captureConfig = testSource.getCaptureConfiguration();
+
+        // convertUseCase.convert(*rgbaBuffer,
+        //     {
+        //         .buffer = frame.data,
+        //         .capacity = frame.size,
+        //         .size = frame.size,
+        //         .width = captureConfig.width,
+        //         .height = captureConfig.height
+        //     }
+        // );
+
+        // // Write frame.data to a file (for example, as raw YUV420 data)
+        // FILE *file = fopen("frame.yuv", "wb");
+        // if (file) {
+        //     fwrite(frame.data, 1, frame.size, file);
+        //     fclose(file);
+        // }
+        // file = fopen("frame.rgb", "wb");
+        // if (file) {
+        //     fwrite(rgbaBuffer->buffer, 1, rgbaBuffer->size, file);
+        //     fclose(file);
+        // }
+
         cairo_format_t format = CAIRO_FORMAT_ARGB32;
-        uint8_t* data = frame.data;
         cairo_surface_t* surface = cairo_image_surface_create_for_data(
             frame.data, 
             format, 
@@ -124,6 +149,11 @@ public:
 
     ~GtkPreviewApplication()
     {
+        if (rgbaBuffer) {
+            delete[] rgbaBuffer->buffer;
+            delete rgbaBuffer;
+            rgbaBuffer = nullptr;
+        }
         if (app)
         {
             g_object_unref(app);
@@ -132,11 +162,18 @@ public:
 
     int run(int argc, char *argv[])
     {
-        testSource.startCapturing(
-            Source::CaptureConfiguration{
-                .width = 640,
-                .height = 480,
-                .fps = 30.0f});
+        Source::CaptureConfiguration captureConfig = {
+            .width = 640,
+            .height = 480,
+            .fps = 30.0f};
+        testSource.startCapturing(captureConfig);
+        size_t rgbaBufferSize = captureConfig.width * captureConfig.height * 4;
+        rgbaBuffer = new ConvertBitmapUseCase::Buffer{
+            .buffer = new uint8_t[rgbaBufferSize],
+            .capacity = rgbaBufferSize,
+            .size = 0,
+            .width = 640,
+            .height = 480};
         status = g_application_run(G_APPLICATION(app), argc, argv);
         return status;
     }

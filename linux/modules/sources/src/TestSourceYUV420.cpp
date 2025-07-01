@@ -3,15 +3,15 @@
 
 TestSourceYUV420::TestSourceYUV420(const uint8_t *customFont): customFont(customFont)
 {
-    testRGBAColors = {
-        0x000000FF, // Black
-        0xFF0000FF, // Red
-        0x00FF00FF, // Green
-        0x0000FFFF, // Blue
-        0xFFFF00FF, // Yellow
-        0x00FFFFFF, // Cyan
-        0xFF00FFFF, // Magenta
-        0xFFFFFFFF, // White
+    testYUVColors = {
+        {0, 0x80, 0x80}, // Black
+        {0x4C, 84, 255}, // Red
+        {149, 43, 21}, // Green
+        {29, 255, 107}, // Blue
+        {225, 0, 148}, // Yellow
+        {178, 171, 0}, // Cyan
+        {105, 212, 234}, // Magenta
+        {255, 128, 128}, // White
     };
 }
 TestSourceYUV420::~TestSourceYUV420()
@@ -27,17 +27,15 @@ Source::Frame TestSourceYUV420::readFrame()
     frame.size = 0;
     if (testData)
     {
-        uint16_t chunkWidth = captureConfigutation.width / testRGBAColors.size();
-        uint32_t pixelOffset = 0;
+        uint16_t chunkWidth = captureConfigutation.width / testYUVColors.size();
         for (size_t y = 0; y < captureConfigutation.height; y++)
         {
             for (size_t x = 0; x < captureConfigutation.width; x++){
-                uint32_t color = testRGBAColors[x / chunkWidth];
-                testData[pixelOffset + 0] = (color >> 24) & 0xFF; // R
-                testData[pixelOffset + 1] = (color >> 16) & 0xFF; // G
-                testData[pixelOffset + 2] = (color >> 8) & 0xFF; // B
-                testData[pixelOffset + 3] = 0xFF; // A
-                pixelOffset += 4;
+                size_t baseOffset = y * captureConfigutation.width + x;
+                YUVColor color = testYUVColors[x / chunkWidth];
+                testData[baseOffset] = color.y;
+                testDataU[baseOffset / 4] = color.u;
+                testDataV[baseOffset / 4] = color.v;
             }
         }
         drawString("Test Source", 20, 20, 1);
@@ -45,7 +43,7 @@ Source::Frame TestSourceYUV420::readFrame()
         frame.data = testData;
         frame.size = testDataSize;
         frame.timestamp = std::chrono::high_resolution_clock::now();
-        frame.format = FrameFormat::RGBA;
+        frame.format = FrameFormat::YUV420P;
     }
     return frame;
 }
@@ -55,12 +53,15 @@ void TestSourceYUV420::startCapturing(const Source::CaptureConfiguration &config
     Source::startCapturing(config);
     if (config.width == 0 ||
         config.height == 0 ||
-        (config.width % testRGBAColors.size() != 0))
+        (config.width % testYUVColors.size() != 0))
     {
-        throw SourceError(SourceError::SOURCE_ERROR_WRONG_CONFIG, "Invalid capture configuration, width,height must be > 0 and width % " + std::to_string(testRGBAColors.size()) + " == 0");
+        throw SourceError(SourceError::SOURCE_ERROR_WRONG_CONFIG, "Invalid capture configuration, width,height must be > 0 and width % " + std::to_string(testYUVColors.size()) + " == 0");
     }
-    testDataSize = config.width * config.height * 4;
+    size_t pixelsCount = config.width * config.height;
+    testDataSize = pixelsCount + pixelsCount / 2; // YUV420 requires 1.5 bytes per pixel
     testData = new uint8_t[testDataSize];
+    testDataU = testData + pixelsCount; // U plane starts after Y plane
+    testDataV = testDataU + pixelsCount / 4;
 }
 
 void TestSourceYUV420::close()
@@ -79,6 +80,9 @@ void TestSourceYUV420::stopCapturing()
     {
         delete[] testData;
         testData = nullptr;
+        testDataU = nullptr;
+        testDataV = nullptr;
+        testDataSize = 0;
     }
 }
 

@@ -25,6 +25,7 @@ class Source {
             RGBA,
             RGB,
             RGBX,
+            YUV420P,
             NONE
         };
         struct ConnectConfiguration {

@@ -6,8 +6,8 @@ TEST_CASE("ConvertYUV420ptoRGBAUseCase", "[ImageUseCases]") {
     ConvertBitmapUseCase::Buffer src;
     uint8_t sampleYuvData[] = { 
         // Y
-        0x7F, 0x7F, 76, 76, // Grey, Red (255)
-        0x7F, 0x7F, 76, 76,
+        0x7F, 0x7F, 0x4C, 0x4C, // Grey, Red (255)
+        0x7F, 0x7F, 0x4C, 0x4C,
         149, 149, 29, 29, // Green, Blue
         149, 149, 29, 29,
         // U

@@ -44,7 +44,7 @@ int main(void)
 
         int frame_number = 0;
         camera.startCapturing(captureConfig);
-        ConvertYUV422toRGBAUseCase convertUseCase;
+        ConvertYUYVtoRGBAUseCase convertUseCase;
         ConvertBitmapUseCase::Buffer dst = {
             .buffer = new uint8_t[captureConfig.width * captureConfig.height * 4],
             .capacity = captureConfig.width *captureConfig.height * 4,

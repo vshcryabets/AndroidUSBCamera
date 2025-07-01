@@ -36,23 +36,23 @@ class ConvertBitmapUseCase {
         };
     public:
         virtual Buffer convertToNew(const Buffer &src) = 0;
-        virtual Buffer convert(Buffer dst, const Buffer &src) = 0;
+        virtual Buffer convert(Buffer &dst, const Buffer &src) = 0;
 };
 
 class ConvertRGBtoRGBAUseCase : public ConvertBitmapUseCase {
     public:
         Buffer convertToNew(const Buffer &src) override;
-        Buffer convert(Buffer dst, const Buffer &src) override;
+        Buffer convert(Buffer &dst, const Buffer &src) override;
 };
 
 class ConvertYUYVtoRGBAUseCase : public ConvertBitmapUseCase {
     public:
         Buffer convertToNew(const Buffer &src) override;
-        Buffer convert(Buffer dst, const Buffer &src) override;
+        Buffer convert(Buffer &dst, const Buffer &src) override;
 };
 
 class ConvertYUV420ptoRGBAUseCase : public ConvertBitmapUseCase {
     public:
         Buffer convertToNew(const Buffer &src) override;
-        Buffer convert(Buffer dst, const Buffer &src) override;
+        Buffer convert(Buffer &dst, const Buffer &src) override;
 };
