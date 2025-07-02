@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2025 vshcryabets@gmail.com
  *
- * File name: UVCCamera.h
+ * File name: UVCCamera.cpp
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,16 +19,32 @@
  *  limitations under the License.
  *
  * All files in the folder are under this Apache License, Version 2.0.
- * Files in the jni/libjpeg, jni/libusb, jin/libuvc, jni/rapidjson folder may have a different license, see the respective files.
+ * Files in the jni/libjpeg, jni/libusb, jin/libuvc folder may have a different license, see the respective files.
 */
-#pragma once
-#include <cstdint>
-#include <vector>
-#include <map>
-#include "Source.h"
+#include "UVCCamera2.h"
 
-class Camera {
-public:
-    virtual ~Camera() = default;
-    virtual std::map<uint16_t, std::vector<Source::Resolution>> getSupportedResolutions() = 0;
-};
+UVCCamera2::UVCCamera2()
+{
+
+}
+
+UVCCamera2::~UVCCamera2()
+{
+
+}
+
+std::vector<Source::FrameFormat> UVCCamera2::getSupportedFrameFormats()
+{
+    return {
+        FrameFormat::RGBX
+    };
+}
+
+void UVCCamera2::stopCapturing()
+{
+}
+
+void UVCCamera2::close()
+{
+
+}

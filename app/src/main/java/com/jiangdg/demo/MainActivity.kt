@@ -35,7 +35,7 @@ class MainActivity : AppCompatActivity() {
         val usbDeviceId = intent.getIntExtra(KEY_USB_DEVICE, -1)
         if (savedInstanceState == null) {
             val transaction = supportFragmentManager.beginTransaction()
-            transaction.replace(R.id.fragment_container, DemoFragment.newInstance(usbDeviceId))
+            transaction.replace(R.id.fragment_container, DemoFragment2.newInstance(usbDeviceId))
             transaction.commit()
         }
     }

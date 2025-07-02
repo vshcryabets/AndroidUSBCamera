@@ -20,7 +20,7 @@
  *  limitations under the License.
  *
  * All files in the folder are under this Apache License, Version 2.0.
- * Files in the jni/libjpeg, jni/libusb, jin/libuvc, jni/rapidjson folder may have a different license, see the respective files.
+ * Files in the jni/libjpeg, jni/libusb, jin/libuvc folder may have a different license, see the respective files.
 */
 
 #define LOG_TAG "UVCCamera"
@@ -52,7 +52,7 @@ UVCCamera::UVCCamera()
           mContext(nullptr),
           mDevice(nullptr),
           mDeviceHandle(nullptr),
-          mPreview(nullptr) {
+          mCapturer(nullptr) {
     clearCameraParams();
 }
 
@@ -65,8 +65,8 @@ UVCCamera::~UVCCamera() {
 }
 
 void UVCCamera::clearCameraParams() {
-    if (LIKELY(mCameraConfig)) {
-        mCameraConfig->clearCameraParams();
+    if (LIKELY(mCameraAdjustements)) {
+        mCameraAdjustements->clearCameraParams();
     }
 }
 
@@ -106,9 +106,9 @@ int UVCCamera::connect(const ConnectConfiguration & connectConfiguration) {
             // カメラのopen処理
             result = uvc_open(mDevice, &mDeviceHandle);
             if (LIKELY(!result)) {
-                mCameraConfig = std::make_shared<UVCCameraAdjustments>(mDeviceHandle);
+                mCameraAdjustements = std::make_shared<UVCCameraAdjustments>(mDeviceHandle);
                 mFd = fd;
-                mPreview = constructPreview(mDeviceHandle);
+                mCapturer = constructPreview(mDeviceHandle);
             } else {
                 LOGE("could not open camera:err=%d", result);
                 uvc_unref_device(mDevice);
@@ -128,8 +128,8 @@ int UVCCamera::connect(const ConnectConfiguration & connectConfiguration) {
 }
 
 void UVCCamera::disconnect() {
-    if (LIKELY(mPreview)) {
-        mPreview->stopCapture();
+    if (LIKELY(mCapturer)) {
+        mCapturer->stopCapture();
     }
     if (LIKELY(mDeviceHandle)) {
         uvc_close(mDeviceHandle);
@@ -148,8 +148,8 @@ void UVCCamera::disconnect() {
     }
 }
 
-std::vector<CameraResolution> UVCCamera::getSupportedSize() {
-    auto result = std::vector<CameraResolution>();
+std::map<uint16_t, std::vector<Source::Resolution>> UVCCamera::getSupportedResolutions() {
+    auto result = std::map<uint16_t, std::vector<Source::Resolution>>();
     if (!mDeviceHandle)
         return result;
     if (mDeviceHandle->info->stream_ifs) {
@@ -193,13 +193,13 @@ std::vector<CameraResolution> UVCCamera::getSupportedSize() {
 int UVCCamera::getCtrlSupports(uint64_t *supports) {
     uvc_error_t ret = UVC_ERROR_NOT_FOUND;
     if (LIKELY(mDeviceHandle)) {
-        if (!mCameraConfig->mCtrlSupports) {
+        if (!mCameraAdjustements->mCtrlSupports) {
             // 何個あるのかわからへんねんけど、試した感じは１個みたいやからとりあえず先頭のを返す
             const uvc_input_terminal_t *input_terminals = uvc_get_input_terminals(mDeviceHandle);
             const uvc_input_terminal_t *it;
             DL_FOREACH(input_terminals, it) {
                 if (it) {
-                    mCameraConfig->mCtrlSupports = it->bmControls;
+                    mCameraAdjustements->mCtrlSupports = it->bmControls;
                     MARK("getCtrlSupports=%lx", (unsigned long) mCtrlSupports);
                     ret = UVC_SUCCESS;
                     break;
@@ -209,21 +209,21 @@ int UVCCamera::getCtrlSupports(uint64_t *supports) {
             ret = UVC_SUCCESS;
     }
     if (supports)
-        *supports = mCameraConfig->mCtrlSupports;
+        *supports = mCameraAdjustements->mCtrlSupports;
     RETURN(ret, int);
 }
 
 int UVCCamera::getProcSupports(uint64_t *supports) {
     uvc_error_t ret = UVC_ERROR_NOT_FOUND;
     if (LIKELY(mDeviceHandle)) {
-        if (!mCameraConfig->mPUSupports) {
+        if (!mCameraAdjustements->mPUSupports) {
             // I don't know how many there are, but from what I've tried, it seems like there's
             // only one, so just return the first one for now
             const uvc_processing_unit_t *proc_units = uvc_get_processing_units(mDeviceHandle);
             const uvc_processing_unit_t *pu;
             DL_FOREACH(proc_units, pu) {
                 if (pu) {
-                    mCameraConfig->mPUSupports = pu->bmControls;
+                    mCameraAdjustements->mPUSupports = pu->bmControls;
                     MARK("getProcSupports=%lx", (unsigned long) mPUSupports);
                     ret = UVC_SUCCESS;
                     break;
@@ -233,16 +233,16 @@ int UVCCamera::getProcSupports(uint64_t *supports) {
             ret = UVC_SUCCESS;
     }
     if (supports)
-        *supports = mCameraConfig->mPUSupports;
+        *supports = mCameraAdjustements->mPUSupports;
     RETURN(ret, int);
 }
 
-std::shared_ptr<UVCCaptureBase> UVCCamera::getPreview() const {
-    return mPreview;
+std::shared_ptr<UVCCaptureBase> UVCCamera::getCapturer() const {
+    return mCapturer;
 }
 
 std::shared_ptr<UVCCameraAdjustments> UVCCamera::getAdjustments() const {
-    return mCameraConfig;
+    return mCameraAdjustements;
 }
 
 uvc_device_t *UVCCamera::getUvcDevice() {
@@ -251,12 +251,4 @@ uvc_device_t *UVCCamera::getUvcDevice() {
 
 uvc_device_handle_t *UVCCamera::getUvcDeviceHandle() {
     return mDeviceHandle;
-}
-
-UVCCameraJniImpl::UVCCameraJniImpl() : UVCCamera() {
-
-}
-
-std::shared_ptr<UVCCaptureBase> UVCCameraJniImpl::constructPreview(uvc_device_handle_t *deviceHandle) {
-    return std::shared_ptr<UVCCaptureBase>(new UVCPreviewJni(deviceHandle));
 }

@@ -2,7 +2,8 @@
  * UVCCamera
  * library and sample to access to UVC web camera on non-rooted Android device
  *
- * Copyright (c) 2025 vshcryabets@gmail.com
+ * Copyright (c) 2014-2017 saki t_saki@serenegiant.com
+ * Copyright (c) 2024 vshcryabets@gmail.com
  *
  * File name: UVCCamera.h
  *
@@ -21,14 +22,27 @@
  * All files in the folder are under this Apache License, Version 2.0.
  * Files in the jni/libjpeg, jni/libusb, jin/libuvc, jni/rapidjson folder may have a different license, see the respective files.
 */
+
 #pragma once
-#include <cstdint>
-#include <vector>
-#include <map>
+
+#include "Camera.h"
 #include "Source.h"
 
-class Camera {
+class UVCCamera2: public Camera, public PushSource {
 public:
-    virtual ~Camera() = default;
-    virtual std::map<uint16_t, std::vector<Source::Resolution>> getSupportedResolutions() = 0;
+    struct ConnectConfiguration {
+        int vid;
+        int pid;
+        int fd;
+        int busnum;
+        int devaddr;
+        std::string usbfs;
+    };
+public:
+    UVCCamera2();
+	virtual ~UVCCamera2();
+    std::map<uint16_t, std::vector<Resolution>> getSupportedResolutions();
+    std::vector<FrameFormat> getSupportedFrameFormats() override;
+    void stopCapturing() override;
+    void close() override;
 };

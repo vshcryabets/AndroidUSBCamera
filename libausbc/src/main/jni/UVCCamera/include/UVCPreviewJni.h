@@ -24,13 +24,12 @@
 */
 #pragma once
 
-#include "UVCPreviewBase.h"
+#include "UVCCaptureBase.h"
 #include <android/native_window.h>
 
 class UVCPreviewJni: public UVCCaptureBase, UvcCaptureListener {
 private:
     ANativeWindow *mPreviewWindow;
-//    ANativeWindow *mCaptureWindow;
     jobject mFrameCallbackObj;
 private:
     void clearDisplay();
@@ -40,7 +39,7 @@ protected:
     void onPrepared(uint16_t deviceId, uint16_t frameWidth, uint16_t  frameHeight) override;
     void onFinished(uint16_t deviceId) override;
     void onFrameLost(uint16_t deviceId, std::chrono::steady_clock::time_point timestamp, uint8_t reason) override;
-    void onFailed(uint16_t deviceId, UvcPreviewFailed error) override;
+    void onFailed(uint16_t deviceId, UvcCaptureFailed error) override;
 public:
     UVCPreviewJni(uvc_device_handle_t *devh);
     ~UVCPreviewJni();

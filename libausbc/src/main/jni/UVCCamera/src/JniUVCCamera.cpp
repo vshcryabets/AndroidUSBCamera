@@ -41,7 +41,7 @@
 #include "libusb.h"
 #include "libuvc/libuvc.h"
 #include "utilbase.h"
-#include "UVCCamera.h"
+#include "UVCCameraJniImpl.h"
 #include "UVCPreviewJni.h"
 
 /**
@@ -152,9 +152,9 @@ static jint nativeRelease(JNIEnv *env, jobject thiz,
 static jint nativeStartPreview(JNIEnv *env,
                                jobject thiz,
                                ID_TYPE id_camera) {
-    UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
+    auto *camera = reinterpret_cast<UVCCamera *>(id_camera);
     if (LIKELY(camera)) {
-        return camera->getPreview()->startCapture();
+        return camera->getCapturer()->startCapture();
     }
     return JNI_ERR;
 }
@@ -165,9 +165,9 @@ static jint nativeStopPreview(JNIEnv *env, jobject thiz,
 
     jint result = JNI_ERR;
 
-    UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
+    auto *camera = reinterpret_cast<UVCCamera *>(id_camera);
     if (LIKELY(camera)) {
-        result = camera->getPreview()->stopCapture();
+        result = camera->getCapturer()->stopCapture();
     }
     RETURN(result, jint);
 }
@@ -177,10 +177,10 @@ static jint nativeSetPreviewDisplay(JNIEnv *env, jobject thiz,
 
     jint result = JNI_ERR;
 
-    UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
+    auto *camera = reinterpret_cast<UVCCamera *>(id_camera);
     if (LIKELY(camera)) {
         ANativeWindow *preview_window = jSurface ? ANativeWindow_fromSurface(env, jSurface) : NULL;
-        auto preview = std::dynamic_pointer_cast<UVCPreviewJni>(camera->getPreview());
+        auto preview = std::dynamic_pointer_cast<UVCPreviewJni>(camera->getCapturer());
         if (preview != nullptr) {
             result = preview->setPreviewDisplay(preview_window);
         }
@@ -191,10 +191,10 @@ static jint nativeSetPreviewDisplay(JNIEnv *env, jobject thiz,
 static jint nativeSetFrameCallback(JNIEnv *env, jobject thiz,
                                    ID_TYPE id_camera, jobject jIFrameCallback, jint pixel_format) {
     jint result = JNI_ERR;
-    UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
+    auto *camera = reinterpret_cast<UVCCamera *>(id_camera);
     if (LIKELY(camera)) {
         jobject frame_callback_obj = env->NewGlobalRef(jIFrameCallback);
-        auto preview = std::dynamic_pointer_cast<UVCPreviewJni>(camera->getPreview());
+        auto preview = std::dynamic_pointer_cast<UVCPreviewJni>(camera->getCapturer());
         if (preview != nullptr) {
             result = preview->setFrameCallback(env, frame_callback_obj, pixel_format);
         }
@@ -2136,7 +2136,7 @@ Java_com_jiangdg_uvc_UVCCamera_nativeGetSupportedSize(JNIEnv *env, jclass clazz,
     jobject result = env->NewObject(arrayListCls, arrayListInit);
     UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
     if (LIKELY(camera)) {
-        auto supportedSized = camera->getSupportedSize();
+        auto supportedSized = camera->getSupportedResolutions();
         for (const auto &it: supportedSized) {
             jobject intervalsList = env->NewObject(arrayListCls, arrayListInit);
             for (const auto &interval: it.frameIntervals) {
@@ -2203,7 +2203,7 @@ Java_com_jiangdg_uvc_UVCCamera_nativeSetPreviewSize(JNIEnv *env,
                                                     jfloat bandwidth) {
     UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
     if (LIKELY(camera)) {
-        return camera->getPreview()->setPreviewSize(width,
+        return camera->getCapturer()->setPreviewSize(width,
                                                     height,
                                                     (uint16_t)fps,
                                                     bandwidth);

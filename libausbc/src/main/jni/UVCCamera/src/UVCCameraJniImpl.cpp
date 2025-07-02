@@ -19,16 +19,15 @@
  *  limitations under the License.
  *
  * All files in the folder are under this Apache License, Version 2.0.
- * Files in the jni/libjpeg, jni/libusb, jin/libuvc, jni/rapidjson folder may have a different license, see the respective files.
+ * Files in the jni/libjpeg, jni/libusb, jin/libuvc folder may have a different license, see the respective files.
 */
-#pragma once
-#include <cstdint>
-#include <vector>
-#include <map>
-#include "Source.h"
+#include "UVCCameraJniImpl.h"
+#include "UVCPreviewJni.h"
 
-class Camera {
-public:
-    virtual ~Camera() = default;
-    virtual std::map<uint16_t, std::vector<Source::Resolution>> getSupportedResolutions() = 0;
-};
+UVCCameraJniImpl::UVCCameraJniImpl() : UVCCamera() {
+
+}
+
+std::shared_ptr<UVCCaptureBase> UVCCameraJniImpl::constructPreview(uvc_device_handle_t *deviceHandle) {
+    return std::shared_ptr<UVCCaptureBase>(new UVCPreviewJni(deviceHandle));
+}

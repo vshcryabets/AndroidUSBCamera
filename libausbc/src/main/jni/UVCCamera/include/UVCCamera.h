@@ -30,7 +30,7 @@
 #include <pthread.h>
 #include <android/native_window.h>
 #include "UVCCameraAdjustments.h"
-#include "UVCPreviewBase.h"
+#include "UVCCaptureBase.h"
 #include <memory>
 #include <chrono>
 #include <vector>
@@ -52,8 +52,8 @@ private:
 	int mFd;
 	uvc_device_t *mDevice;
 	uvc_device_handle_t *mDeviceHandle;
-    std::shared_ptr<UVCCaptureBase> mPreview;
-    std::shared_ptr<UVCCameraAdjustments> mCameraConfig;
+    std::shared_ptr<UVCCaptureBase> mCapturer;
+    std::shared_ptr<UVCCameraAdjustments> mCameraAdjustements;
 private:
 	void clearCameraParams();
 protected:
@@ -65,21 +65,13 @@ public:
 	int connect(const ConnectConfiguration & connectConfiguration);
     void disconnect();
 
-    std::vector<CameraResolution> getSupportedSize() override;
+    std::map<uint16_t, std::vector<Source::Resolution>> getSupportedResolutions() override;
     int getCtrlSupports(uint64_t *supports);
 	int getProcSupports(uint64_t *supports);
-    [[nodiscard]] std::shared_ptr<UVCCaptureBase> getPreview() const;
+    [[nodiscard]] std::shared_ptr<UVCCaptureBase> getCapturer() const;
     [[nodiscard]] std::shared_ptr<UVCCameraAdjustments> getAdjustments() const;
 
     // hacks for UAC
     virtual uvc_device_t *getUvcDevice();
     virtual uvc_device_handle_t  *getUvcDeviceHandle();
-};
-
-class UVCCameraJniImpl : public UVCCamera {
-protected:
-    std::shared_ptr<UVCCaptureBase> constructPreview(uvc_device_handle_t *deviceHandle) override;
-public:
-    UVCCameraJniImpl();
-    ~UVCCameraJniImpl() override = default;
 };

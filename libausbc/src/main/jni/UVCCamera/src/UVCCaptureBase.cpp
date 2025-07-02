@@ -3,7 +3,7 @@
  * library and sample to access to UVC web camera on non-rooted Android device
  *
  * Copyright (c) 2014-2017 saki t_saki@serenegiant.com
- * Copyright (c) 2024 vschryabets@gmail.com
+ * Copyright (c) 2024-2025 vschryabets@gmail.com
  *
  * File name: UVCPreview.cpp
  *
@@ -23,10 +23,10 @@
  * Files in the jni/libjpeg, jni/libusb, jin/libuvc, jni/rapidjson folder may have a different license, see the respective files.
 */
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <unistd.h>
 #include "utilbase.h"
-#include "UVCPreviewBase.h"
+#include "UVCCaptureBase.h"
 #include "libuvc/libuvc_internal.h"
 #include "LibUvcHacks.h"
 
@@ -282,7 +282,7 @@ void UVCCaptureBase::previewThreadFunc() {
                 requestHeight,
                 requestFps);
         if (result)
-            throw UvcPreviewFailed(UvcPreviewFailed::NO_FORMAT, "Can't find format");
+            throw UvcCaptureFailed(UvcCaptureFailed::UNSUPORTED_CONFIGURATION, "Can't find format");
 
         result = uvc_start_streaming(
                 mDeviceHandle,
@@ -291,7 +291,7 @@ void UVCCaptureBase::previewThreadFunc() {
                 (void *) this, 0);
 
         if (result)
-            throw UvcPreviewFailed(UvcPreviewFailed::START_STREAM_FAILED, "Can't start streaming");
+            throw UvcCaptureFailed(UvcCaptureFailed::START_CAPTURE_FAILED, "Can't start streaming");
 // TODO i've always got 640x480 here
 //        const uvc_format_desc_t *format_desc = uvc_get_format_descs(mDeviceHandle);
 //
@@ -324,7 +324,7 @@ void UVCCaptureBase::previewThreadFunc() {
             mPreviewListener->onFinished(mDeviceId);
         }
         uvc_stop_streaming(mDeviceHandle);
-    } catch (UvcPreviewFailed err) {
+    } catch (UvcCaptureFailed err) {
         if (mPreviewListener != nullptr) {
             mPreviewListener->onFailed(mDeviceId, err);
         }
@@ -340,15 +340,15 @@ void UVCCaptureBase::onBrokenFrame(std::chrono::steady_clock::time_point point) 
     }
 }
 
-UvcPreviewFailed::UvcPreviewFailed(UvcPreviewFailed::Type error, std::string decsription):
+UvcCaptureFailed::UvcCaptureFailed(UvcCaptureFailed::Type error, std::string decsription):
         error(error), description(decsription + " code " + std::to_string(error)) {
 }
 
-const char *UvcPreviewFailed::what() noexcept {
+const char *UvcCaptureFailed::what() noexcept {
     return description.c_str();
 }
 
-UvcPreviewFailed::UvcPreviewFailed(UvcPreviewFailed &src) {
+UvcCaptureFailed::UvcCaptureFailed(UvcCaptureFailed &src) {
     this->error = src.error;
     this->description = src.description;
 }

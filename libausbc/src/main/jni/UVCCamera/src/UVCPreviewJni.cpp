@@ -200,6 +200,6 @@ void UVCPreviewJni::onFrameLost(uint16_t deviceId, std::chrono::steady_clock::ti
     LOGD("onFrameDropped %lld reason = %d", timestamp.time_since_epoch(), reason);
 }
 
-void UVCPreviewJni::onFailed(uint16_t deviceId, UvcPreviewFailed error) {
+void UVCPreviewJni::onFailed(uint16_t deviceId, UvcCaptureFailed error) {
     LOGE("onPreviewFailed %d %s", deviceId, error.what());
 }

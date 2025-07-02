@@ -23,6 +23,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.jiangdg.uvc.UVCCamera
+import com.jiangdg.uvc.UVCCamera2
 
 class DemoFragment2 : Fragment() {
 
@@ -39,7 +40,7 @@ class DemoFragment2 : Fragment() {
         val usbManager = requireActivity().getSystemService(Context.USB_SERVICE) as UsbManager
         val deviceId = requireArguments().getInt(KEY_USB_DEVICE)
         val device = usbManager.deviceList.values.find { it.deviceId == deviceId } ?: return
-        val uvcCamera = UVCCamera()
+        val uvcCamera = UVCCamera2()
 //        uvcCamera.open()
     }
 

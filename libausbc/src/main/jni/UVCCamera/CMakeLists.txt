@@ -19,20 +19,25 @@ if(BUILD_JNIWRAPPER_MODULE)
             src/_onload.cpp
             src/JniJpegBenchmark.cpp
             src/JniUVCCamera.cpp
+            src/JniUVCCamera2.cpp
+            src/JniTestSource.cpp
             src/LoadJpegImageFromAssetsUseCase.cpp
             src/JpegBenchmark.cpp
             src/ProgressObserver.cpp
             src/UVCCameraAdjustments.cpp
-            src/UVCPreviewBase.cpp
+            src/UVCCaptureBase.cpp
             src/UVCPreviewJni.cpp
             src/JpegUseCases.cpp
             src/UVCCamera.cpp
+            src/UVCCamera2.cpp
+            src/UVCCameraJniImpl.cpp
             src/LibUvcHacks.cpp
             src/Camera.cpp
     )
 
     target_link_libraries(native
             Images
+            Sources
             libJpegStatic
             LibUvc
             android
