@@ -24,9 +24,7 @@ package com.vsh.uvc
 
 data class UvcCameraResolution(
     val id: Int,
-    val subtype: Int,
-    val frameIndex: Int,
     val width: Int,
     val height: Int,
-    val frameIntervals: List<Int>, // in 100ns units
+    val fps: List<Float>,
 )

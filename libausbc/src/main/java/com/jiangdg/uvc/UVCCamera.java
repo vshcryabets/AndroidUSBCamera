@@ -31,10 +31,12 @@ import android.view.SurfaceHolder;
 import com.jiangdg.usb.USBMonitor;
 import com.jiangdg.usb.UsbControlBlock;
 import com.vsh.uvc.UvcCameraResolution;
+import com.vsh.uvc.UvcVsDeskSubtype;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import timber.log.Timber;
 
@@ -61,7 +63,7 @@ public class UVCCamera implements IUvcCamera {
     protected UvcFrameFormat mCurrentFrameFormat = UvcFrameFormat.FRAME_FORMAT_MJPEG;
 	protected int mCurrentWidth = 640, mCurrentHeight = 480;
 	protected float mCurrentBandwidthFactor = DEFAULT_BANDWIDTH;
-    protected List<UvcCameraResolution> mSupportedSize = Collections.emptyList();
+    protected Map<UvcVsDeskSubtype, List<UvcCameraResolution>> mSupportedSize = Collections.emptyMap();
 	// these fields from here are accessed from native code and do not change name and remove
     protected long mNativePtr;
     protected int mScanningModeMin, mScanningModeMax, mScanningModeDef;
@@ -142,7 +144,7 @@ public class UVCCamera implements IUvcCamera {
 		}
 		mCurrentFrameFormat = UvcFrameFormat.FRAME_FORMAT_MJPEG;
     	if (mNativePtr != 0 && mSupportedSize.isEmpty()) {
-    		mSupportedSize = nativeGetSupportedSize(mNativePtr);
+			getSupportedSize();
 			Timber.d("Camera supported formats %s", mSupportedSize.toString());
     	}
     	if (USBMonitor.DEBUG) {
@@ -160,7 +162,7 @@ public class UVCCamera implements IUvcCamera {
      */
 	@Override
     public synchronized void close() {
-    	stopPreview();
+    	stopCapturing();
     	if (mNativePtr != 0) {
     		nativeRelease(mNativePtr);
 //    		mNativePtr = 0;	// nativeDestroyを呼ぶのでここでクリアしちゃダメ
@@ -172,7 +174,7 @@ public class UVCCamera implements IUvcCamera {
 		mControlSupports = mProcSupports = 0;
 		mCurrentFrameFormat = UvcFrameFormat.FRAME_FORMAT_NONE;
 		mCurrentBandwidthFactor = 0;
-		mSupportedSize = Collections.emptyList();
+		mSupportedSize = Collections.emptyMap();
     	Timber.v("close:finished");
     }
 
@@ -188,8 +190,24 @@ public class UVCCamera implements IUvcCamera {
 		return mCtrlBlock;
 	}
 
-	public synchronized List<UvcCameraResolution> getSupportedSize() {
-    	return !mSupportedSize.isEmpty() ? mSupportedSize : (mSupportedSize = nativeGetSupportedSize(mNativePtr));
+	public synchronized Map<UvcVsDeskSubtype, List<UvcCameraResolution>> getSupportedSize() {
+		if (mSupportedSize.isEmpty()) {
+			var sizes = nativeGetSupportedSize(mNativePtr);
+			for (var subtype: sizes.keySet()) {
+				var subtypeValue = UvcVsDeskSubtype.UVC_VS_UNDEFINED;
+				if (subtype == UvcVsDeskSubtype.UVC_VS_FORMAT_UNCOMPRESSED.getValue()) {
+					subtypeValue = UvcVsDeskSubtype.UVC_VS_FORMAT_UNCOMPRESSED;
+				}
+				if (subtype == UvcVsDeskSubtype.UVC_VS_FORMAT_MJPEG.getValue()) {
+					subtypeValue = UvcVsDeskSubtype.UVC_VS_FORMAT_MJPEG;
+				}
+				if (subtypeValue == UvcVsDeskSubtype.UVC_VS_UNDEFINED) {
+					continue;	// skip unsupported subtype
+				}
+				mSupportedSize.put(subtypeValue, sizes.get(subtype));
+			}
+		}
+    	return mSupportedSize;
     }
 
 	/**
@@ -250,21 +268,19 @@ public class UVCCamera implements IUvcCamera {
 	}
 
 	public List<UvcCameraResolution> getSupportedSizeList2() {
-		return getSupportedSize2((mCurrentFrameFormat != UvcFrameFormat.FRAME_FORMAT_YUYV) ? 6 : 4, getSupportedSize());
+		return getSupportedSize2((mCurrentFrameFormat != UvcFrameFormat.FRAME_FORMAT_YUYV) ?
+				UvcVsDeskSubtype.UVC_VS_FORMAT_MJPEG : UvcVsDeskSubtype.UVC_VS_FORMAT_UNCOMPRESSED,
+				getSupportedSize());
 	}
 
 	public List<UvcCameraResolution> getSupportedSizeList2(UvcFrameFormat frameFormat) {
-		return getSupportedSize2((frameFormat != UvcFrameFormat.FRAME_FORMAT_YUYV) ? 6 : 4, getSupportedSize());
+		return getSupportedSize2((frameFormat != UvcFrameFormat.FRAME_FORMAT_YUYV) ?
+				UvcVsDeskSubtype.UVC_VS_FORMAT_MJPEG : UvcVsDeskSubtype.UVC_VS_FORMAT_UNCOMPRESSED,
+				getSupportedSize());
 	}
 
-	public List<UvcCameraResolution> getSupportedSize2(final int type, final List<UvcCameraResolution> supportedSize) {
-		var result = new ArrayList<UvcCameraResolution>();
-		for (var it: supportedSize) {
-			if (it.getSubtype() == type) {
-				result.add(it);
-			}
-		}
-		return result;
+	public List<UvcCameraResolution> getSupportedSize2(final UvcVsDeskSubtype type, final Map<UvcVsDeskSubtype, List<UvcCameraResolution>> supportedSize) {
+		return supportedSize.getOrDefault(type, Collections.emptyList());
 	}
 
     /**
@@ -310,10 +326,8 @@ public class UVCCamera implements IUvcCamera {
     	}
     }
 
-    /**
-     * stop preview
-     */
-    public synchronized void stopPreview() {
+	@Override
+    public synchronized void stopCapturing() {
     	setFrameCallback(null, PixelFormat.PIXEL_FORMAT_RAW);
     	if (mCtrlBlock != null) {
     		nativeStopPreview(mNativePtr);
@@ -953,7 +967,7 @@ public class UVCCamera implements IUvcCamera {
                                                    final float fps,
                                                    final int mode,
                                                    final float bandwidth);
-	private static native List<UvcCameraResolution> nativeGetSupportedSize(final long id_camera);
+	private static native Map<Short, List<UvcCameraResolution>> nativeGetSupportedSize(final long id_camera);
 	private static final native int nativeStartPreview(final long id_camera);
 	private static final native int nativeStopPreview(final long id_camera);
 	private static final native int nativeSetPreviewDisplay(final long id_camera, final Surface surface);

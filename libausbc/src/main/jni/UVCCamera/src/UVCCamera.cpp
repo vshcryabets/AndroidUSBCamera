@@ -74,7 +74,7 @@ void UVCCamera::clearCameraParams() {
 /**
  * カメラへ接続する
  */
-int UVCCamera::connect(const ConnectConfiguration & connectConfiguration) {
+int UVCCamera::connect(const ConnectConfiguration &connectConfiguration) {
     uvc_error_t result = UVC_ERROR_BUSY;
     if (!mDeviceHandle && connectConfiguration.fd) {
         mUsbFs = connectConfiguration.usbfs;
@@ -167,18 +167,20 @@ std::map<uint16_t, std::vector<Source::Resolution>> UVCCamera::getSupportedResol
                         for (const auto *frame_desc = fmt_desc->frame_descs;
                              frame_desc;
                              frame_desc = frame_desc->next) {
-                            std::vector<uint32_t> intervals;
+                            std::vector<float> intervals;
                             for (auto interval = frame_desc->intervals; *interval; ++interval) {
-                                intervals.push_back(*interval);
+                                float fps = 10000000.0f / *interval;
+                                intervals.push_back(fps);
                             }
-                            result.push_back({
-                                                     .id =  fmt_desc->bFormatIndex,
-                                                     .subtype = (uint8_t) fmt_desc->bDescriptorSubtype,
-                                                     .frameIndex = fmt_desc->bDefaultFrameIndex,
-                                                     .width = frame_desc->wWidth,
-                                                     .height = frame_desc->wHeight,
-                                                     .frameIntervals = intervals
-                                             });
+                            if (result.find(fmt_desc->bFormatIndex) == result.end()) {
+                                result[fmt_desc->bFormatIndex] = std::vector<Source::Resolution>();
+                            }
+                            result[fmt_desc->bFormatIndex].push_back({
+                                                                             .id = fmt_desc->bFormatIndex,
+                                                                             .width = frame_desc->wWidth,
+                                                                             .height = frame_desc->wHeight,
+                                                                             .fps = intervals
+                                                                     });
                         }
                         break;
                     default:

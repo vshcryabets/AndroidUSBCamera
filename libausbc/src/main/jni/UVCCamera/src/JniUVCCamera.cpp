@@ -36,6 +36,7 @@
 #include <jni.h>
 #include <android/native_window_jni.h>
 #include <memory>
+#include <map>
 
 #include <jni.h>
 #include "libusb.h"
@@ -43,6 +44,7 @@
 #include "utilbase.h"
 #include "UVCCameraJniImpl.h"
 #include "UVCPreviewJni.h"
+#include "Source.h"
 
 /**
  * set the value into the long field
@@ -2126,37 +2128,39 @@ extern "C" {
 
 JNIEXPORT jobject JNICALL
 Java_com_jiangdg_uvc_UVCCamera_nativeGetSupportedSize(JNIEnv *env, jclass clazz, jlong id_camera) {
+    jclass hashMapCls = env->FindClass("java/util/HashMap");
     jclass arrayListCls = env->FindClass("java/util/ArrayList");
     jclass integerClass = env->FindClass("java/lang/Integer");
+    jmethodID hashMapInit = env->GetMethodID(hashMapCls, "<init>", "()V");
     jmethodID arrayListInit = env->GetMethodID(arrayListCls, "<init>", "()V");
     jmethodID arrayListAdd = env->GetMethodID(arrayListCls, "add", "(Ljava/lang/Object;)Z");
     jmethodID initInteger =  env->GetMethodID( integerClass, "<init>", "(I)V");
     jclass uvcCameraResolutionCls = env->FindClass("com/vsh/uvc/UvcCameraResolution");
-    jmethodID uvcCameraResolutionInit = env->GetMethodID(uvcCameraResolutionCls, "<init>", "(IIIIILjava/util/List;)V");
-    jobject result = env->NewObject(arrayListCls, arrayListInit);
+    jmethodID uvcCameraResolutionInit = env->GetMethodID(uvcCameraResolutionCls, "<init>", "(IIILjava/util/List;)V");
+    jobject result = env->NewObject(hashMapCls, hashMapInit);
     UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
     if (LIKELY(camera)) {
-        auto supportedSized = camera->getSupportedResolutions();
-        for (const auto &it: supportedSized) {
-            jobject intervalsList = env->NewObject(arrayListCls, arrayListInit);
-            for (const auto &interval: it.frameIntervals) {
-                jobject intervalObject = env->NewObject(integerClass, initInteger, (jint)interval);
-                env->CallBooleanMethod(intervalsList, arrayListAdd, intervalObject);
-                env->DeleteLocalRef(intervalObject);
-            }
-
-            auto resolution = env->NewObject(uvcCameraResolutionCls,
-                                             uvcCameraResolutionInit,
-                                             it.id,
-                                             it.subtype,
-                                             it.frameIndex,
-                                             it.width,
-                                             it.height,
-                                             intervalsList);
-            env->CallBooleanMethod(result, arrayListAdd, resolution);
-            env->DeleteLocalRef(resolution);
-            env->DeleteLocalRef(intervalsList);
-        }
+        std::map<uint16_t, std::vector<Source::Resolution>> supportedSized = camera->getSupportedResolutions();
+//        for (const auto &[type, resolutions]: supportedSized) {
+//            jobject intervalsList = env->NewObject(arrayListCls, arrayListInit);
+//            for (const auto &interval: it.fps) {
+//                jobject intervalObject = env->NewObject(integerClass, initInteger, (jint)interval);
+//                env->CallBooleanMethod(intervalsList, arrayListAdd, intervalObject);
+//                env->DeleteLocalRef(intervalObject);
+//            }
+//
+//            auto resolution = env->NewObject(uvcCameraResolutionCls,
+//                                             uvcCameraResolutionInit,
+//                                             it.id,
+//                                             it.subtype,
+//                                             it.frameIndex,
+//                                             it.width,
+//                                             it.height,
+//                                             intervalsList);
+//            env->CallBooleanMethod(result, arrayListAdd, resolution);
+//            env->DeleteLocalRef(resolution);
+//            env->DeleteLocalRef(intervalsList);
+//        }
     }
     env->DeleteLocalRef(uvcCameraResolutionCls);
     env->DeleteLocalRef(arrayListCls);
