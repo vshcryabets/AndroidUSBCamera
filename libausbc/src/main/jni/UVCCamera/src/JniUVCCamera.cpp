@@ -22,7 +22,8 @@
  * Files in the jni/libjpeg, jni/libusb, jin/libuvc, jni/rapidjson folder may have a different license, see the respective files.
 */
 
-#if 1    // デバッグ情報を出さない時
+#define LOG_TAG "JniUVCCamera"
+#if 1    // デバッグ情報を出さない時1
 #ifndef LOG_NDEBUG
 #define    LOG_NDEBUG        // LOGV/LOGD/MARKを出力しない時
 #endif
@@ -36,12 +37,15 @@
 #include <jni.h>
 #include <android/native_window_jni.h>
 #include <memory>
+#include <map>
 
 #include <jni.h>
 #include "libusb.h"
 #include "libuvc/libuvc.h"
 #include "utilbase.h"
-#include "UVCCamera.h"
+#include "UVCCameraJniImpl.h"
+#include "UVCPreviewJni.h"
+#include "Source.h"
 
 /**
  * set the value into the long field
@@ -141,48 +145,19 @@ static jint nativeRelease(JNIEnv *env, jobject thiz,
                           ID_TYPE id_camera) {
 
 
-    int result = JNI_ERR;
-    UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
+    auto *camera = reinterpret_cast<UVCCamera *>(id_camera);
     if (LIKELY(camera)) {
-        result = camera->release();
+        camera->disconnect();
     }
-    RETURN(result, jint);
+    return 0;
 }
-
-//======================================================================
-//static jint nativeSetStatusCallback(JNIEnv *env, jobject thiz,
-//                                    ID_TYPE id_camera, jobject jIStatusCallback) {
-//
-//    jint result = JNI_ERR;
-//
-//    UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
-//    if (LIKELY(camera)) {
-//        jobject status_callback_obj = env->NewGlobalRef(jIStatusCallback);
-//        result = camera->setStatusCallback(env, status_callback_obj);
-//    }
-//    RETURN(result, jint);
-//}
-//
-//static jint nativeSetButtonCallback(JNIEnv *env, jobject thiz,
-//                                    ID_TYPE id_camera,
-//                                    jobject jIButtonCallback) {
-//
-//    jint result = JNI_ERR;
-//
-//    UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
-//    if (LIKELY(camera)) {
-//        jobject button_callback_obj = env->NewGlobalRef(jIButtonCallback);
-//        result = camera->setButtonCallback(env, button_callback_obj);
-//    }
-//    RETURN(result, jint);
-//}
 
 static jint nativeStartPreview(JNIEnv *env,
                                jobject thiz,
                                ID_TYPE id_camera) {
-    UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
+    auto *camera = reinterpret_cast<UVCCamera *>(id_camera);
     if (LIKELY(camera)) {
-        return camera->getPreview()->startCapture();
+        return camera->getCapturer()->startCapture();
     }
     return JNI_ERR;
 }
@@ -193,9 +168,9 @@ static jint nativeStopPreview(JNIEnv *env, jobject thiz,
 
     jint result = JNI_ERR;
 
-    UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
+    auto *camera = reinterpret_cast<UVCCamera *>(id_camera);
     if (LIKELY(camera)) {
-        result = camera->getPreview()->stopCapture();
+        result = camera->getCapturer()->stopCapture();
     }
     RETURN(result, jint);
 }
@@ -205,10 +180,10 @@ static jint nativeSetPreviewDisplay(JNIEnv *env, jobject thiz,
 
     jint result = JNI_ERR;
 
-    UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
+    auto *camera = reinterpret_cast<UVCCamera *>(id_camera);
     if (LIKELY(camera)) {
         ANativeWindow *preview_window = jSurface ? ANativeWindow_fromSurface(env, jSurface) : NULL;
-        auto preview = std::dynamic_pointer_cast<UVCPreviewJni>(camera->getPreview());
+        auto preview = std::dynamic_pointer_cast<UVCPreviewJni>(camera->getCapturer());
         if (preview != nullptr) {
             result = preview->setPreviewDisplay(preview_window);
         }
@@ -219,26 +194,12 @@ static jint nativeSetPreviewDisplay(JNIEnv *env, jobject thiz,
 static jint nativeSetFrameCallback(JNIEnv *env, jobject thiz,
                                    ID_TYPE id_camera, jobject jIFrameCallback, jint pixel_format) {
     jint result = JNI_ERR;
-    UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
+    auto *camera = reinterpret_cast<UVCCamera *>(id_camera);
     if (LIKELY(camera)) {
         jobject frame_callback_obj = env->NewGlobalRef(jIFrameCallback);
-        auto preview = std::dynamic_pointer_cast<UVCPreviewJni>(camera->getPreview());
+        auto preview = std::dynamic_pointer_cast<UVCPreviewJni>(camera->getCapturer());
         if (preview != nullptr) {
             result = preview->setFrameCallback(env, frame_callback_obj, pixel_format);
-        }
-    }
-    return result;
-}
-
-static jint nativeSetCaptureDisplay(JNIEnv *env, jobject thiz,
-                                    ID_TYPE id_camera, jobject jSurface) {
-    jint result = JNI_ERR;
-    UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
-    if (LIKELY(camera)) {
-        ANativeWindow *capture_window = jSurface ? ANativeWindow_fromSurface(env, jSurface) : NULL;
-        auto preview = std::dynamic_pointer_cast<UVCPreviewJni>(camera->getPreview());
-        if (preview != nullptr) {
-            result = preview->setCaptureDisplay(capture_window);
         }
     }
     return result;
@@ -1992,8 +1953,6 @@ static JNINativeMethod methods[] = {
         {"nativeSetPreviewDisplay",                 "(JLandroid/view/Surface;)I",            (void *) nativeSetPreviewDisplay},
         {"nativeSetFrameCallback",                  "(JLcom/jiangdg/uvc/IFrameCallback;I)I", (void *) nativeSetFrameCallback},
 
-        {"nativeSetCaptureDisplay",                 "(JLandroid/view/Surface;)I",            (void *) nativeSetCaptureDisplay},
-
         {"nativeGetCtrlSupports",                   "(J)J",                                  (void *) nativeGetCtrlSupports},
         {"nativeGetProcSupports",                   "(J)J",                                  (void *) nativeGetProcSupports},
 
@@ -2170,40 +2129,56 @@ extern "C" {
 
 JNIEXPORT jobject JNICALL
 Java_com_jiangdg_uvc_UVCCamera_nativeGetSupportedSize(JNIEnv *env, jclass clazz, jlong id_camera) {
+    jclass hashMapCls = env->FindClass("java/util/HashMap");
     jclass arrayListCls = env->FindClass("java/util/ArrayList");
     jclass integerClass = env->FindClass("java/lang/Integer");
+    jclass floatClass = env->FindClass("java/lang/Float");
+    jmethodID hashMapInit = env->GetMethodID(hashMapCls, "<init>", "()V");
+    jmethodID hashMapPut = env->GetMethodID(hashMapCls, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
     jmethodID arrayListInit = env->GetMethodID(arrayListCls, "<init>", "()V");
     jmethodID arrayListAdd = env->GetMethodID(arrayListCls, "add", "(Ljava/lang/Object;)Z");
     jmethodID initInteger =  env->GetMethodID( integerClass, "<init>", "(I)V");
+    jmethodID initFloat =  env->GetMethodID( floatClass, "<init>", "(F)V");
     jclass uvcCameraResolutionCls = env->FindClass("com/vsh/uvc/UvcCameraResolution");
-    jmethodID uvcCameraResolutionInit = env->GetMethodID(uvcCameraResolutionCls, "<init>", "(IIIIILjava/util/List;)V");
-    jobject result = env->NewObject(arrayListCls, arrayListInit);
+    jmethodID uvcCameraResolutionInit = env->GetMethodID(uvcCameraResolutionCls, "<init>", "(IIILjava/util/List;)V");
+    jobject result = env->NewObject(hashMapCls, hashMapInit);
     UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
     if (LIKELY(camera)) {
-        auto supportedSized = camera->getSupportedSize();
-        for (const auto &it: supportedSized) {
-            jobject intervalsList = env->NewObject(arrayListCls, arrayListInit);
-            for (const auto &interval: it.frameIntervals) {
-                jobject intervalObject = env->NewObject(integerClass, initInteger, (jint)interval);
-                env->CallBooleanMethod(intervalsList, arrayListAdd, intervalObject);
-                env->DeleteLocalRef(intervalObject);
+        std::map<uint16_t, std::vector<Source::Resolution>> supportedSized = camera->getSupportedResolutions();
+        for (const auto &[type, resolutions]: supportedSized) {
+            jobject key = env->NewObject(integerClass, initInteger, (jint)type);
+            jobject resolutionsList = env->NewObject(arrayListCls, arrayListInit);
+            for (const auto &it: resolutions) {
+                // Create a list of intervals
+                jobject fpsList = env->NewObject(arrayListCls, arrayListInit);
+
+                for (const auto &fps: it.fps) {
+                    jobject intervalObject = env->NewObject(floatClass, initFloat, (jfloat)fps);
+                    env->CallBooleanMethod(fpsList, arrayListAdd, intervalObject);
+                    env->DeleteLocalRef(intervalObject);
+                }
+
+                // Create a resolution object
+                auto resolution = env->NewObject(uvcCameraResolutionCls,
+                                                 uvcCameraResolutionInit,
+                                                 it.id,
+                                                 it.width,
+                                                 it.height,
+                                                 fpsList);
+                env->CallBooleanMethod(resolutionsList, arrayListAdd, resolution);
+                env->DeleteLocalRef(resolution);
+                env->DeleteLocalRef(fpsList);
             }
 
-            auto resolution = env->NewObject(uvcCameraResolutionCls,
-                                             uvcCameraResolutionInit,
-                                             it.id,
-                                             it.subtype,
-                                             it.frameIndex,
-                                             it.width,
-                                             it.height,
-                                             intervalsList);
-            env->CallBooleanMethod(result, arrayListAdd, resolution);
-            env->DeleteLocalRef(resolution);
-            env->DeleteLocalRef(intervalsList);
+            env->CallObjectMethod(result, hashMapPut, key, resolutionsList);
+            env->DeleteLocalRef(resolutionsList);
+            env->DeleteLocalRef(key);
         }
     }
     env->DeleteLocalRef(uvcCameraResolutionCls);
     env->DeleteLocalRef(arrayListCls);
+    env->DeleteLocalRef(hashMapCls);
+    env->DeleteLocalRef(floatClass);
     env->DeleteLocalRef(integerClass);
     return result;
 }
@@ -2218,12 +2193,19 @@ Java_com_jiangdg_uvc_UVCCamera_nativeConnect(JNIEnv *env, jobject thiz,
                                              jint dev_addr,
                                              jstring usbfs) {
     int result = JNI_ERR;
-    UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
+    auto *camera = reinterpret_cast<UVCCamera *>(id_camera);
     const char *c_usbfs = env->GetStringUTFChars(usbfs, JNI_FALSE);
     LOGI("connect to %d:%d %s", vid, pid, c_usbfs);
     if (LIKELY(camera && (file_descriptor > 0))) {
 //		libusb_set_debug(NULL, LIBUSB_LOG_LEVEL_DEBUG);
-        result = camera->connect(vid, pid, file_descriptor, bus_num, dev_addr, c_usbfs);
+        result = camera->connect({
+            .vid = (uint16_t) vid,
+            .pid = (uint16_t) pid,
+            .fd = file_descriptor,
+            .busnum = (uint8_t) bus_num,
+            .devaddr = (uint8_t) dev_addr,
+            .usbfs = c_usbfs
+        });
     }
     env->ReleaseStringUTFChars(usbfs, c_usbfs);
     return result;
@@ -2240,7 +2222,7 @@ Java_com_jiangdg_uvc_UVCCamera_nativeSetPreviewSize(JNIEnv *env,
                                                     jfloat bandwidth) {
     UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
     if (LIKELY(camera)) {
-        return camera->getPreview()->setPreviewSize(width,
+        return camera->getCapturer()->setPreviewSize(width,
                                                     height,
                                                     (uint16_t)fps,
                                                     bandwidth);

@@ -20,7 +20,6 @@
  *  Files in the libjpeg-turbo, libusb, libuvc, rapidjson folder
  *  may have a different license, see the respective files.
  */
-
 package com.jiangdg.uvc;
 
 import android.graphics.SurfaceTexture;
@@ -32,82 +31,24 @@ import android.view.SurfaceHolder;
 import com.jiangdg.usb.USBMonitor;
 import com.jiangdg.usb.UsbControlBlock;
 import com.vsh.uvc.UvcCameraResolution;
+import com.vsh.uvc.UvcVsDeskSubtype;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import timber.log.Timber;
 
-public class UVCCamera {
+public class UVCCamera implements IUvcCamera {
 	public static boolean DEBUG = false;	// TODO set false when releasing
 	private static final String TAG = UVCCamera.class.getSimpleName();
 	private static final String DEFAULT_USBFS = "/dev/bus/usb";
-	public static final int FRAME_FORMAT_YUYV = 0;
-	public static final int FRAME_FORMAT_MJPEG = 1;
 
 	public static final int DEFAULT_PREVIEW_FPS = 0;
 	public static final float DEFAULT_BANDWIDTH = 1.0f;
-	public static final int DEFAULT_PREVIEW_MODE = FRAME_FORMAT_MJPEG;
-
-	public static final int PIXEL_FORMAT_RAW = 0;
-	public static final int PIXEL_FORMAT_YUV = 1;
-	public static final int PIXEL_FORMAT_RGB565 = 2;
-	public static final int PIXEL_FORMAT_RGBX = 3;
-	public static final int PIXEL_FORMAT_YUV420SP = 4;	// NV12
-	public static final int PIXEL_FORMAT_NV21 = 5;		// = YVU420SemiPlanar,NV21，但是保存到jpg颜色失真
-
-	//--------------------------------------------------------------------------------
-    public static final int	CTRL_SCANNING		= 0x00000001;	// D0:  Scanning Mode
-    public static final int CTRL_AE				= 0x00000002;	// D1:  Auto-Exposure Mode
-    public static final int CTRL_AE_PRIORITY	= 0x00000004;	// D2:  Auto-Exposure Priority
-    public static final int CTRL_AE_ABS			= 0x00000008;	// D3:  Exposure Time (Absolute)
-    public static final int CTRL_AR_REL			= 0x00000010;	// D4:  Exposure Time (Relative)
-    public static final int CTRL_FOCUS_ABS		= 0x00000020;	// D5:  Focus (Absolute)
-    public static final int CTRL_FOCUS_REL		= 0x00000040;	// D6:  Focus (Relative)
-    public static final int CTRL_IRIS_ABS		= 0x00000080;	// D7:  Iris (Absolute)
-    public static final int CTRL_IRIS_REL		= 0x00000100;	// D8:  Iris (Relative)
-    public static final int CTRL_ZOOM_ABS		= 0x00000200;	// D9:  Zoom (Absolute)
-    public static final int CTRL_ZOOM_REL		= 0x00000400;	// D10: Zoom (Relative)
-    public static final int CTRL_PANTILT_ABS	= 0x00000800;	// D11: PanTilt (Absolute)
-    public static final int CTRL_PANTILT_REL	= 0x00001000;	// D12: PanTilt (Relative)
-    public static final int CTRL_ROLL_ABS		= 0x00002000;	// D13: Roll (Absolute)
-    public static final int CTRL_ROLL_REL		= 0x00004000;	// D14: Roll (Relative)
-    public static final int CTRL_FOCUS_AUTO		= 0x00020000;	// D17: Focus, Auto
-    public static final int CTRL_PRIVACY		= 0x00040000;	// D18: Privacy
-    public static final int CTRL_FOCUS_SIMPLE	= 0x00080000;	// D19: Focus, Simple
-    public static final int CTRL_WINDOW			= 0x00100000;	// D20: Window
-
-    public static final int PU_BRIGHTNESS		= 0x80000001;	// D0: Brightness
-    public static final int PU_CONTRAST			= 0x80000002;	// D1: Contrast
-    public static final int PU_HUE				= 0x80000004;	// D2: Hue
-    public static final int PU_SATURATION		= 0x80000008;	// D3: Saturation
-    public static final int PU_SHARPNESS		= 0x80000010;	// D4: Sharpness
-    public static final int PU_GAMMA			= 0x80000020;	// D5: Gamma
-    public static final int PU_WB_TEMP			= 0x80000040;	// D6: White Balance Temperature
-    public static final int PU_WB_COMPO			= 0x80000080;	// D7: White Balance Component
-    public static final int PU_BACKLIGHT		= 0x80000100;	// D8: Backlight Compensation
-    public static final int PU_GAIN				= 0x80000200;	// D9: Gain
-    public static final int PU_POWER_LF			= 0x80000400;	// D10: Power Line Frequency
-    public static final int PU_HUE_AUTO			= 0x80000800;	// D11: Hue, Auto
-    public static final int PU_WB_TEMP_AUTO		= 0x80001000;	// D12: White Balance Temperature, Auto
-    public static final int PU_WB_COMPO_AUTO	= 0x80002000;	// D13: White Balance Component, Auto
-    public static final int PU_DIGITAL_MULT		= 0x80004000;	// D14: Digital Multiplier
-    public static final int PU_DIGITAL_LIMIT	= 0x80008000;	// D15: Digital Multiplier Limit
-    public static final int PU_AVIDEO_STD		= 0x80010000;	// D16: AnaXLogWrapper Video Standard
-    public static final int PU_AVIDEO_LOCK		= 0x80020000;	// D17: AnaXLogWrapper Video Lock Status
-    public static final int PU_CONTRAST_AUTO	= 0x80040000;	// D18: Contrast, Auto
-
-	// uvc_status_class from libuvc.h
-	public static final int STATUS_CLASS_CONTROL = 0x10;
-	public static final int STATUS_CLASS_CONTROL_CAMERA = 0x11;
-	public static final int STATUS_CLASS_CONTROL_PROCESSING = 0x12;
-
-	// uvc_status_attribute from libuvc.h
-	public static final int STATUS_ATTRIBUTE_VALUE_CHANGE = 0x00;
-	public static final int STATUS_ATTRIBUTE_INFO_CHANGE = 0x01;
-	public static final int STATUS_ATTRIBUTE_FAILURE_CHANGE = 0x02;
-	public static final int STATUS_ATTRIBUTE_UNKNOWN = 0xff;
+	public static final UvcFrameFormat DEFAULT_PREVIEW_MODE = UvcFrameFormat.FRAME_FORMAT_MJPEG;
 
 	private static boolean isLoaded;
 	static {
@@ -120,10 +61,10 @@ public class UVCCamera {
 	private com.jiangdg.usb.UsbControlBlock mCtrlBlock;
     protected long mControlSupports;			// カメラコントロールでサポートしている機能フラグ
     protected long mProcSupports;				// プロセッシングユニットでサポートしている機能フラグ
-    protected int mCurrentFrameFormat = FRAME_FORMAT_MJPEG;
+    protected UvcFrameFormat mCurrentFrameFormat = UvcFrameFormat.FRAME_FORMAT_MJPEG;
 	protected int mCurrentWidth = 640, mCurrentHeight = 480;
 	protected float mCurrentBandwidthFactor = DEFAULT_BANDWIDTH;
-    protected List<UvcCameraResolution> mSupportedSize = Collections.emptyList();
+    protected Map<UvcVsDeskSubtype, List<UvcCameraResolution>> mSupportedSize = Collections.emptyMap();
 	// these fields from here are accessed from native code and do not change name and remove
     protected long mNativePtr;
     protected int mScanningModeMin, mScanningModeMax, mScanningModeDef;
@@ -176,9 +117,9 @@ public class UVCCamera {
     /**
      * connect to a UVC camera
      * USB permission is necessary before this method is called
-     * @param ctrlBlock
      */
-    public synchronized void open(final com.jiangdg.usb.UsbControlBlock ctrlBlock) {
+	@Override
+    public synchronized void open(final UsbControlBlock ctrlBlock) {
     	int result = -2;
 		close();
     	try {
@@ -202,9 +143,9 @@ public class UVCCamera {
 					+";busNum="+(mCtrlBlock==null ? "": mCtrlBlock.getBusNum())+";devAddr="+(mCtrlBlock==null ? "": mCtrlBlock.getDevNum())
 					+";usbfs="+(mCtrlBlock==null ? "": getUSBFSName(mCtrlBlock)));
 		}
-		mCurrentFrameFormat = FRAME_FORMAT_MJPEG;
+		mCurrentFrameFormat = UvcFrameFormat.FRAME_FORMAT_MJPEG;
     	if (mNativePtr != 0 && mSupportedSize.isEmpty()) {
-    		mSupportedSize = nativeGetSupportedSize(mNativePtr);
+			getSupportedSize();
 			Timber.d("Camera supported formats %s", mSupportedSize.toString());
     	}
     	if (USBMonitor.DEBUG) {
@@ -220,8 +161,9 @@ public class UVCCamera {
     /**
      * close and release UVC camera
      */
+	@Override
     public synchronized void close() {
-    	stopPreview();
+    	stopCapturing();
     	if (mNativePtr != 0) {
     		nativeRelease(mNativePtr);
 //    		mNativePtr = 0;	// nativeDestroyを呼ぶのでここでクリアしちゃダメ
@@ -231,9 +173,9 @@ public class UVCCamera {
    			mCtrlBlock = null;
 		}
 		mControlSupports = mProcSupports = 0;
-		mCurrentFrameFormat = -1;
+		mCurrentFrameFormat = UvcFrameFormat.FRAME_FORMAT_NONE;
 		mCurrentBandwidthFactor = 0;
-		mSupportedSize = Collections.emptyList();
+		mSupportedSize = Collections.emptyMap();
     	Timber.v("close:finished");
     }
 
@@ -249,8 +191,26 @@ public class UVCCamera {
 		return mCtrlBlock;
 	}
 
-	public synchronized List<UvcCameraResolution> getSupportedSize() {
-    	return !mSupportedSize.isEmpty() ? mSupportedSize : (mSupportedSize = nativeGetSupportedSize(mNativePtr));
+	public synchronized Map<UvcVsDeskSubtype, List<UvcCameraResolution>> getSupportedSize() {
+		if (mSupportedSize.isEmpty()) {
+			HashMap<UvcVsDeskSubtype, List<UvcCameraResolution>> result = new HashMap<>();
+			var sizes = nativeGetSupportedSize(mNativePtr);
+			for (var subtype: sizes.keySet()) {
+				var subtypeValue = UvcVsDeskSubtype.UVC_VS_UNDEFINED;
+				if (subtype == UvcVsDeskSubtype.UVC_VS_FORMAT_UNCOMPRESSED.getValue()) {
+					subtypeValue = UvcVsDeskSubtype.UVC_VS_FORMAT_UNCOMPRESSED;
+				}
+				if (subtype == UvcVsDeskSubtype.UVC_VS_FORMAT_MJPEG.getValue()) {
+					subtypeValue = UvcVsDeskSubtype.UVC_VS_FORMAT_MJPEG;
+				}
+				if (subtypeValue == UvcVsDeskSubtype.UVC_VS_UNDEFINED) {
+					continue;	// skip unsupported subtype
+				}
+				result.put(subtypeValue, sizes.get(subtype));
+			}
+			mSupportedSize = result;
+		}
+    	return mSupportedSize;
     }
 
 	/**
@@ -268,7 +228,7 @@ public class UVCCamera {
 	 * @param height
 	 * @param frameFormat either FRAME_FORMAT_YUYV(0) or FRAME_FORMAT_MJPEG(1)
 	 */
-	public void setPreviewSize(final int width, final int height, final int frameFormat) {
+	public void setPreviewSize(final int width, final int height, final UvcFrameFormat frameFormat) {
 		setPreviewSize(width, height, DEFAULT_PREVIEW_FPS, frameFormat, mCurrentBandwidthFactor);
 	}
 
@@ -279,7 +239,7 @@ public class UVCCamera {
 	   @param frameFormat either FRAME_FORMAT_YUYV(0) or FRAME_FORMAT_MJPEG(1)
 	   @param bandwidth [0.0f,1.0f]
 	 */
-	public void setPreviewSize(final int width, final int height, final int frameFormat, final float bandwidth) {
+	public void setPreviewSize(final int width, final int height, final UvcFrameFormat frameFormat, final float bandwidth) {
 		setPreviewSize(width, height, DEFAULT_PREVIEW_FPS, frameFormat, bandwidth);
 	}
 
@@ -294,12 +254,13 @@ public class UVCCamera {
 	public void setPreviewSize(final int width,
 							   final int height,
 							   final int fps,
-							   final int frameFormat,
+							   final UvcFrameFormat frameFormat,
 							   final float bandwidthFactor) {
 		if ((width == 0) || (height == 0))
 			throw new IllegalArgumentException("invalid preview size");
 		if (mNativePtr != 0) {
-			final int result = nativeSetPreviewSize(mNativePtr, width, height, fps, frameFormat, bandwidthFactor);
+			final int result = nativeSetPreviewSize(mNativePtr, width, height, fps,
+					frameFormat.getValue(), bandwidthFactor);
 			if (result != 0)
 				throw new IllegalArgumentException("Failed to set preview size " + width + "x" + height);
 			mCurrentFrameFormat = frameFormat;
@@ -310,24 +271,19 @@ public class UVCCamera {
 	}
 
 	public List<UvcCameraResolution> getSupportedSizeList2() {
-		if (mCurrentFrameFormat < 0) {
-			mCurrentFrameFormat = FRAME_FORMAT_MJPEG;
-		}
-		return getSupportedSize2((mCurrentFrameFormat > 0) ? 6 : 4, getSupportedSize());
+		return getSupportedSize2((mCurrentFrameFormat != UvcFrameFormat.FRAME_FORMAT_YUYV) ?
+				UvcVsDeskSubtype.UVC_VS_FORMAT_MJPEG : UvcVsDeskSubtype.UVC_VS_FORMAT_UNCOMPRESSED,
+				getSupportedSize());
 	}
 
-	public List<UvcCameraResolution> getSupportedSizeList2(int frameFormat) {
-		return getSupportedSize2((frameFormat > 0) ? 6 : 4, getSupportedSize());
+	public List<UvcCameraResolution> getSupportedSizeList2(UvcFrameFormat frameFormat) {
+		return getSupportedSize2((frameFormat != UvcFrameFormat.FRAME_FORMAT_YUYV) ?
+				UvcVsDeskSubtype.UVC_VS_FORMAT_MJPEG : UvcVsDeskSubtype.UVC_VS_FORMAT_UNCOMPRESSED,
+				getSupportedSize());
 	}
 
-	public List<UvcCameraResolution> getSupportedSize2(final int type, final List<UvcCameraResolution> supportedSize) {
-		var result = new ArrayList<UvcCameraResolution>();
-		for (var it: supportedSize) {
-			if (it.getSubtype() == type) {
-				result.add(it);
-			}
-		}
-		return result;
+	public List<UvcCameraResolution> getSupportedSize2(final UvcVsDeskSubtype type, final Map<UvcVsDeskSubtype, List<UvcCameraResolution>> supportedSize) {
+		return supportedSize.getOrDefault(type, Collections.emptyList());
 	}
 
     /**
@@ -342,7 +298,6 @@ public class UVCCamera {
     /**
      * set preview surface with SurfaceTexture.
      * this method require API >= 14
-     * @param texture
      */
     public synchronized void setPreviewTexture(final SurfaceTexture texture) {	// API >= 11
     	final Surface surface = new Surface(texture);	// XXX API >= 14
@@ -351,7 +306,6 @@ public class UVCCamera {
 
     /**
      * set preview surface with Surface
-     * @param surface
      */
     public synchronized void setPreviewDisplay(final Surface surface) {
     	nativeSetPreviewDisplay(mNativePtr, surface);
@@ -359,12 +313,10 @@ public class UVCCamera {
 
     /**
      * set frame callback
-     * @param callback
-     * @param pixelFormat
      */
-    public void setFrameCallback(final IFrameCallback callback, final int pixelFormat) {
+    public void setFrameCallback(final IFrameCallback callback, final PixelFormat pixelFormat) {
     	if (mNativePtr != 0) {
-        	nativeSetFrameCallback(mNativePtr, callback, pixelFormat);
+        	nativeSetFrameCallback(mNativePtr, callback, pixelFormat.getValue());
     	}
     }
 
@@ -377,11 +329,9 @@ public class UVCCamera {
     	}
     }
 
-    /**
-     * stop preview
-     */
-    public synchronized void stopPreview() {
-    	setFrameCallback(null, 0);
+	@Override
+    public synchronized void stopCapturing() {
+    	setFrameCallback(null, PixelFormat.PIXEL_FORMAT_RAW);
     	if (mCtrlBlock != null) {
     		nativeStopPreview(mNativePtr);
     	}
@@ -396,16 +346,6 @@ public class UVCCamera {
     		nativeDestroy(mNativePtr);
     		mNativePtr = 0;
     	}
-    }
-
-    // wrong result may return when you call this just after camera open.
-    // it is better to wait several hundreads millseconds.
-	public boolean checkSupportFlag(final long flag) {
-    	updateCameraParams();
-    	if ((flag & 0x80000000) == 0x80000000)
-    		return ((mProcSupports & flag) == (flag & 0x7ffffffF));
-    	else
-    		return (mControlSupports & flag) == flag;
     }
 
 //================================================================================
@@ -991,7 +931,7 @@ public class UVCCamera {
     	}
     }
 
-	private final String getUSBFSName(final com.jiangdg.usb.UsbControlBlock ctrlBlock) {
+	private String getUSBFSName(final com.jiangdg.usb.UsbControlBlock ctrlBlock) {
 		String result = null;
 		final String name = ctrlBlock.getDeviceName();
 		final String[] v = !TextUtils.isEmpty(name) ? name.split("/") : null;
@@ -1012,7 +952,13 @@ public class UVCCamera {
 	private final native long nativeCreate();
 	private final native void nativeDestroy(final long id_camera);
 
-	private final native int nativeConnect(long id_camera, int venderId, int productId, int fileDescriptor, int busNum, int devAddr, String usbfs);
+	private native int nativeConnect(long id_camera,
+                                     int venderId,
+                                     int productId,
+                                     int fileDescriptor,
+                                     int busNum,
+                                     int devAddr,
+                                     String usbfs);
 	private static final native int nativeRelease(final long id_camera);
 
 	private static final native int nativeSetStatusCallback(final long mNativePtr, final IStatusCallback callback);
@@ -1024,33 +970,13 @@ public class UVCCamera {
                                                    final float fps,
                                                    final int mode,
                                                    final float bandwidth);
-	private static native List<UvcCameraResolution> nativeGetSupportedSize(final long id_camera);
+	private static native Map<Integer, List<UvcCameraResolution>> nativeGetSupportedSize(final long id_camera);
 	private static final native int nativeStartPreview(final long id_camera);
 	private static final native int nativeStopPreview(final long id_camera);
 	private static final native int nativeSetPreviewDisplay(final long id_camera, final Surface surface);
 	private static final native int nativeSetFrameCallback(final long mNativePtr, final IFrameCallback callback, final int pixelFormat);
 
 //**********************************************************************
-	/**
-	 * start movie capturing(this should call while previewing)
-	 * @param surface
-	 */
-	public void startCapture(final Surface surface) {
-		if (mCtrlBlock != null && surface != null) {
-			nativeSetCaptureDisplay(mNativePtr, surface);
-		} else
-			throw new NullPointerException("startCapture");
-	}
-
-	/**
-	 * stop movie capturing
-	 */
-	public void stopCapture() {
-		if (mCtrlBlock != null) {
-			nativeSetCaptureDisplay(mNativePtr, null);
-		}
-	}
-	private static final native int nativeSetCaptureDisplay(final long id_camera, final Surface surface);
 
 	private static final native long nativeGetCtrlSupports(final long id_camera);
 	private static final native long nativeGetProcSupports(final long id_camera);

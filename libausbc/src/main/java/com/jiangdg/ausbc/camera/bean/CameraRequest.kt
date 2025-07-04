@@ -1,6 +1,6 @@
 /*
  * Copyright 2017-2023 Jiangdg
- * Copyright 2024 vshcryabets@gmail.com
+ * Copyright 2024-2025 vshcryabets@gmail.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.jiangdg.ausbc.camera.bean
 
 import androidx.annotation.Keep
 import com.jiangdg.ausbc.render.env.RotateType
+import com.jiangdg.uvc.UvcFrameFormat
 
 
 /** Camera request parameters
@@ -34,7 +35,7 @@ class CameraRequest private constructor() {
     var isCaptureRawImage: Boolean = false
     var defaultRotateType: RotateType = RotateType.ANGLE_0
     var audioSource: AudioSource = AudioSource.SOURCE_AUTO
-    var previewFormat: PreviewFormat = PreviewFormat.FORMAT_MJPEG
+    var previewFormat: UvcFrameFormat = UvcFrameFormat.FRAME_FORMAT_MJPEG
 
     @Deprecated("Deprecated since version 3.3.0")
     var cameraId: String = ""
@@ -156,7 +157,7 @@ class CameraRequest private constructor() {
          * @param format preview format, default is [PreviewFormat.FORMAT_MJPEG]
          * @return see [Builder]
          */
-        fun setPreviewFormat(format: PreviewFormat): Builder {
+        fun setPreviewFormat(format: UvcFrameFormat): Builder {
             mRequest.previewFormat = format
             return this
         }
@@ -196,17 +197,6 @@ class CameraRequest private constructor() {
         SOURCE_SYS_MIC,
         SOURCE_DEV_MIC,
         SOURCE_AUTO
-    }
-
-    /**
-     * Preview format
-     *
-     * FORMAT_MJPEG: default format with high frame rate
-     * FORMAT_YUYV: yuv format with lower frame rate
-     */
-    enum class PreviewFormat {
-        FORMAT_MJPEG,
-        FORMAT_YUYV
     }
 
     companion object {

@@ -2,7 +2,7 @@
 
 #include "Source.h"
 
-class TestSource: public Source {
+class TestSource: public PullSource {
     private:
         uint8_t* testData {nullptr};
         size_t testDataSize {0};
@@ -13,6 +13,7 @@ class TestSource: public Source {
         virtual Frame readFrame() override;
         void startCapturing(const CaptureConfiguration &config) override;
         void close() override;
+        std::map<uint16_t, std::vector<Resolution>> getSupportedResolutions() override;
         std::vector<Source::FrameFormat> getSupportedFrameFormats() override;
         void stopCapturing() override;
         bool waitNextFrame() override;

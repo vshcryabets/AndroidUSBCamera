@@ -1,11 +1,11 @@
 #pragma once
 #include <cstdint>
-#include <stddef.h>
+#include <cstddef>
 #include <chrono>
 #include <functional>
 #include <vector>
 #include <string>
-
+#include <map>
 
 class SourceError : public std::exception {
     public:
@@ -14,7 +14,7 @@ class SourceError : public std::exception {
         uint16_t code;
         std::string message;
     public:
-        SourceError(uint16_t code, std::string message) : code(code), message(message) {}
+        SourceError(uint16_t code, const std::string &message) : code(code), message(message) {}
         const char* what() const noexcept override;
 };
 
@@ -26,6 +26,12 @@ class Source {
             RGB,
             RGBX,
             NONE
+        };
+        struct Resolution {
+            const uint8_t id;
+            const uint16_t width;
+            const uint16_t height;
+            std::vector<float> fps;
         };
         struct ConnectConfiguration {
 
@@ -49,7 +55,6 @@ class Source {
     public:
         Source() {};
         virtual ~Source() = default;
-        virtual Frame readFrame() = 0;
         virtual void open(const ConnectConfiguration &config) {
             this->sourceConfig = config;
         }
@@ -62,7 +67,36 @@ class Source {
     
         const ConnectConfiguration getSourceConfiguration();
         const CaptureConfiguration getCaptureConfiguration();
-        virtual bool waitNextFrame() = 0;
+        virtual std::map<uint16_t, std::vector<Resolution>> getSupportedResolutions() = 0;
         virtual std::vector<FrameFormat> getSupportedFrameFormats() = 0;
 };
-    
+
+class PullSource : public Source {
+    public:
+        using FrameCallback = std::function<void(const Frame &frame)>;
+    protected:
+        FrameCallback frameCallback;
+    public:
+        PullSource() : Source() {}
+        virtual ~PullSource() = default;
+        virtual Frame readFrame() = 0;
+        virtual bool waitNextFrame() = 0;
+};
+
+class PushSource : public Source {
+    public:
+        using FrameCallback = std::function<void(const Frame &frame)>;
+    protected:
+        FrameCallback frameCallback;
+    public:
+        PushSource() : Source() {}
+        virtual ~PushSource() = default;
+        virtual void setFrameCallback(const FrameCallback &callback) {
+            this->frameCallback = callback;
+        }
+        virtual void pushFrame(const Frame &frame) {
+            if (frameCallback) {
+                frameCallback(frame);
+            }
+        }
+};
