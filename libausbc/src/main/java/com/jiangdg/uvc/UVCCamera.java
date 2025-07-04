@@ -35,6 +35,7 @@ import com.vsh.uvc.UvcVsDeskSubtype;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -192,6 +193,7 @@ public class UVCCamera implements IUvcCamera {
 
 	public synchronized Map<UvcVsDeskSubtype, List<UvcCameraResolution>> getSupportedSize() {
 		if (mSupportedSize.isEmpty()) {
+			HashMap<UvcVsDeskSubtype, List<UvcCameraResolution>> result = new HashMap<>();
 			var sizes = nativeGetSupportedSize(mNativePtr);
 			for (var subtype: sizes.keySet()) {
 				var subtypeValue = UvcVsDeskSubtype.UVC_VS_UNDEFINED;
@@ -204,8 +206,9 @@ public class UVCCamera implements IUvcCamera {
 				if (subtypeValue == UvcVsDeskSubtype.UVC_VS_UNDEFINED) {
 					continue;	// skip unsupported subtype
 				}
-				mSupportedSize.put(subtypeValue, sizes.get(subtype));
+				result.put(subtypeValue, sizes.get(subtype));
 			}
+			mSupportedSize = result;
 		}
     	return mSupportedSize;
     }
@@ -967,7 +970,7 @@ public class UVCCamera implements IUvcCamera {
                                                    final float fps,
                                                    final int mode,
                                                    final float bandwidth);
-	private static native Map<Short, List<UvcCameraResolution>> nativeGetSupportedSize(final long id_camera);
+	private static native Map<Integer, List<UvcCameraResolution>> nativeGetSupportedSize(final long id_camera);
 	private static final native int nativeStartPreview(final long id_camera);
 	private static final native int nativeStopPreview(final long id_camera);
 	private static final native int nativeSetPreviewDisplay(final long id_camera, final Surface surface);

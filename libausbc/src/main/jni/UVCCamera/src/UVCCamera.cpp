@@ -161,30 +161,25 @@ std::map<uint16_t, std::vector<Source::Resolution>> UVCCamera::getSupportedResol
             for (auto *fmt_desc = stream_if->format_descs;
                  fmt_desc;
                  fmt_desc = fmt_desc->next) {
-                switch (fmt_desc->bDescriptorSubtype) {
-                    case UVC_VS_FORMAT_UNCOMPRESSED:
-                    case UVC_VS_FORMAT_MJPEG:
-                        for (const auto *frame_desc = fmt_desc->frame_descs;
-                             frame_desc;
-                             frame_desc = frame_desc->next) {
-                            std::vector<float> intervals;
-                            for (auto interval = frame_desc->intervals; *interval; ++interval) {
-                                float fps = 10000000.0f / *interval;
-                                intervals.push_back(fps);
-                            }
-                            if (result.find(fmt_desc->bFormatIndex) == result.end()) {
-                                result[fmt_desc->bFormatIndex] = std::vector<Source::Resolution>();
-                            }
-                            result[fmt_desc->bFormatIndex].push_back({
-                                                                             .id = fmt_desc->bFormatIndex,
-                                                                             .width = frame_desc->wWidth,
-                                                                             .height = frame_desc->wHeight,
-                                                                             .fps = intervals
-                                                                     });
-                        }
-                        break;
-                    default:
-                        break;
+                uvc_vs_desc_subtype subtype = fmt_desc->bDescriptorSubtype;
+                if (subtype != UVC_VS_FORMAT_UNCOMPRESSED &&
+                    subtype != UVC_VS_FORMAT_MJPEG) {
+                    continue; // Skip unsupported formats
+                }
+                for (const auto *frame_desc = fmt_desc->frame_descs;
+                     frame_desc;
+                     frame_desc = frame_desc->next) {
+                    std::vector<float> intervals;
+                    for (auto interval = frame_desc->intervals; *interval; ++interval) {
+                        float fps = 10000000.0f / (float)*interval;
+                        intervals.push_back(fps);
+                    }
+                    result[subtype].push_back({
+                                                                     .id = fmt_desc->bFormatIndex,
+                                                                     .width = frame_desc->wWidth,
+                                                                     .height = frame_desc->wHeight,
+                                                                     .fps = intervals
+                                                             });
                 }
             }
         }
@@ -202,7 +197,7 @@ int UVCCamera::getCtrlSupports(uint64_t *supports) {
             DL_FOREACH(input_terminals, it) {
                 if (it) {
                     mCameraAdjustements->mCtrlSupports = it->bmControls;
-                    MARK("getCtrlSupports=%lx", (unsigned long) mCtrlSupports);
+                    MARK("getCtrlSupports=%lx", (unsigned long) mCameraAdjustements->mCtrlSupports);
                     ret = UVC_SUCCESS;
                     break;
                 }
@@ -226,7 +221,7 @@ int UVCCamera::getProcSupports(uint64_t *supports) {
             DL_FOREACH(proc_units, pu) {
                 if (pu) {
                     mCameraAdjustements->mPUSupports = pu->bmControls;
-                    MARK("getProcSupports=%lx", (unsigned long) mPUSupports);
+                    MARK("getProcSupports=%lx", (unsigned long) mCameraAdjustements->mPUSupports);
                     ret = UVC_SUCCESS;
                     break;
                 }
