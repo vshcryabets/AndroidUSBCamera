@@ -41,9 +41,6 @@
 #define DEFAULT_BANDWIDTH 1.0f
 #define PREVIEW_PIXEL_BYTES 4    // RGBA/RGBX
 
-
-//typedef uvc_error_t (*convFunc_t)(uvc_frame_t *in, uvc_frame_t *out);
-
 struct UvcPreviewFrame {
     uvc_frame_t *mFrame = nullptr;
     std::chrono::steady_clock::time_point mTimestamp;

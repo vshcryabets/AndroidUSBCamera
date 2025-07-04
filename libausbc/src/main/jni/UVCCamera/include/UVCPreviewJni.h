@@ -45,7 +45,6 @@ public:
     ~UVCPreviewJni();
 
     int setPreviewDisplay(ANativeWindow *preview_window);
-//    int setCaptureDisplay(ANativeWindow *capture_window);
     int stopCapture() override;
     int setFrameCallback(JNIEnv *env, jobject frame_callback_obj, int pixel_format);
 };
