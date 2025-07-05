@@ -40,8 +40,21 @@ Source::Frame TestSource::readFrame()
                 pixelOffset += 4;
             }
         }
-        drawString("Test Source", 20, 20, 1);
+        drawString(sourceName, 20, 20, 1);
         drawString("Frame: " + std::to_string(frameCounter), 20, 30, 1);
+
+        auto now = std::chrono::steady_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - captureStartTime).count();
+        int hours = static_cast<int>(elapsed / (1000 * 60 * 60));
+        int minutes = static_cast<int>((elapsed / (1000 * 60)) % 60);
+        int seconds = static_cast<int>((elapsed / 1000) % 60);
+        int millis = static_cast<int>(elapsed % 1000);
+        char timeStr[32];
+        snprintf(timeStr, sizeof(timeStr), "Time %03d:%02d:%02d.%03d", 
+            hours, minutes, 
+            seconds, millis);
+        drawString(std::string(timeStr), 20, 40, 1);
+
         frame.data = testData;
         frame.size = testDataSize;
         frame.timestamp = std::chrono::high_resolution_clock::now();
@@ -61,6 +74,8 @@ void TestSource::startCapturing(const Source::CaptureConfiguration &config)
     }
     testDataSize = config.width * config.height * 4;
     testData = new uint8_t[testDataSize];
+    captureStartTime = std::chrono::steady_clock::now();
+    sourceName = "TestSource RGBA " + std::to_string(config.width) + "x" + std::to_string(config.height);
 }
 
 void TestSource::close()
@@ -100,7 +115,9 @@ void TestSource::drawChar(char c, uint16_t x, uint16_t y, uint8_t upscale)
         if (c < min || c > max) {
             return;
         }
-        uint32_t color = 0xFFFFFFFF; // White color for the character;
+        uint32_t fgColor = 0xFFFFFFFF; // White color for the character;
+        uint32_t bgColor = 0x404040FF;
+        uint32_t color;
         uint16_t idx = c - min;
         const uint8_t* verticalSymbols = customFont + 2 + idx * 8;
         for (uint8_t sy = 0; sy < 8; sy++) {
@@ -108,13 +125,16 @@ void TestSource::drawChar(char c, uint16_t x, uint16_t y, uint8_t upscale)
             uint32_t lineOffset = (y + sy) * stride + x * 4;
             for (uint8_t sx = 0; sx < 8; sx++) {
                 if (verticalSymbols[sx] & mask) {
-                    uint32_t pixelOffset = lineOffset + (sx * 4);
-                    if (pixelOffset + 3 < testDataSize) {
-                        testData[pixelOffset + 0] = (color >> 24) & 0xFF; // R
-                        testData[pixelOffset + 1] = (color >> 16) & 0xFF; // G
-                        testData[pixelOffset + 2] = (color >> 8) & 0xFF; // B
-                        testData[pixelOffset + 3] = 0xFF; // A
-                    }
+                    color = fgColor; // Foreground color
+                } else {
+                    color = bgColor; // Background color
+                }
+                uint32_t pixelOffset = lineOffset + (sx * 4);
+                if (pixelOffset + 3 < testDataSize) {
+                    testData[pixelOffset + 0] = (color >> 24) & 0xFF; // R
+                    testData[pixelOffset + 1] = (color >> 16) & 0xFF; // G
+                    testData[pixelOffset + 2] = (color >> 8) & 0xFF; // B
+                    testData[pixelOffset + 3] = 0xFF; // A
                 }
             }
         }

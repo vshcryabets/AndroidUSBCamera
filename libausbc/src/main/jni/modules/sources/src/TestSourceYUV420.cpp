@@ -38,8 +38,21 @@ Source::Frame TestSourceYUV420::readFrame()
                 testDataV[baseOffset / 4] = color.v;
             }
         }
-        drawString("Test Source", 20, 20, 1);
+        drawString(sourceName, 20, 20, 1);
         drawString("Frame: " + std::to_string(frameCounter), 20, 30, 1);
+
+        auto now = std::chrono::steady_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - captureStartTime).count();
+        int hours = static_cast<int>(elapsed / (1000 * 60 * 60));
+        int minutes = static_cast<int>((elapsed / (1000 * 60)) % 60);
+        int seconds = static_cast<int>((elapsed / 1000) % 60);
+        int millis = static_cast<int>(elapsed % 1000);
+        char timeStr[32];
+        snprintf(timeStr, sizeof(timeStr), "Time %03d:%02d:%02d.%03d", 
+            hours, minutes, 
+            seconds, millis);
+        drawString(std::string(timeStr), 20, 40, 1);
+
         frame.data = testData;
         frame.size = testDataSize;
         frame.timestamp = std::chrono::high_resolution_clock::now();
@@ -62,6 +75,8 @@ void TestSourceYUV420::startCapturing(const Source::CaptureConfiguration &config
     testData = new uint8_t[testDataSize];
     testDataU = testData + pixelsCount; // U plane starts after Y plane
     testDataV = testDataU + pixelsCount / 4;
+    captureStartTime = std::chrono::steady_clock::now();
+    sourceName = "TestSource YUV420p " + std::to_string(config.width) + "x" + std::to_string(config.height);
 }
 
 void TestSourceYUV420::close()
@@ -98,27 +113,32 @@ void TestSourceYUV420::drawChar(char c, uint16_t x, uint16_t y, uint8_t upscale)
         if (upscale < 1) {
             upscale = 1; // Ensure upscale is at least 1u   
         }
-        uint16_t stride = captureConfigutation.width * 4; // 4 bytes per pixel (RGBA)
+        uint16_t stride = captureConfigutation.width;
         uint8_t min = customFont[0];
         uint8_t max = customFont[1];
         if (c < min || c > max) {
             return;
         }
-        uint32_t color = 0xFFFFFFFF; // White color for the character;
+        YUVColor fgColor = {255, 128, 128}; // White color for the character;
+        YUVColor bgColor = {0x40, 128, 128};
+        YUVColor color;
+
         uint16_t idx = c - min;
         const uint8_t* verticalSymbols = customFont + 2 + idx * 8;
         for (uint8_t sy = 0; sy < 8; sy++) {
             uint8_t mask = 1 << sy;
-            uint32_t lineOffset = (y + sy) * stride + x * 4;
+            uint32_t lineOffset = (y + sy) * stride + x;
             for (uint8_t sx = 0; sx < 8; sx++) {
                 if (verticalSymbols[sx] & mask) {
-                    uint32_t pixelOffset = lineOffset + (sx * 4);
-                    if (pixelOffset + 3 < testDataSize) {
-                        testData[pixelOffset + 0] = (color >> 24) & 0xFF; // R
-                        testData[pixelOffset + 1] = (color >> 16) & 0xFF; // G
-                        testData[pixelOffset + 2] = (color >> 8) & 0xFF; // B
-                        testData[pixelOffset + 3] = 0xFF; // A
-                    }
+                    color = fgColor; // Foreground color
+                } else {
+                    color = bgColor; // Background color
+                }
+                uint32_t pixelOffset = lineOffset + sx;
+                if (pixelOffset + 3 < testDataSize) {
+                    testData[pixelOffset] = color.y;
+                    testDataU[pixelOffset / 4] = color.u;
+                    testDataV[pixelOffset / 4] = color.v;
                 }
             }
         }
@@ -137,4 +157,17 @@ void TestSourceYUV420::drawString(std::string str, uint16_t x, uint16_t y, uint8
             drawChar(str[i], x + i * 8 * upscale, y, upscale);
         }
     }
+}
+
+std::map<uint16_t, std::vector<Source::Resolution>> TestSourceYUV420::getSupportedResolutions()
+{
+    std::map<uint16_t, std::vector<Source::Resolution>> result;
+    std::vector<Source::Resolution> resoltions {
+        {1, 640, 480, {30.0f, 60.0f}},
+        {1, 1280, 720, {30.0f, 60.0f}},
+        {1, 1920, 1080, {30.0f, 60.0f}},
+        {1, 3840, 2160, {30.0f}}
+    };
+    result[0] = std::move(resoltions);
+    return result;
 }

@@ -12,6 +12,8 @@
 #include <iostream>
 #include "u8x8.h"
 
+#define USE_YUV420_SOURCE
+
 // Callback for GtkGestureClick on the drawing area
 static void on_drawing_area_clicked(GtkGestureClick *gesture, int n_press, double x, double y, gpointer user_data)
 {
@@ -30,10 +32,15 @@ private:
     GtkApplication *app;
     int status;
     ConvertBitmapUseCase::Buffer draw_buffer;
+#ifdef USE_YUV420_SOURCE    
+    TestSourceYUV420 testSource;
+#else
     TestSource testSource;
+#endif
     ConvertYUV420ptoRGBAUseCase convertUseCase;
+#ifdef USE_YUV420_SOURCE   
     ConvertBitmapUseCase::Buffer *rgbaBuffer;
-
+#endif
 private:
     static gboolean staticTimeout(gpointer user_data)
     {
@@ -59,17 +66,17 @@ private:
     {
         Source::Frame frame = testSource.readFrame();
         auto captureConfig = testSource.getCaptureConfiguration();
-
-        // convertUseCase.convert(*rgbaBuffer,
-        //     {
-        //         .buffer = frame.data,
-        //         .capacity = frame.size,
-        //         .size = frame.size,
-        //         .width = captureConfig.width,
-        //         .height = captureConfig.height
-        //     }
-        // );
-
+#ifdef USE_YUV420_SOURCE
+        convertUseCase.convert(*rgbaBuffer,
+            {
+                .buffer = frame.data,
+                .capacity = frame.size,
+                .size = frame.size,
+                .width = captureConfig.width,
+                .height = captureConfig.height
+            }
+        );
+#endif
         // // Write frame.data to a file (for example, as raw YUV420 data)
         // FILE *file = fopen("frame.yuv", "wb");
         // if (file) {
@@ -84,7 +91,11 @@ private:
 
         cairo_format_t format = CAIRO_FORMAT_ARGB32;
         cairo_surface_t* surface = cairo_image_surface_create_for_data(
-            frame.data, 
+#ifdef USE_YUV420_SOURCE            
+            rgbaBuffer->buffer,
+#else
+            frame.data,
+#endif
             format, 
             captureConfig.width,
             captureConfig.height, 
@@ -149,11 +160,13 @@ public:
 
     ~GtkPreviewApplication()
     {
+#ifdef USE_YUV420_SOURCE        
         if (rgbaBuffer) {
             delete[] rgbaBuffer->buffer;
             delete rgbaBuffer;
             rgbaBuffer = nullptr;
         }
+#endif        
         if (app)
         {
             g_object_unref(app);
@@ -167,6 +180,7 @@ public:
             .height = 480,
             .fps = 30.0f};
         testSource.startCapturing(captureConfig);
+#ifdef USE_YUV420_SOURCE        
         size_t rgbaBufferSize = captureConfig.width * captureConfig.height * 4;
         rgbaBuffer = new ConvertBitmapUseCase::Buffer{
             .buffer = new uint8_t[rgbaBufferSize],
@@ -174,6 +188,7 @@ public:
             .size = 0,
             .width = 640,
             .height = 480};
+#endif            
         status = g_application_run(G_APPLICATION(app), argc, argv);
         return status;
     }
