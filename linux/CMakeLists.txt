@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.22)
+cmake_minimum_required(VERSION 3.28)
 
 project(LinuxUvcTests LANGUAGES CXX C)
 
@@ -16,6 +16,8 @@ option(BUILD_JPEGBENCHMARK_APP "Build Jpegbenchmark app 1" OFF)
 option(BUILD_SDL_PREVIEW_APP "Build SDL UVC preview sample app" OFF)
 option(BUILD_GTK_PREVIEW_APP "Build GTK UVC preview sample app" ON)
 option(BUILD_CATCH2_TESTS "Build Catch2 tests" ON)
+option(BUILD_X264_TEST_APP "Build X264 test app" ON)
+
 
 include(FetchContent)
 FetchContent_Declare(
@@ -58,4 +60,10 @@ if(BUILD_GTK_PREVIEW_APP AND BUILD_SOURCES_MODULE AND BUILD_U8X8FONT_MODULE)
     add_subdirectory(apps/gtk_preview)
 elseif(BUILD_GTK_PREVIEW_APP)
     message(WARNING "Skipping GtkPreview build because Sources or U8X8 module is not enabled.")
+endif()
+
+if(BUILD_X264_TEST_APP AND BUILD_SOURCES_MODULE)
+    add_subdirectory(apps/x264test)
+else()
+    message(WARNING "Skipping X264 test app build because Sources module is not enabled.")
 endif()
