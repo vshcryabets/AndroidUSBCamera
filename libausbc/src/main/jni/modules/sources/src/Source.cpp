@@ -7,7 +7,7 @@ const Source::ConnectConfiguration Source::getSourceConfiguration()
 
 const Source::CaptureConfiguration Source::getCaptureConfiguration()
 {
-    return this->captureConfigutation;
+    return this->captureConfiguration;
 }
 
 const char* SourceError::what() const noexcept {

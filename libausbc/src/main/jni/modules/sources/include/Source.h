@@ -50,7 +50,7 @@ class Source {
         };
     protected:
         ConnectConfiguration sourceConfig;
-        CaptureConfiguration captureConfigutation;
+        CaptureConfiguration captureConfiguration;
     protected:
         uint32_t frameCounter {0};
     public:
@@ -62,7 +62,7 @@ class Source {
         virtual void close() = 0;
     
         virtual void startCapturing(const CaptureConfiguration &config) {
-            this->captureConfigutation = config;
+            this->captureConfiguration = config;
         }
         virtual void stopCapturing() = 0;
     

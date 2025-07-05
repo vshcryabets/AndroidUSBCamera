@@ -27,11 +27,11 @@ Source::Frame TestSourceYUV420::readFrame()
     frame.size = 0;
     if (testData)
     {
-        uint16_t chunkWidth = captureConfigutation.width / testYUVColors.size();
-        for (size_t y = 0; y < captureConfigutation.height; y++)
+        uint16_t chunkWidth = captureConfiguration.width / testYUVColors.size();
+        for (size_t y = 0; y < captureConfiguration.height; y++)
         {
-            for (size_t x = 0; x < captureConfigutation.width; x++){
-                size_t baseOffset = y * captureConfigutation.width + x;
+            for (size_t x = 0; x < captureConfiguration.width; x++){
+                size_t baseOffset = y * captureConfiguration.width + x;
                 YUVColor color = testYUVColors[x / chunkWidth];
                 testData[baseOffset] = color.y;
                 testDataU[baseOffset / 4] = color.u;
@@ -113,7 +113,7 @@ void TestSourceYUV420::drawChar(char c, uint16_t x, uint16_t y, uint8_t upscale)
         if (upscale < 1) {
             upscale = 1; // Ensure upscale is at least 1u   
         }
-        uint16_t stride = captureConfigutation.width;
+        uint16_t stride = captureConfiguration.width;
         uint8_t min = customFont[0];
         uint8_t max = customFont[1];
         if (c < min || c > max) {

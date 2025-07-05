@@ -27,11 +27,11 @@ Source::Frame TestSource::readFrame()
     frame.size = 0;
     if (testData)
     {
-        uint16_t chunkWidth = captureConfigutation.width / testRGBAColors.size();
+        uint16_t chunkWidth = captureConfiguration.width / testRGBAColors.size();
         uint32_t pixelOffset = 0;
-        for (size_t y = 0; y < captureConfigutation.height; y++)
+        for (size_t y = 0; y < captureConfiguration.height; y++)
         {
-            for (size_t x = 0; x < captureConfigutation.width; x++){
+            for (size_t x = 0; x < captureConfiguration.width; x++){
                 uint32_t color = testRGBAColors[x / chunkWidth];
                 testData[pixelOffset + 0] = (color >> 24) & 0xFF; // R
                 testData[pixelOffset + 1] = (color >> 16) & 0xFF; // G
@@ -109,7 +109,7 @@ void TestSource::drawChar(char c, uint16_t x, uint16_t y, uint8_t upscale)
         if (upscale < 1) {
             upscale = 1; // Ensure upscale is at least 1u   
         }
-        uint16_t stride = captureConfigutation.width * 4; // 4 bytes per pixel (RGBA)
+        uint16_t stride = captureConfiguration.width * 4; // 4 bytes per pixel (RGBA)
         uint8_t min = customFont[0];
         uint8_t max = customFont[1];
         if (c < min || c > max) {
