@@ -1,9 +1,19 @@
 cmake_minimum_required(VERSION 3.22)
 
 if(BUILD_SOURCES_MODULE)
-        add_library(Sources STATIC
+        list(APPEND SOURCES 
                 src/Source.cpp
                 src/TestSource.cpp
+                src/TestSourceYUV420.cpp
+                )
+
+        if(BUILD_SOURCES_MODULE_V4L2)
+                list(APPEND SOURCES 
+                        src/UvcCamera.cpp)
+        endif()
+        
+        add_library(Sources STATIC
+                ${SOURCES}
                 )
 
         target_include_directories(Sources PUBLIC
