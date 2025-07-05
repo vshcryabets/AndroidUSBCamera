@@ -41,35 +41,25 @@
 #define DEFAULT_BANDWIDTH 1.0f
 #define PREVIEW_PIXEL_BYTES 4    // RGBA/RGBX
 
-
-typedef uvc_error_t (*convFunc_t)(uvc_frame_t *in, uvc_frame_t *out);
-
-#define PIXEL_FORMAT_RAW 0        // same as PIXEL_FORMAT_YUV
-#define PIXEL_FORMAT_YUV 1
-#define PIXEL_FORMAT_RGB565 2
-#define PIXEL_FORMAT_RGBX 3
-#define PIXEL_FORMAT_YUV20SP 4
-#define PIXEL_FORMAT_NV21 5        // YVU420SemiPlanar
-
 struct UvcPreviewFrame {
     uvc_frame_t *mFrame = nullptr;
     std::chrono::steady_clock::time_point mTimestamp;
 };
 
-class UvcPreviewFailed: public std::exception {
+class UvcCaptureFailed: public std::exception {
 public:
     enum Type {
         OK = 0,
-        NO_FORMAT,
-        START_STREAM_FAILED,
+        UNSUPORTED_CONFIGURATION,
+        START_CAPTURE_FAILED,
     };
 private:
     Type error;
     std::string description;
 public:
-    UvcPreviewFailed(Type error, std::string description);
-    UvcPreviewFailed(UvcPreviewFailed&);
-    ~UvcPreviewFailed() noexcept override = default;
+    UvcCaptureFailed(Type error, std::string description);
+    UvcCaptureFailed(UvcCaptureFailed&);
+    ~UvcCaptureFailed() noexcept override = default;
     virtual const char *what() noexcept;
 };
 
@@ -89,12 +79,18 @@ public:
 
     // will be called once before worker thread finishing
     virtual void onFinished(uint16_t deviceId) = 0;
-    virtual void onFailed(uint16_t deviceId, UvcPreviewFailed error) = 0;
+    virtual void onFailed(uint16_t deviceId, UvcCaptureFailed error) = 0;
     virtual void onFrameLost(uint16_t deviceId, std::chrono::steady_clock::time_point timestamp, uint8_t reason) = 0;
 };
 
 
 class UVCCaptureBase {
+public:
+    struct CaptureConfiguration {
+        uint32_t width;
+        uint32_t height;
+        float fps;
+    };
 protected:
     uvc_device_handle_t *mDeviceHandle;
     volatile bool mIsRunning;
@@ -118,22 +114,14 @@ protected:
     volatile uint16_t mBrokenFramesCounter = 0;
 private:
     void clear_pool();
-
     static void uvc_preview_frame_callback(uvc_frame_t *frame, void *vptr_args);
-
     void addPreviewFrame(uvc_frame_t *frame, std::chrono::steady_clock::time_point timestamp);
-
     void clearPreviewFramesQueue();
-
     void previewThreadFunc();
-
 protected:
     uvc_frame_t *get_frame(size_t data_bytes);
-
     void recycle_frame(uvc_frame_t *frame);
-
     const UvcPreviewFrame waitPreviewFrame();
-
 public:
     UVCCaptureBase(uvc_device_handle_t *devh,
                    uint16_t deviceId,
@@ -143,7 +131,7 @@ public:
 
     virtual ~UVCCaptureBase();
 
-    inline const bool isRunning() const;
+    [[nodiscard]] inline const bool isRunning() const;
 
     /**
      *
@@ -154,10 +142,9 @@ public:
                        float bandwidth = 1.0f);
 
     int startCapture();
-
     virtual int stopCapture();
-    uint16_t getBrokenFramesCounter() { return mBrokenFramesCounter; }
-    uint16_t getAllocatedFramesCounter() { return  mAllocatedFramesCounter; };
 
+    uint16_t getBrokenFramesCounter() const { return mBrokenFramesCounter; }
+    uint16_t getAllocatedFramesCounter() const { return  mAllocatedFramesCounter; };
     void onBrokenFrame(std::chrono::steady_clock::time_point point);
 };

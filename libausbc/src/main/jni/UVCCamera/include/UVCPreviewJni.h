@@ -3,7 +3,7 @@
  * library and sample to access to UVC web camera on non-rooted Android device
  *
  * Copyright (c) 2014-2017 saki t_saki@serenegiant.com
- * Copyright (c) 2024 vshcryabets@gmail.com
+ * Copyright (c) 2024-2025 vshcryabets@gmail.com
  *
  * File name: UVCPreviewJni.h
  *
@@ -24,13 +24,12 @@
 */
 #pragma once
 
-#include "UVCPreviewBase.h"
+#include "UVCCaptureBase.h"
 #include <android/native_window.h>
 
 class UVCPreviewJni: public UVCCaptureBase, UvcCaptureListener {
 private:
     ANativeWindow *mPreviewWindow;
-    ANativeWindow *mCaptureWindow;
     jobject mFrameCallbackObj;
 private:
     void clearDisplay();
@@ -40,13 +39,12 @@ protected:
     void onPrepared(uint16_t deviceId, uint16_t frameWidth, uint16_t  frameHeight) override;
     void onFinished(uint16_t deviceId) override;
     void onFrameLost(uint16_t deviceId, std::chrono::steady_clock::time_point timestamp, uint8_t reason) override;
-    void onFailed(uint16_t deviceId, UvcPreviewFailed error) override;
+    void onFailed(uint16_t deviceId, UvcCaptureFailed error) override;
 public:
     UVCPreviewJni(uvc_device_handle_t *devh);
     ~UVCPreviewJni();
 
     int setPreviewDisplay(ANativeWindow *preview_window);
-    int setCaptureDisplay(ANativeWindow *capture_window);
-    virtual int stopCapture() override;
+    int stopCapture() override;
     int setFrameCallback(JNIEnv *env, jobject frame_callback_obj, int pixel_format);
 };

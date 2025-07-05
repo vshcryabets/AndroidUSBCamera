@@ -134,3 +134,16 @@ void TestSource::drawString(std::string str, uint16_t x, uint16_t y, uint8_t ups
         }
     }
 }
+
+std::map<uint16_t, std::vector<Source::Resolution>> TestSource::getSupportedResolutions()
+{
+    std::map<uint16_t, std::vector<Source::Resolution>> result;
+    std::vector<Source::Resolution> resoltions {
+        {1, 640, 480, {30.0f, 60.0f}},
+        {1, 1280, 720, {30.0f, 60.0f}},
+        {1, 1920, 1080, {30.0f, 60.0f}},
+        {1, 3840, 2160, {30.0f}}
+    };
+    result[0] = std::move(resoltions);
+    return result;
+}

@@ -23,7 +23,7 @@
  * Files in the jni/libjpeg, jni/libusb, jin/libuvc folder may have a different license, see the respective files.
 */
 
-#include <stdlib.h>
+#include <cstdlib>
 #include "UVCPreviewJni.h"
 
 int UVCPreviewJni::setPreviewDisplay(ANativeWindow *preview_window) {
@@ -43,56 +43,17 @@ int UVCPreviewJni::setPreviewDisplay(ANativeWindow *preview_window) {
     RETURN(0, int);
 }
 
-int UVCPreviewJni::setCaptureDisplay(ANativeWindow *capture_window) {
-    /*pthread_mutex_lock(&capture_mutex);
-    {
-        if (isRunning() && isCapturing()) {
-            mIsCapturing = false;
-            if (mCaptureWindow) {
-                pthread_cond_signal(&capture_sync);
-                pthread_cond_wait(&capture_sync, &capture_mutex);    // wait finishing capturing
-            }
-        }
-        if (mCaptureWindow != capture_window) {
-            // release current Surface if already assigned.
-            if (UNLIKELY(mCaptureWindow))
-                ANativeWindow_release(mCaptureWindow);
-            mCaptureWindow = capture_window;
-            // if you use Surface came from MediaCodec#createInputSurface
-            // you could not change window format at least when you use
-            // ANativeWindow_lock / ANativeWindow_unlockAndPost
-            // to write frame data to the Surface...
-            // So we need check here.
-            if (mCaptureWindow) {
-                int32_t window_format = ANativeWindow_getFormat(mCaptureWindow);
-                if ((window_format != WINDOW_FORMAT_RGB_565)
-                    && (previewFormat == WINDOW_FORMAT_RGB_565)) {
-                    LOGE("window format mismatch, cancelled movie capturing.");
-                    ANativeWindow_release(mCaptureWindow);
-                    mCaptureWindow = NULL;
-                }
-            }
-        }
-    }
-    pthread_mutex_unlock(&capture_mutex);*/
-    return 0;
-}
-
 UVCPreviewJni::UVCPreviewJni(uvc_device_handle_t *devh)
         : UVCCaptureBase(devh, 1, this, 8, 4),
-          mPreviewWindow(NULL),
-          mCaptureWindow(NULL),
-          mFrameCallbackObj(NULL) {
+          mPreviewWindow(nullptr),
+          mFrameCallbackObj(nullptr) {
 
 }
 
 UVCPreviewJni::~UVCPreviewJni() {
     if (mPreviewWindow)
         ANativeWindow_release(mPreviewWindow);
-    mPreviewWindow = NULL;
-    if (mCaptureWindow)
-        ANativeWindow_release(mCaptureWindow);
-    mCaptureWindow = NULL;
+    mPreviewWindow = nullptr;
 }
 
 int UVCPreviewJni::stopCapture() {
@@ -102,17 +63,10 @@ int UVCPreviewJni::stopCapture() {
     if (pthread_mutex_lock(&preview_mutex) == 0) {
         if (mPreviewWindow) {
             ANativeWindow_release(mPreviewWindow);
-            mPreviewWindow = NULL;
+            mPreviewWindow = nullptr;
         }
         pthread_mutex_unlock(&preview_mutex);
     }
-//    if (pthread_mutex_lock(&capture_mutex) == 0) {
-//        if (mCaptureWindow) {
-//            ANativeWindow_release(mCaptureWindow);
-//            mCaptureWindow = NULL;
-//        }
-//        pthread_mutex_unlock(&capture_mutex);
-//    }
     return res;
 }
 
@@ -160,26 +114,10 @@ int UVCPreviewJni::setFrameCallback(JNIEnv *env, jobject frame_callback_obj, int
 
 void UVCPreviewJni::clearDisplay() {
     ANativeWindow_Buffer buffer;
-//    pthread_mutex_lock(&capture_mutex);
-//    {
-//        if (LIKELY(mCaptureWindow)) {
-//            if (LIKELY(ANativeWindow_lock(mCaptureWindow, &buffer, NULL) == 0)) {
-//                uint8_t *dest = (uint8_t *) buffer.bits;
-//                const size_t bytes = buffer.width * PREVIEW_PIXEL_BYTES;
-//                const int stride = buffer.stride * PREVIEW_PIXEL_BYTES;
-//                for (int i = 0; i < buffer.height; i++) {
-//                    memset(dest, 0, bytes);
-//                    dest += stride;
-//                }
-//                ANativeWindow_unlockAndPost(mCaptureWindow);
-//            }
-//        }
-//    }
-//    pthread_mutex_unlock(&capture_mutex);
     pthread_mutex_lock(&preview_mutex);
     {
         if (LIKELY(mPreviewWindow)) {
-            if (LIKELY(ANativeWindow_lock(mPreviewWindow, &buffer, NULL) == 0)) {
+            if (LIKELY(ANativeWindow_lock(mPreviewWindow, &buffer, nullptr) == 0)) {
                 uint8_t *dest = (uint8_t *) buffer.bits;
                 const size_t bytes = buffer.width * PREVIEW_PIXEL_BYTES;
                 const int stride = buffer.stride * PREVIEW_PIXEL_BYTES;
@@ -262,6 +200,6 @@ void UVCPreviewJni::onFrameLost(uint16_t deviceId, std::chrono::steady_clock::ti
     LOGD("onFrameDropped %lld reason = %d", timestamp.time_since_epoch(), reason);
 }
 
-void UVCPreviewJni::onFailed(uint16_t deviceId, UvcPreviewFailed error) {
+void UVCPreviewJni::onFailed(uint16_t deviceId, UvcCaptureFailed error) {
     LOGE("onPreviewFailed %d %s", deviceId, error.what());
 }

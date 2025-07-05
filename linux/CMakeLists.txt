@@ -34,7 +34,7 @@ if(BUILD_SDL_MODULE)
 endif()
 
 if(BUILD_SOURCES_MODULE)
-    add_subdirectory(modules/sources)
+    add_subdirectory(../libausbc/src/main/jni/modules/sources modules/sources)
 endif()
 
 if(BUILD_U8X8FONT_MODULE)

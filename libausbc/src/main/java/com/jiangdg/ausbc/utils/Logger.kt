@@ -49,7 +49,7 @@ object Logger {
         Timber.tag(flag).e(msg)
     }
 
-    fun e(flag: String, msg: String, throwable: Throwable?) {
+    fun e(flag: String, msg: String, throwable: Throwable) {
         Timber.tag(flag).e(throwable, msg)
     }
 }

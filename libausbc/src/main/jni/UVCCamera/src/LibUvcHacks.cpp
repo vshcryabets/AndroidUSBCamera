@@ -22,7 +22,7 @@
  * Files in the jni/libjpeg-turbo-1.50, libjpegturb0-2.1.1, jni/libusb folder may have a different license, see the respective files.
 */
 
-#include "uvchacks.h"
+#include "LibUvcHacks.h"
 #include "libuvc/libuvc_internal.h"
 #include "utilbase.h"
 
