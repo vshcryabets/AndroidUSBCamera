@@ -12,6 +12,7 @@ option(BUILD_SDL_MODULE "Build the SDL helper module" OFF)
 option(BUILD_SOURCES_MODULE_V4L2 "Build the Sources module with Video for Linux v2" OFF)
 option(BUILD_IMAGES_MODULE "Build the Images module" ON)
 option(BUILD_SOURCES_MODULE "Build the Sources module" ON)
+option(BUILD_ENCODERS_MODULE "Build the Encoders module" ON)
 option(BUILD_JPEGBENCHMARK_APP "Build Jpegbenchmark app 1" OFF)
 option(BUILD_SDL_PREVIEW_APP "Build SDL UVC preview sample app" OFF)
 option(BUILD_GTK_PREVIEW_APP "Build GTK UVC preview sample app" ON)
@@ -37,6 +38,10 @@ endif()
 
 if(BUILD_SOURCES_MODULE)
     add_subdirectory(../libausbc/src/main/jni/modules/sources modules/sources)
+endif()
+
+if(BUILD_ENCODERS_MODULE)
+    add_subdirectory(../libausbc/src/main/jni/modules/encoders modules/encoders)
 endif()
 
 if(BUILD_U8X8FONT_MODULE)
