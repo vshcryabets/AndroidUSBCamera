@@ -86,7 +86,7 @@ void TestSourceYUV420::close()
 
 std::vector<Source::FrameFormat> TestSourceYUV420::getSupportedFrameFormats()
 {
-    return {Source::FrameFormat::RGBA};
+    return {Source::FrameFormat::YUV420P};
 }
 
 void TestSourceYUV420::stopCapturing()
