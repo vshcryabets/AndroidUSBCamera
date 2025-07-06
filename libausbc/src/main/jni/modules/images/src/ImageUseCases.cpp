@@ -16,7 +16,7 @@
 #include "ImageUseCases.h"
 #include <algorithm>
 
-ConvertBitmapUseCase::Buffer ConvertRGBtoRGBAUseCase::convert(Buffer dst, const Buffer &src) {
+ConvertBitmapUseCase::Buffer ConvertRGBtoRGBAUseCase::convert(Buffer &dst, const Buffer &src) {
     size_t pixelsCount = src.width * src.height;
     size_t rgbaSize = pixelsCount * 4;
     if (dst.capacity < rgbaSize) {
@@ -44,7 +44,7 @@ ConvertBitmapUseCase::Buffer ConvertRGBtoRGBAUseCase::convertToNew(const Buffer 
     return convert(newBuffer, src);
 }
 
-ConvertBitmapUseCase::Buffer ConvertYUV422toRGBAUseCase::convert(Buffer dst, const Buffer &src) {
+ConvertBitmapUseCase::Buffer ConvertYUYVtoRGBAUseCase::convert(Buffer &dst, const Buffer &src) {
     size_t pixelsCount = src.width * src.height;
     size_t rgbaSize = pixelsCount * 4;
     if (dst.capacity < rgbaSize) {
@@ -84,7 +84,55 @@ ConvertBitmapUseCase::Buffer ConvertYUV422toRGBAUseCase::convert(Buffer dst, con
     return dst;
 }
 
-ConvertBitmapUseCase::Buffer ConvertYUV422toRGBAUseCase::convertToNew(const Buffer &src) {
+ConvertBitmapUseCase::Buffer ConvertYUYVtoRGBAUseCase::convertToNew(const Buffer &src) {
+    size_t pixelsCount = src.width * src.height;
+    Buffer newBuffer = {
+        .buffer = new uint8_t[pixelsCount * 4],
+        .capacity = pixelsCount * 4,
+        .size = 0,
+        .width = src.width,
+        .height = src.height
+    };
+    return convert(newBuffer, src);
+}
+
+
+ConvertBitmapUseCase::Buffer ConvertYUV420ptoRGBAUseCase::convert(
+    Buffer &dst, 
+    const Buffer &src) {
+    size_t pixelsCount = src.width * src.height;
+    size_t rgbaSize = pixelsCount * 4;
+    if (dst.capacity < rgbaSize) {
+        throw ConvertBitmapUseCase::Exception("Destination buffer is too small");
+    }
+    dst.size = rgbaSize;
+    uint8_t* yBuffer = src.buffer;
+    uint8_t* uBuffer = yBuffer + pixelsCount;
+    uint8_t* vBuffer = uBuffer + (pixelsCount / 4);
+
+    size_t out_index = 0;
+    for (size_t i = 0; i < pixelsCount; i++) {
+        uint8_t y = yBuffer[i];
+        uint8_t u  = uBuffer[i / 4];
+        uint8_t v  = vBuffer[i / 4];
+
+        int c0 = y - 16;
+        int d = u - 128;
+        int e = v - 128;
+
+        int r = (298 * c0 + 409 * e + 128) >> 8;
+        int g = (298 * c0 - 100 * d - 208 * e + 128) >> 8;
+        int b = (298 * c0 + 516 * d + 128) >> 8;
+
+        dst.buffer[out_index++] = r < 0 ? 0 : r > 255 ? 255 : r;
+        dst.buffer[out_index++] = g < 0 ? 0 : g > 255 ? 255 : g;
+        dst.buffer[out_index++] = b < 0 ? 0 : b > 255 ? 255 : b;
+        dst.buffer[out_index++] = 255;
+    }
+    return dst;
+}
+
+ConvertBitmapUseCase::Buffer ConvertYUV420ptoRGBAUseCase::convertToNew(const Buffer &src) {
     size_t pixelsCount = src.width * src.height;
     Buffer newBuffer = {
         .buffer = new uint8_t[pixelsCount * 4],

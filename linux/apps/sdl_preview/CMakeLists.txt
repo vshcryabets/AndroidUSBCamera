@@ -1,15 +1,15 @@
 cmake_minimum_required(VERSION 3.22)
 
-if(BUILD_UVCCAPTURE_APP)
+if(BUILD_SDL_PREVIEW_APP)
         find_package(SDL2 REQUIRED)
         find_package(Threads REQUIRED)
 
-        add_executable(uvccapture
+        add_executable(sdk_preview
                 uvccapture.cpp
                 )
 
         target_link_libraries(
-                uvccapture
+                sdk_preview
                 Sources
                 SdlHelper
                 Images
