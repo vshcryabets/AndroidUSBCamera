@@ -47,6 +47,7 @@ class Source {
             size_t size {0};
             std::chrono::high_resolution_clock::time_point timestamp {std::chrono::high_resolution_clock::now()};
             FrameFormat format {NONE};
+            uint16_t width;
         };
     protected:
         ConnectConfiguration sourceConfig;
