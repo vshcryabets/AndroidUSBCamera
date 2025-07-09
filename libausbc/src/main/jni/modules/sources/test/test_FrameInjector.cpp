@@ -3,6 +3,23 @@
 #include <iostream>
 #include <fstream>
 
+TEST_CASE("put4bit", "[FrameDataInjectUseCaseRGBXImpl]") {
+    FrameDataInjectUseCaseRGBXImpl useCase(8,8);
+    char buffer[] = {0, 0, 0, 0};
+    useCase.put4bit(buffer, sizeof(buffer), 0, 0x01);
+    useCase.put4bit(buffer, sizeof(buffer), 4, 0x02);
+    useCase.put4bit(buffer, sizeof(buffer), 8, 0x03);
+    useCase.put4bit(buffer, sizeof(buffer), 12, 0x04);
+    useCase.put4bit(buffer, sizeof(buffer), 16, 0x05);
+    useCase.put4bit(buffer, sizeof(buffer), 20, 0x06);
+    useCase.put4bit(buffer, sizeof(buffer), 24, 0x07);
+    useCase.put4bit(buffer, sizeof(buffer), 28, 0x08);
+    REQUIRE(buffer[0] == 0x12);
+    REQUIRE(buffer[1] == 0x34);
+    REQUIRE(buffer[2] == 0x56);
+    REQUIRE(buffer[3] == 0x78);
+}
+
 TEST_CASE("get4bit", "[FrameDataInjectUseCaseRGBXImpl]") {
     FrameDataInjectUseCaseRGBXImpl useCase(8,8);
     char buffer[] = {(char)0xF0, 0x0F, (char)0xAA, 0x55};
@@ -35,7 +52,6 @@ TEST_CASE("setMiddleRgb", "[FrameDataInjectUseCaseRGBXImpl]") {
     frame.size = frame.width * 32 * 4;
     frame.data = new uint8_t[frame.size];
     frame.format = Source::FrameFormat::RGBX;
-
     for (size_t i = 0; i < frame.size; ++i) { frame.data[i] = 0x00; }
 
     useCase.setMiddleRgb(frame, 0, 0, 0x123456);
@@ -45,6 +61,8 @@ TEST_CASE("setMiddleRgb", "[FrameDataInjectUseCaseRGBXImpl]") {
     REQUIRE(0x56 == frame.data[2]);
 
     useCase.setMiddleRgb(frame, 8, 0, 0xABCDEF);
+    useCase.setMiddleRgb(frame, 16, 0, 0x444444);
+    useCase.setMiddleRgb(frame, 24, 0, 0x555555);
     REQUIRE(0x123456 == useCase.getMiddleRgb(frame, 0, 0));
     REQUIRE(0xABCDEF == useCase.getMiddleRgb(frame, 8, 0));
 }
@@ -53,22 +71,64 @@ TEST_CASE("getDataSize", "[FrameDataInjectUseCaseRGBXImpl]") {
     FrameDataInjectUseCaseRGBXImpl useCase(8,8);
 
     Source::Frame frame;
+    frame.width = 256;
+    frame.size = frame.width * 128 * 4;
+    frame.data = new uint8_t[frame.size];
+    frame.format = Source::FrameFormat::RGBX;
+    for (size_t i = 0; i < frame.size; ++i) { frame.data[i] = 0x80; }
+
+    // Test data
+    uint8_t data[] = {0xCA, 0xFE, 0xBE, 0xEF, 
+        0x00, 0x01, 0x02, 0x03, 
+        0x04, 0x05, 0x06, 0x07,
+        0x08, 'A', 'B', 'C',
+        'D', 'E', 'F', 'G',
+        'H', 'I', 'J', 'K', 
+        'L'};
+    useCase.injectData(frame, (char*)data, sizeof(data));
+    std::ofstream outFile("frame_output.bin", std::ios::binary);
+    outFile.write(reinterpret_cast<const char*>(frame.data), frame.size);
+    outFile.close();
+    REQUIRE(0x1090C0 == useCase.getMiddleRgb(frame, 0, 0));
+    REQUIRE(useCase.getDataSize(frame, 0, 0) == sizeof(data));
+}
+
+TEST_CASE("injectDataOverflowException", "[FrameDataInjectUseCaseRGBXImpl]") {
+    FrameDataInjectUseCaseRGBXImpl useCase(8,8);
+
+    Source::Frame frame;
     frame.width = 128;
     frame.size = frame.width * 128 * 4;
     frame.data = new uint8_t[frame.size];
     frame.format = Source::FrameFormat::RGBX;
-
     for (size_t i = 0; i < frame.size; ++i) { frame.data[i] = 0x80; }
 
     // Test data
-    uint8_t data[] = {0xCA, 0xFE, 0xBE, 0xEF};
-    auto injectedFrame = useCase.injectData(frame, (char*)data, sizeof(data));
-    REQUIRE(injectedFrame.data != nullptr);
-    REQUIRE(injectedFrame.size == frame.size);
-    REQUIRE(injectedFrame.format == Source::FrameFormat::RGBX);
-    REQUIRE(injectedFrame.width == frame.width);
+    uint8_t data[] = {0xCA, 0xFE, 0xBE, 0xEF, 
+        0x00, 0x01, 0x02, 0x03, 
+        0x04, 0x05, 0x06, 0x07,
+        0x08, 'A', 'B', 'C',
+        'D', 'E', 'F', 'G',
+        'H', 'I', 'J', 'K', 
+        'L'};
+    REQUIRE_THROWS(useCase.injectData(frame, (char*)data, sizeof(data) + 1));
+}
 
-    REQUIRE(0x0040C0 == useCase.getMiddleRgb(injectedFrame, 0, 0));
+TEST_CASE("READDATA", "[FrameDataInjectUseCaseRGBXImpl]") {
+    FrameDataInjectUseCaseRGBXImpl useCase(8,8);
 
-    REQUIRE(useCase.getDataSize(injectedFrame, 0, 0) == sizeof(data));
+    Source::Frame frame;
+    frame.width = 128;
+    frame.size = frame.width * 128 * 4;
+    frame.data = new uint8_t[frame.size];
+    frame.format = Source::FrameFormat::RGBX;
+    for (size_t i = 0; i < frame.size; ++i) { frame.data[i] = 0x80; }
+
+    // Test data
+    char *data = "Test data string, which is longer than 16 bytes.";
+    useCase.injectData(frame, (char*)data, sizeof(data));
+    REQUIRE(useCase.getDataSize(frame, 0, 0) == sizeof(data));
+    // uint8_t newBuffer[128];
+    // useCase.readData(frame, 0, 0, (char*)newBuffer, sizeof(newBuffer));
+    // REQUIRE(std::equal(data, data + sizeof(data), newBuffer));
 }
