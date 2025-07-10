@@ -89,7 +89,7 @@ TEST_CASE("getDataSize", "[FrameDataInjectUseCaseRGBXImpl]") {
     std::ofstream outFile("frame_output.bin", std::ios::binary);
     outFile.write(reinterpret_cast<const char*>(frame.data), frame.size);
     outFile.close();
-    REQUIRE(0x1090C0 == useCase.getMiddleRgb(frame, 0, 0));
+    REQUIRE(0x1090C0 == (useCase.getMiddleRgb(frame, 0, 0) & 0xF0F0F0));
     REQUIRE(useCase.getDataSize(frame, 0, 0) == sizeof(data));
 }
 
@@ -118,17 +118,19 @@ TEST_CASE("READDATA", "[FrameDataInjectUseCaseRGBXImpl]") {
     FrameDataInjectUseCaseRGBXImpl useCase(8,8);
 
     Source::Frame frame;
-    frame.width = 128;
+    frame.width = 256;
     frame.size = frame.width * 128 * 4;
     frame.data = new uint8_t[frame.size];
     frame.format = Source::FrameFormat::RGBX;
     for (size_t i = 0; i < frame.size; ++i) { frame.data[i] = 0x80; }
 
     // Test data
-    char *data = "Test data string, which is longer than 16 bytes.";
-    useCase.injectData(frame, (char*)data, sizeof(data));
-    REQUIRE(useCase.getDataSize(frame, 0, 0) == sizeof(data));
-    // uint8_t newBuffer[128];
-    // useCase.readData(frame, 0, 0, (char*)newBuffer, sizeof(newBuffer));
-    // REQUIRE(std::equal(data, data + sizeof(data), newBuffer));
+    char *data = "Test data string, which is longer 16 bytes";
+    // std::cout << "Data size: " << strlen(data) << std::endl;
+    useCase.injectData(frame, (char*)data, strlen(data));
+    REQUIRE(useCase.getDataSize(frame, 0, 0) == strlen(data));
+    uint8_t newBuffer[128];
+    useCase.readData(frame, 0, 0, (char*)newBuffer, sizeof(newBuffer));
+    REQUIRE(strlen(data) == strlen((char*)newBuffer));
+    REQUIRE(std::equal(data, data + sizeof(data), newBuffer));
 }

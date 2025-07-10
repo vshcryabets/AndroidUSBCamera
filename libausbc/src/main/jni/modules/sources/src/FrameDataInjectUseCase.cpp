@@ -27,16 +27,17 @@ void FrameDataInjectUseCase::injectData(
     uint8_t dataSize) const
 {
     uint8_t currentQuad = 0;
-    uint8_t bitPos = 0;
+    uint16_t bitPos = 0;
     uint16_t bitsCount = dataSize * 8;
-    if ((bitsCount + 8) / 12 > frame.width / quadWidth)
+    if (((bitsCount + 8) / 12 + 1) > frame.width / quadWidth)
     {
         throw std::out_of_range("Data size exceeds available space in the frame.");
     }
     bool writeHighPart = true;
     uint32_t rgb = ((dataSize >> 4) << 20) |
                    ((dataSize & 0x0F) << 12) |
-                   (get4bit(data, dataSize, bitPos) << 4);
+                   (get4bit(data, dataSize, bitPos) << 4) |
+                   0x080808;
     setMiddleRgb(frame, currentQuad * quadWidth, 0, rgb);
     bitPos += 4;
     currentQuad++;
@@ -88,22 +89,26 @@ void FrameDataInjectUseCase::readData(const Source::Frame &frame,
     char *outBuffer, uint8_t outBufferMaxSize) const
 {
     uint32_t rgb = getMiddleRgb(frame, x, y);
-    uint16_t size = ((rgb >> 16) & 0xFF) / 16 << 4 | ((rgb >> 8) & 0xFF) / 16;
+    uint16_t size = ((rgb >> 16) & 0xF0) | ((rgb >> 12) & 0x0F);
     uint16_t maxBitsCount = outBufferMaxSize * 8;
     uint16_t currentBitPos = 0;
     uint16_t currentQuad = 1;
-    put4bit(outBuffer, outBufferMaxSize, currentBitPos, rgb & 0xFF >> 4);
+    put4bit(outBuffer, outBufferMaxSize, currentBitPos, (rgb & 0xFF) >> 4);
     currentBitPos += 4;
     while (currentBitPos < maxBitsCount && currentBitPos < size * 8)
     {
         rgb = getMiddleRgb(frame, x + currentQuad * quadWidth, y);
+        put4bit(outBuffer, outBufferMaxSize, currentBitPos, (rgb >> 20) & 0x0F);
+        currentBitPos += 4;
+        put4bit(outBuffer, outBufferMaxSize, currentBitPos, (rgb >> 12) & 0x0F);
+        currentBitPos += 4;
         put4bit(outBuffer, outBufferMaxSize, currentBitPos, (rgb >> 4) & 0x0F);
-        rgb >>= 4;
+        currentBitPos += 4;
+        currentQuad++;
     }
-
-    // outBuffer[0] = static_cast<char>((rgb >> 16) & 0xFF); // Red
-    // outBuffer[1] = static_cast<char>((rgb >> 8) & 0xFF);  // Green
-    // outBuffer[2] = static_cast<char>(rgb & 0xFF);         // Blue
+    put4bit(outBuffer, outBufferMaxSize, currentBitPos, 0);
+    currentBitPos += 4;
+    put4bit(outBuffer, outBufferMaxSize, currentBitPos, 0);
 }
 
 void FrameDataInjectUseCaseRGBXImpl::setMiddleRgb(
