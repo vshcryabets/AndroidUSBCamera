@@ -52,8 +52,8 @@ class Source {
             std::chrono::high_resolution_clock::time_point timestamp {std::chrono::high_resolution_clock::now()};
 
             Frame(uint16_t width, uint16_t height, FrameFormat format) 
-                : height(height), 
-                width(width),
+                : width(width),
+                height(height), 
                 format(format), 
                 data(nullptr), 
                 size(0) {}

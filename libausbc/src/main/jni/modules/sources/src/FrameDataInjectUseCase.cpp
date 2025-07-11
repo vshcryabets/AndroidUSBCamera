@@ -37,7 +37,7 @@ void FrameDataInjectUseCase::injectData(
     uint32_t rgb = ((dataSize >> 4) << 20) |
                    ((dataSize & 0x0F) << 12) |
                    (get4bit(data, dataSize, bitPos) << 4) |
-                   0x080808;
+                   DEFAULT_LOW_NIBBLE_MASK;
     setMiddleRgb(frame, currentQuad * quadWidth, 0, rgb);
     bitPos += 4;
     currentQuad++;

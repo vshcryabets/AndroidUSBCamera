@@ -82,9 +82,6 @@ TEST_CASE("getDataSize", "[FrameDataInjectUseCaseRGBXImpl]") {
         'H', 'I', 'J', 'K', 
         'L'};
     useCase.injectData(frame, (char*)data, sizeof(data));
-    std::ofstream outFile("frame_output.bin", std::ios::binary);
-    outFile.write(reinterpret_cast<const char*>(frame.data), frame.size);
-    outFile.close();
     REQUIRE(0x1090C0 == (useCase.getMiddleRgb(frame, 0, 0) & 0xF0F0F0));
     REQUIRE(useCase.getDataSize(frame, 0, 0) == sizeof(data));
 }
@@ -144,11 +141,8 @@ TEST_CASE("setMiddleRgb", "[FrameDataInjectUseCaseYUV420pImpl]") {
     REQUIRE(0x7D == frame.data[frame.width * frame.height]);
 
     useCase.setMiddleRgb(frame, 8, 0, 0xA8C8E8);
-    // useCase.setMiddleRgb(frame, 16, 0, 0x444444);
-    // useCase.setMiddleRgb(frame, 24, 0, 0x555555);
-    std::ofstream outFile("frame_yuv_output.bin", std::ios::binary);
-    outFile.write(reinterpret_cast<const char*>(frame.data), frame.size);
-    outFile.close();
+    useCase.setMiddleRgb(frame, 16, 0, 0x444444);
+    useCase.setMiddleRgb(frame, 24, 0, 0x555555);
     REQUIRE(0xA03050 == (useCase.getMiddleRgb(frame, 0, 0) & 0xF0F0F0));
     REQUIRE(0xA0C0E0 == (useCase.getMiddleRgb(frame, 8, 0) & 0xF0F0F0));
 }

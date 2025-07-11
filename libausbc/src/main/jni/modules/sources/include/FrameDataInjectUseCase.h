@@ -4,6 +4,8 @@
 
 class FrameDataInjectUseCase
 {
+public:
+    static const uint32_t DEFAULT_LOW_NIBBLE_MASK = 0x080808;
 protected:
     uint16_t quadWidth;
     uint16_t quadHeight;
