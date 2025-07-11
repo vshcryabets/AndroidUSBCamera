@@ -129,7 +129,7 @@ TEST_CASE("setMiddleRgb", "[FrameDataInjectUseCaseYUV420pImpl]") {
     FrameDataInjectUseCaseYUV420pImpl useCase(8,8);
 
     Source::Frame frame(32, 32, Source::FrameFormat::YUV420P);
-    frame.size = frame.width * frame.width * 2;
+    frame.size = frame.width * frame.height + (frame.width * frame.height) / 2;
     frame.data = new uint8_t[frame.size];
     for (size_t i = 0; i < frame.size; ++i) { frame.data[i] = 0x80; }
 
@@ -145,4 +145,24 @@ TEST_CASE("setMiddleRgb", "[FrameDataInjectUseCaseYUV420pImpl]") {
     useCase.setMiddleRgb(frame, 24, 0, 0x555555);
     REQUIRE(0xA03050 == (useCase.getMiddleRgb(frame, 0, 0) & 0xF0F0F0));
     REQUIRE(0xA0C0E0 == (useCase.getMiddleRgb(frame, 8, 0) & 0xF0F0F0));
+}
+
+TEST_CASE("readData", "[FrameDataInjectUseCaseYUV420pImpl]") {
+    FrameDataInjectUseCaseYUV420pImpl useCase(8,8);
+
+    Source::Frame frame(256, 128, Source::FrameFormat::YUV420P);
+    frame.size = frame.width * frame.height + (frame.width * frame.height) / 2;
+    frame.data = new uint8_t[frame.size];
+    for (size_t i = 0; i < frame.size; ++i) { frame.data[i] = 0x80; }
+
+    // Test data
+    const char *data = "Test";
+    uint16_t dataSize = strlen(data);
+    // std::cout << "Data size: " << strlen(data) << std::endl;
+    useCase.injectData(frame, (char*)data, dataSize);
+    REQUIRE(useCase.getDataSize(frame, 0, 0) == dataSize);
+    uint8_t newBuffer[128];
+    useCase.readData(frame, 0, 0, (char*)newBuffer, sizeof(newBuffer));
+    REQUIRE(dataSize == strlen((char*)newBuffer));
+    REQUIRE(std::equal(data, data + dataSize, newBuffer));
 }
