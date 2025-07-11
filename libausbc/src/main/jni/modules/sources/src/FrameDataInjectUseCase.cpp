@@ -156,17 +156,17 @@ uint32_t FrameDataInjectUseCaseYUV420pImpl::getMiddleRgb(const Source::Frame &fr
     size_t vPlaneOffset = uPlaneOffset + (frame.width * frame.height) / 4;
     uPlaneOffset += offset / 4;
     vPlaneOffset += offset / 4;
-    uint32_t yacc = 0;
-    uint32_t uacc = 0;
-    uint32_t vacc = 0;
+    float yacc = 0;
+    float uacc = 0;
+    float vacc = 0;
     for (size_t i = 0; i < quadHeight; ++i)
     {
         for (size_t j = 0; j < quadWidth; ++j)
         {
             size_t idx = i * frame.width + j;
-            yacc += static_cast<uint32_t>(frame.data[offset + idx]);
-            uacc += static_cast<uint32_t>(frame.data[uPlaneOffset + idx/4]);
-            vacc += static_cast<uint32_t>(frame.data[vPlaneOffset + idx/4]);
+            yacc += frame.data[offset + idx];
+            uacc += frame.data[uPlaneOffset + idx/4];
+            vacc += frame.data[vPlaneOffset + idx/4];
         }
     }
     float yValue = yacc / (quadWidth * quadHeight);

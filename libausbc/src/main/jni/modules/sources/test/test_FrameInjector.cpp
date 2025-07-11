@@ -48,7 +48,7 @@ TEST_CASE("setMiddleRgb", "[FrameDataInjectUseCaseRGBXImpl]") {
     FrameDataInjectUseCaseRGBXImpl useCase(8,8);
 
     Source::Frame frame(32, 32, Source::FrameFormat::RGBX);
-    frame.size = frame.width * 32 * 4;
+    frame.size = frame.width * frame.height * 4;
     frame.data = new uint8_t[frame.size];
     for (size_t i = 0; i < frame.size; ++i) { frame.data[i] = 0x00; }
 
