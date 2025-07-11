@@ -47,11 +47,9 @@ TEST_CASE("get4bit must return 0", "[FrameDataInjectUseCaseRGBXImpl]") {
 TEST_CASE("setMiddleRgb", "[FrameDataInjectUseCaseRGBXImpl]") {
     FrameDataInjectUseCaseRGBXImpl useCase(8,8);
 
-    Source::Frame frame;
-    frame.width = 32;
+    Source::Frame frame(32, 32, Source::FrameFormat::RGBX);
     frame.size = frame.width * 32 * 4;
     frame.data = new uint8_t[frame.size];
-    frame.format = Source::FrameFormat::RGBX;
     for (size_t i = 0; i < frame.size; ++i) { frame.data[i] = 0x00; }
 
     useCase.setMiddleRgb(frame, 0, 0, 0x123456);
@@ -70,11 +68,9 @@ TEST_CASE("setMiddleRgb", "[FrameDataInjectUseCaseRGBXImpl]") {
 TEST_CASE("getDataSize", "[FrameDataInjectUseCaseRGBXImpl]") {
     FrameDataInjectUseCaseRGBXImpl useCase(8,8);
 
-    Source::Frame frame;
-    frame.width = 256;
+    Source::Frame frame(256, 128, Source::FrameFormat::RGBX);
     frame.size = frame.width * 128 * 4;
     frame.data = new uint8_t[frame.size];
-    frame.format = Source::FrameFormat::RGBX;
     for (size_t i = 0; i < frame.size; ++i) { frame.data[i] = 0x80; }
 
     // Test data
@@ -96,11 +92,9 @@ TEST_CASE("getDataSize", "[FrameDataInjectUseCaseRGBXImpl]") {
 TEST_CASE("injectDataOverflowException", "[FrameDataInjectUseCaseRGBXImpl]") {
     FrameDataInjectUseCaseRGBXImpl useCase(8,8);
 
-    Source::Frame frame;
-    frame.width = 128;
+    Source::Frame frame(128, 128, Source::FrameFormat::RGBX);
     frame.size = frame.width * 128 * 4;
     frame.data = new uint8_t[frame.size];
-    frame.format = Source::FrameFormat::RGBX;
     for (size_t i = 0; i < frame.size; ++i) { frame.data[i] = 0x80; }
 
     // Test data
@@ -114,23 +108,47 @@ TEST_CASE("injectDataOverflowException", "[FrameDataInjectUseCaseRGBXImpl]") {
     REQUIRE_THROWS(useCase.injectData(frame, (char*)data, sizeof(data) + 1));
 }
 
-TEST_CASE("READDATA", "[FrameDataInjectUseCaseRGBXImpl]") {
+TEST_CASE("readData", "[FrameDataInjectUseCaseRGBXImpl]") {
     FrameDataInjectUseCaseRGBXImpl useCase(8,8);
 
-    Source::Frame frame;
-    frame.width = 256;
+    Source::Frame frame(256, 128, Source::FrameFormat::RGBX);
     frame.size = frame.width * 128 * 4;
     frame.data = new uint8_t[frame.size];
-    frame.format = Source::FrameFormat::RGBX;
     for (size_t i = 0; i < frame.size; ++i) { frame.data[i] = 0x80; }
 
     // Test data
-    char *data = "Test data string, which is longer 16 bytes";
+    const char *data = "Test data string, which is longer 16 bytes";
+    uint16_t dataSize = strlen(data);
     // std::cout << "Data size: " << strlen(data) << std::endl;
-    useCase.injectData(frame, (char*)data, strlen(data));
-    REQUIRE(useCase.getDataSize(frame, 0, 0) == strlen(data));
+    useCase.injectData(frame, (char*)data, dataSize);
+    REQUIRE(useCase.getDataSize(frame, 0, 0) == dataSize);
     uint8_t newBuffer[128];
     useCase.readData(frame, 0, 0, (char*)newBuffer, sizeof(newBuffer));
-    REQUIRE(strlen(data) == strlen((char*)newBuffer));
-    REQUIRE(std::equal(data, data + sizeof(data), newBuffer));
+    REQUIRE(dataSize == strlen((char*)newBuffer));
+    REQUIRE(std::equal(data, data + dataSize, newBuffer));
+}
+
+TEST_CASE("setMiddleRgb", "[FrameDataInjectUseCaseYUV420pImpl]") {
+    FrameDataInjectUseCaseYUV420pImpl useCase(8,8);
+
+    Source::Frame frame(32, 32, Source::FrameFormat::YUV420P);
+    frame.size = frame.width * frame.width * 2;
+    frame.data = new uint8_t[frame.size];
+    for (size_t i = 0; i < frame.size; ++i) { frame.data[i] = 0x80; }
+
+    useCase.setMiddleRgb(frame, 0, 0, 0xA83858);
+    REQUIRE(0xA03050 == (useCase.getMiddleRgb(frame, 0, 0) & 0xF0F0F0) );
+    REQUIRE(0x5D == frame.data[0]);
+    REQUIRE(0x5D == frame.data[1]);
+    REQUIRE(0x5D == frame.data[2]);
+    REQUIRE(0x7D == frame.data[frame.width * frame.height]);
+
+    useCase.setMiddleRgb(frame, 8, 0, 0xA8C8E8);
+    // useCase.setMiddleRgb(frame, 16, 0, 0x444444);
+    // useCase.setMiddleRgb(frame, 24, 0, 0x555555);
+    std::ofstream outFile("frame_yuv_output.bin", std::ios::binary);
+    outFile.write(reinterpret_cast<const char*>(frame.data), frame.size);
+    outFile.close();
+    REQUIRE(0xA03050 == (useCase.getMiddleRgb(frame, 0, 0) & 0xF0F0F0));
+    REQUIRE(0xA0C0E0 == (useCase.getMiddleRgb(frame, 8, 0) & 0xF0F0F0));
 }

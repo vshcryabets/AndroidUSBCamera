@@ -43,11 +43,20 @@ class Source {
             float fps;
         };
         struct Frame {
+            const uint16_t width;
+            const uint16_t height;
+            const FrameFormat format;
+
             uint8_t* data {nullptr};
-            size_t size {0};
+            size_t size;
             std::chrono::high_resolution_clock::time_point timestamp {std::chrono::high_resolution_clock::now()};
-            FrameFormat format {NONE};
-            uint16_t width;
+
+            Frame(uint16_t width, uint16_t height, FrameFormat format) 
+                : height(height), 
+                width(width),
+                format(format), 
+                data(nullptr), 
+                size(0) {}
         };
     protected:
         ConnectConfiguration sourceConfig;

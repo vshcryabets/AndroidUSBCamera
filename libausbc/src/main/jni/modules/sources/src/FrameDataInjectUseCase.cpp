@@ -141,3 +141,68 @@ void FrameDataInjectUseCase::put4bit(char* buffer, uint8_t bufferSize, uint16_t 
     else
         buffer[byteIndex] = (buffer[byteIndex] & 0xF0) | (value & 0x0F);
 }
+
+FrameDataInjectUseCaseYUV420pImpl::FrameDataInjectUseCaseYUV420pImpl(
+    uint16_t width,
+    uint16_t height) : FrameDataInjectUseCase(width, height)
+{
+}
+
+uint32_t FrameDataInjectUseCaseYUV420pImpl::getMiddleRgb(const Source::Frame &frame, uint16_t x, uint16_t y) const
+{
+    size_t offset = y * frame.width + x;
+    size_t uPlaneOffset = frame.width * frame.height;
+    size_t vPlaneOffset = uPlaneOffset + (frame.width * frame.height) / 4;
+    uPlaneOffset += offset / 4;
+    vPlaneOffset += offset / 4;
+    uint32_t yacc = 0;
+    uint32_t uacc = 0;
+    uint32_t vacc = 0;
+    for (size_t i = 0; i < quadHeight; ++i)
+    {
+        for (size_t j = 0; j < quadWidth; ++j)
+        {
+            size_t idx = i * frame.width + j;
+            yacc += static_cast<uint32_t>(frame.data[offset + idx]);
+            uacc += static_cast<uint32_t>(frame.data[uPlaneOffset + idx/4]);
+            vacc += static_cast<uint32_t>(frame.data[vPlaneOffset + idx/4]);
+        }
+    }
+    float yValue = yacc / (quadWidth * quadHeight);
+    float uValue = uacc / (quadWidth * quadHeight);
+    float vValue = vacc / (quadWidth * quadHeight);
+
+    float rValue = yValue + 1.4075 * (vValue - 128);
+    float gValue = yValue - 0.3455 * (uValue - 128) - (0.7169 * (vValue - 128));
+    float bValue = yValue + 1.7790 * (uValue - 128);
+
+    // Clamp to 0-255
+    uint8_t racc = static_cast<uint8_t>(std::min(std::max((int)rValue, 0), 255));
+    uint8_t gacc = static_cast<uint8_t>(std::min(std::max((int)gValue, 0), 255));
+    uint8_t bacc = static_cast<uint8_t>(std::min(std::max((int)bValue, 0), 255));
+    return (racc << 16) | (gacc << 8) | bacc;
+}
+void FrameDataInjectUseCaseYUV420pImpl::setMiddleRgb(Source::Frame &frame, uint16_t x, uint16_t y, uint32_t rgb) const 
+{
+    uint8_t rValue = (rgb >> 16) & 0xFF;
+    uint8_t gValue = (rgb >> 8) & 0xFF;
+    uint8_t bValue = rgb & 0xFF;
+    // YUV conversion logic to set the Y, U, and V values in the frame
+    uint8_t yValue = static_cast<uint8_t>(0.299 * rValue + 0.587 * gValue + 0.114 * bValue);
+    uint8_t uValue = static_cast<uint8_t>(-0.169 * rValue - 0.331 * gValue + 0.5 * bValue + 128);
+    uint8_t vValue = static_cast<uint8_t>(0.5 * rValue - 0.419 * gValue - 0.081 * bValue + 128);
+
+    size_t uPlaneOffset = frame.width * frame.height;
+    size_t vPlaneOffset = uPlaneOffset + (frame.width * frame.height) / 4;
+
+    for (size_t i = 0; i < quadHeight; ++i)
+    {
+        for (size_t j = 0; j < quadWidth; ++j)
+        {
+            size_t yIndex = (y + i) * frame.width + (x + j);
+            frame.data[yIndex] = yValue;
+            frame.data[uPlaneOffset + yIndex / 4] = uValue;
+            frame.data[vPlaneOffset + yIndex / 4] = vValue;
+        }
+    }
+}

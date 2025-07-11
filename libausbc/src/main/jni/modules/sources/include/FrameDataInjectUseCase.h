@@ -38,4 +38,9 @@ public:
 
 class FrameDataInjectUseCaseYUV420pImpl : public FrameDataInjectUseCase
 {
+    public:
+    FrameDataInjectUseCaseYUV420pImpl(uint16_t width, uint16_t height);
+    virtual ~FrameDataInjectUseCaseYUV420pImpl() = default;
+    uint32_t getMiddleRgb(const Source::Frame &frame, uint16_t x, uint16_t y) const override;
+    void setMiddleRgb(Source::Frame &frame, uint16_t x, uint16_t y, uint32_t rgb) const override;
 };

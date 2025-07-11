@@ -22,7 +22,7 @@ TestSource::~TestSource()
 Source::Frame TestSource::readFrame()
 {
     frameCounter++;
-    Frame frame;
+    Frame frame(captureConfiguration.width, captureConfiguration.height, FrameFormat::RGBA);
     frame.data = nullptr;
     frame.size = 0;
     if (testData)
@@ -58,7 +58,6 @@ Source::Frame TestSource::readFrame()
         frame.data = testData;
         frame.size = testDataSize;
         frame.timestamp = std::chrono::high_resolution_clock::now();
-        frame.format = FrameFormat::RGBA;
     }
     return frame;
 }
