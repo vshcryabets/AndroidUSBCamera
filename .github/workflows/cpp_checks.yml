@@ -45,3 +45,6 @@ jobs:
       working-directory: ${{github.workspace}}/build/modules/images/
       run: ./images_tests -s
 
+    - name: Sources tests
+      working-directory: ${{github.workspace}}/build/modules/sources/
+      run: ./Sources_tests -s

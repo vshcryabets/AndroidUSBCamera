@@ -22,7 +22,7 @@ TestSourceYUV420::~TestSourceYUV420()
 Source::Frame TestSourceYUV420::readFrame()
 {
     frameCounter++;
-    Frame frame;
+    Frame frame(captureConfiguration.width, captureConfiguration.height, FrameFormat::YUV420P);
     frame.data = nullptr;
     frame.size = 0;
     if (testData)
@@ -56,7 +56,6 @@ Source::Frame TestSourceYUV420::readFrame()
         frame.data = testData;
         frame.size = testDataSize;
         frame.timestamp = std::chrono::high_resolution_clock::now();
-        frame.format = FrameFormat::YUV420P;
     }
     return frame;
 }
