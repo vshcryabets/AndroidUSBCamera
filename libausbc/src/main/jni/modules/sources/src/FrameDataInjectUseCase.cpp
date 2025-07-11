@@ -31,7 +31,7 @@ void FrameDataInjectUseCase::injectData(
     uint16_t bitsCount = dataSize * 8;
     if (((bitsCount + 8) / 12 + 1) > frame.width / quadWidth)
     {
-        throw std::out_of_range("Data size exceeds available space in the frame.");
+        throw std::overflow_error("Data size exceeds available space in the frame.");
     }
     bool writeHighPart = true;
     uint32_t rgb = ((dataSize >> 4) << 20) |
