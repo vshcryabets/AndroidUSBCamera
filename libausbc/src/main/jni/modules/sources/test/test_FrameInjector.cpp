@@ -102,7 +102,7 @@ TEST_CASE("injectDataOverflowException", "[FrameDataInjectUseCaseRGBXImpl]") {
         'D', 'E', 'F', 'G',
         'H', 'I', 'J', 'K', 
         'L'};
-    REQUIRE_THROWS(useCase.injectData(frame, (char*)data, sizeof(data) + 1));
+    REQUIRE_THROWS_AS(useCase.injectData(frame, (char*)data, sizeof(data) + 1), std::overflow_error);
 }
 
 TEST_CASE("readData", "[FrameDataInjectUseCaseRGBXImpl]") {
