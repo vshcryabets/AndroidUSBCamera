@@ -53,3 +53,55 @@ TEST_CASE("ConvertYUV420ptoRGBAUseCase", "[ImageUseCases]") {
     REQUIRE(abs((int)result.buffer[58] - 255) < 2);
     REQUIRE((int)result.buffer[59] == 255);
 }
+
+TEST_CASE("ConvertYUV420ptoRGBAUseCase_greenBox", "[ImageUseCases]") {
+    ConvertYUV420ptoRGBAUseCase useCase;
+    ConvertBitmapUseCase::Buffer src;
+    src.width = 8;
+    src.height = 8;
+    src.size = src.width * src.height * 3 / 2;
+    src.buffer = new uint8_t[src.size];
+    src.capacity = src.size;
+    memset(src.buffer, 0x80, src.size); // Fill with zeroes
+    uint16_t halfWidth = src.width / 2;
+    uint8_t* testDataU = src.buffer + src.width * src.height; // U plane starts after Y plane
+    uint8_t* testDataV = testDataU + (src.width * src.height) / 4; // V plane starts after U plane
+    int boxSize = 2;
+
+    for (int y = 0; y < boxSize; ++y)
+    {
+        for (int x = 0; x < boxSize; ++x)
+        {
+            testDataU[y * halfWidth + x] = 0x20; //(x + y + i * 2) % 256; // U plane
+            testDataV[y * halfWidth + x] = 0x30; //(x + y + i * 3) % 256; // V plane
+        }
+    }
+
+    auto result = useCase.convertToNew(src);
+    REQUIRE(result.buffer != nullptr);
+    REQUIRE(result.capacity == 8*8*4);
+    REQUIRE(result.size == 8*8*4);
+    REQUIRE(result.width == 8);
+    REQUIRE(result.height == 8);
+
+    for (int y = 0; y < src.width; ++y)
+    {
+        for (int x = 0; x < src.width; ++x)
+        {
+            int idx = y * result.width * 4 + x * 4;
+            if (y < boxSize * 2 && x < boxSize * 2) {
+                // green pixel check
+                REQUIRE((int)result.buffer[idx + 3] == 255);
+                REQUIRE(abs((int)result.buffer[idx + 0] - 3) < 2);
+                REQUIRE(abs((int)result.buffer[idx + 1] - 0xE9) < 2);
+                REQUIRE(abs((int)result.buffer[idx + 2] - 0) < 2);
+            } else {
+                // grey pixel check
+                REQUIRE((int)result.buffer[idx + 3] == 255);
+                REQUIRE(abs((int)result.buffer[idx + 0] - 0x82) < 3);
+                REQUIRE(abs((int)result.buffer[idx + 1] - 0x82) < 3);
+                REQUIRE(abs((int)result.buffer[idx + 2] - 0x82) < 3);
+            }
+        }
+    }
+}

@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Encoder.h"
+#include "Decoder.h"
 #include <x264.h>
 
-struct X264EncConfiguration : public EncoderBaseConfiguration
+struct X264DecoderConfig : public DecoderBaseConfiguration
 {
     uint16_t keyframe_interval; // Keyframe interval in seconds
     uint8_t level_idc;          // H.264 Level ID
@@ -13,7 +13,7 @@ struct X264EncConfiguration : public EncoderBaseConfiguration
     float crf;                  // Constant Rate Factor (CRF) value for quality control
 };
 
-class X264Encoder : public Encoder, public EncoderWithConfiguration<X264EncConfiguration>
+class X264Decoder : public Decoder, public DecoderWithConfiguration<X264DecoderConfig>
 {
 private:
     x264_param_t x264_param;
@@ -22,13 +22,10 @@ private:
     x264_picture_t pic_out;
 
 public:
-    X264Encoder();
-    virtual ~X264Encoder();
-    virtual void open(const X264EncConfiguration &config) override;
+    X264Decoder();
+    virtual ~X264Decoder();
+    virtual void open(const X264DecoderConfig &config) override;
     void start() override;
     void stop() override;
     void close() override;
-    x264_picture_t* getPicIn();
-    EncoderMultiBuffer encodeFrame() override;
-    EncoderMultiBuffer flush() override;
 };
