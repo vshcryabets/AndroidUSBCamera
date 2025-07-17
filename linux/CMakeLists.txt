@@ -14,6 +14,7 @@ option(BUILD_IMAGES_MODULE "Build the Images module" ON)
 option(BUILD_SOURCES_MODULE "Build the Video Sources module" ON)
 option(BUILD_AUDIO_SOURCES_MODULE "Build the Audio Sources module" ON)
 option(BUILD_ENCODERS_MODULE "Build the Encoders module" ON)
+option(BUILD_DECODERS_MODULE "Build the Decoders module" ON)
 option(BUILD_JPEGBENCHMARK_APP "Build Jpegbenchmark app 1" OFF)
 option(BUILD_SDL_PREVIEW_APP "Build SDL UVC preview sample app" OFF)
 option(BUILD_GTK_PREVIEW_APP "Build GTK UVC preview sample app" ON)
@@ -47,6 +48,11 @@ endif()
 
 if(BUILD_ENCODERS_MODULE)
     add_subdirectory(../libausbc/src/main/jni/modules/encoders modules/encoders)
+endif()
+
+
+if(BUILD_DECODERS_MODULE)
+    add_subdirectory(../libausbc/src/main/jni/modules/decoders modules/decoders)
 endif()
 
 if(BUILD_U8X8FONT_MODULE)

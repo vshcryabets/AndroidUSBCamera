@@ -7,7 +7,7 @@
 int main()
 {
     X264Encoder encoder;
-    X264Configuration config;
+    X264EncConfiguration config;
     config.width = 640;
     config.height = 480;
     config.fps_num = 30;

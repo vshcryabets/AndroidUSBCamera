@@ -9,9 +9,9 @@ X264Encoder::~X264Encoder()
 {
 }
 
-void X264Encoder::open(const X264Configuration &config)
+void X264Encoder::open(const X264EncConfiguration &config)
 {
-    EncoderWithConfiguration<X264Configuration>::open(config);
+    EncoderWithConfiguration<X264EncConfiguration>::open(config);
     x264_param_default_preset(&x264_param, "medium", "zerolatency");
     x264_param.i_width = config.width;
     x264_param.i_height = config.height;
