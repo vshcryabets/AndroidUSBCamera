@@ -38,6 +38,8 @@ import com.jiangdg.demo.MainActivity
 import com.vsh.screens.AusbcApp
 import com.vsh.screens.DeviceListViewModel
 import com.vsh.screens.DeviceListViewModelFactory
+import com.vsh.screens.TestSourceViewModel
+import com.vsh.screens.TestSourceViewModelFactory
 import com.vsh.uvc.CheckRequirementsImpl
 import com.vsh.uvc.JpegBenchmarkImpl
 import com.vsh.uvc.UsbDeviceMonitorImpl
@@ -75,17 +77,21 @@ class DevicesActivity : ComponentActivity() {
                 ),
                 jpegBenchmark = JpegBenchmarkImpl(),
                 checkRequirements = CheckRequirementsImpl(
-                    checkCameraPermissionUseCase = CheckCameraPermissionUseCaseImpl(applicationContext),
+                    checkCameraPermissionUseCase = CheckCameraPermissionUseCaseImpl(
+                        applicationContext
+                    ),
                     usbManager = applicationContext.getSystemService(USB_SERVICE) as UsbManager
                 )
             )
         ).get(DeviceListViewModel::class.java)
         setContent {
             AusbcTheme {
-                AusbcApp(viewModel = viewModel)
+                AusbcApp(
+                    viewModel = viewModel,
+                    testSourceViewModelFactory = TestSourceViewModelFactory()
+                )
             }
         }
-
     }
 
     override fun onResume() {
@@ -111,7 +117,7 @@ class DevicesActivity : ComponentActivity() {
                         it.deviceId == state.selectedDeviceId
                     }
 
-                    val pendingIntent : PendingIntent
+                    val pendingIntent: PendingIntent
                     if (Build.VERSION.SDK_INT >= 31) {
                         pendingIntent = PendingIntent.getBroadcast(
                             this@DevicesActivity,
@@ -122,7 +128,8 @@ class DevicesActivity : ComponentActivity() {
                     } else {
                         pendingIntent =
                             PendingIntent.getBroadcast(
-                                this@DevicesActivity, 0, Intent(ACTION_USB_PERMISSION), 0
+                                this@DevicesActivity, 0, Intent(ACTION_USB_PERMISSION),
+                                PendingIntent.FLAG_IMMUTABLE
                             )
                     }
 
