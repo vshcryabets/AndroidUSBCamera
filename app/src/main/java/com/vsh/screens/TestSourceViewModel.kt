@@ -2,6 +2,8 @@ package com.vsh.screens
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.jiangdg.uvc.IUvcCamera
+import com.jiangdg.uvc.TestSource
 import timber.log.Timber
 
 class TestSourceViewModelFactory(
@@ -14,8 +16,11 @@ class TestSourceViewModelFactory(
 
 class TestSourceViewModel(
 ) : ViewModel() {
+    private val source: IUvcCamera<*>
+
     init {
         Timber.d("TestSourceViewModel created")
+        source = TestSource()
     }
 
     override fun onCleared() {

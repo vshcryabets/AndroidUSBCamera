@@ -1,9 +1,11 @@
 package com.jiangdg.uvc
 
-import com.jiangdg.usb.UsbControlBlock
+interface IUvcCamera<OC: IUvcCamera.OpenConfiguration> {
+    interface OpenConfiguration {
 
-interface IUvcCamera {
-    fun open(usbControlBlock: UsbControlBlock)
+    }
+
+    fun open(configuration: OC)
     fun close()
     fun stopCapturing()
 }

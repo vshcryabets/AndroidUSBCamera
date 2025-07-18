@@ -28,6 +28,8 @@ import android.text.TextUtils;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 
+import androidx.annotation.NonNull;
+
 import com.jiangdg.usb.USBMonitor;
 import com.jiangdg.usb.UsbControlBlock;
 import com.vsh.uvc.UvcCameraResolution;
@@ -41,7 +43,14 @@ import java.util.Map;
 
 import timber.log.Timber;
 
-public class UVCCamera implements IUvcCamera {
+public class UVCCamera implements IUvcCamera<UVCCamera.OpenConfiguration> {
+	public static class OpenConfiguration implements IUvcCamera.OpenConfiguration {
+		final UsbControlBlock ctrlBlock;
+
+		public OpenConfiguration(UsbControlBlock block) {
+			this.ctrlBlock = block;
+		}
+	}
 	public static boolean DEBUG = false;	// TODO set false when releasing
 	private static final String TAG = UVCCamera.class.getSimpleName();
 	private static final String DEFAULT_USBFS = "/dev/bus/usb";
@@ -119,11 +128,11 @@ public class UVCCamera implements IUvcCamera {
      * USB permission is necessary before this method is called
      */
 	@Override
-    public synchronized void open(final UsbControlBlock ctrlBlock) {
+    public synchronized void open(@NonNull final OpenConfiguration configuration) {
     	int result = -2;
 		close();
     	try {
-			mCtrlBlock = ctrlBlock.clone();
+			mCtrlBlock = configuration.ctrlBlock.clone();
 			result = nativeConnect(mNativePtr,
 				mCtrlBlock.getVenderId(),
 				mCtrlBlock.getProductId(),

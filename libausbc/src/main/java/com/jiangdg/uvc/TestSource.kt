@@ -25,14 +25,14 @@ package com.jiangdg.uvc
 
 import com.jiangdg.usb.UsbControlBlock
 
-class TestSource : IUvcCamera {
+class TestSource() : IUvcCamera<IUvcCamera.OpenConfiguration> {
     private var nativePtr : Long = 0L;
 
-    constructor() {
+    init {
         nativePtr = nativeCreate()
     }
 
-    override fun open(usbControlBlock: UsbControlBlock) {
+    override fun open(configuration: IUvcCamera.OpenConfiguration) {
     }
 
     override fun close() {
