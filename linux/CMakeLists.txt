@@ -65,7 +65,7 @@ endif()
 if(BUILD_GTK_PREVIEW_APP AND BUILD_SOURCES_MODULE)
     add_subdirectory(apps/gtk_preview)
 elseif(BUILD_GTK_PREVIEW_APP)
-    message(WARNING "Skipping GtkPreview build because Sources or U8X8 module is not enabled.")
+    message(WARNING "Skipping GtkPreview build because the Sources module is not enabled.")
 endif()
 
 if(BUILD_X264_TEST_APP AND BUILD_ENCODERS_MODULE AND BUILD_SOURCES_MODULE)
