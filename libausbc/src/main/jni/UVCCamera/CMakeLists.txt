@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
 
-
 if(BUILD_JNIWRAPPER_MODULE)
     #message(${ANDROID_ABI})
     if (ANDROID_ABI STREQUAL "arm64-v8a")
@@ -40,6 +39,7 @@ if(BUILD_JNIWRAPPER_MODULE)
             Sources
             libJpegStatic
             LibUvc
+            U8x8Font
             android
             log)
 

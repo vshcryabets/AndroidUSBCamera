@@ -84,10 +84,6 @@ class Source {
 
 class PullSource : public Source {
     public:
-        using FrameCallback = std::function<void(const Frame &frame)>;
-    protected:
-        FrameCallback frameCallback;
-    public:
         PullSource() : Source() {}
         virtual ~PullSource() = default;
         virtual Frame readFrame() = 0;
