@@ -52,10 +52,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.jiangdg.demo.R
 import com.vsh.uvc.UsbDevicesMonitor
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 enum class AusbcScreen() {
     Start,
     Benchmarks,
+    TestSourceCfg,
 }
 
 object DeviceListScreen {
@@ -94,6 +96,7 @@ object DeviceListScreen {
         onUserInformedAboutPermission: () -> Unit,
         onSelectUsbDevice: (UsbDevicesMonitor.UsbDevice) -> Unit,
         onCantOpenShown: () -> Unit,
+        onTestSource: () -> Unit,
     ) {
         if (uiState.cantOpenWithoutCameraPermission) {
             androidx.compose.material3.AlertDialog(
@@ -140,6 +143,12 @@ object DeviceListScreen {
             ) {
                 Button(
                     modifier = Modifier.padding(start = 16.dp),
+                    onClick = onTestSource
+                ) {
+                    Text("TestSrc")
+                }
+                Button(
+                    modifier = Modifier.padding(start = 16.dp),
                     onClick = onBenchmarks
                 ) {
                     Text("Benchmarks")
@@ -151,12 +160,15 @@ object DeviceListScreen {
                     Text("Reload USB devices")
                 }
             }
-
-            LazyColumn(
-                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
-            ) {
-                this.items(uiState.devices) {
-                    ProductItem(product = it, onItemClick = onSelectUsbDevice)
+            if (uiState.devices.isEmpty()) {
+                Text("USB devices not found")
+            } else {
+                LazyColumn(
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
+                ) {
+                    this.items(uiState.devices) {
+                        ProductItem(product = it, onItemClick = onSelectUsbDevice)
+                    }
                 }
             }
         }
@@ -208,7 +220,8 @@ fun AusbcAppBar(
 @Composable
 fun AusbcApp(
     viewModel: DeviceListViewModel,
-    navController: NavHostController = rememberNavController()
+    navController: NavHostController = rememberNavController(),
+    testSourceViewModelFactory: TestSourceViewModelFactory,
 ) {
     Scaffold(
         topBar = {
@@ -236,13 +249,25 @@ fun AusbcApp(
                     onReload = { viewModel.onReloadUsbDevices() },
                     onSelectUsbDevice = { viewModel.onClick(it) },
                     onUserInformedAboutPermission = { viewModel.onUserInformedAboutPermission() },
-                    onCantOpenShown = { viewModel.onCantOpenShown() }
+                    onCantOpenShown = { viewModel.onCantOpenShown() },
+                    onTestSource = {
+                        navController.navigate(AusbcScreen.TestSourceCfg.name)
+                    }
                 )
             }
             composable(route = AusbcScreen.Benchmarks.name) {
                 DeviceListScreen.Benchmarks(
                     benchmarkState = benchmarkState,
                     onShare = viewModel::onShareBenchmarkResults
+                )
+            }
+            composable(route = AusbcScreen.TestSourceCfg.name) { backStackEntry ->
+                val testSourceViewModel: TestSourceViewModel = viewModel(
+                    viewModelStoreOwner = backStackEntry,
+                    factory = testSourceViewModelFactory)
+                TestSourceConfiguration(
+                    navController = navController,
+                    viewModel = testSourceViewModel
                 )
             }
         }

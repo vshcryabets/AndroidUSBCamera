@@ -2,7 +2,7 @@
  *  UVCCamera
  *  library and sample to access to UVC web camera on non-rooted Android device
  *
- * Copyright (c) 2024 vshcryabets@gmail.com
+ * Copyright (c) 2024-2025 vshcryabets@gmail.com
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -20,11 +20,15 @@
  *  Files in the libjpeg-turbo, libusb, libuvc folder
  *  may have a different license, see the respective files.
  */
-package com.vsh.uvc
+package com.jiangdg.uvc
 
-data class UvcCameraResolution(
+data class SourceResolution(
     val id: Int,
     val width: Int,
     val height: Int,
     val fps: List<Float>,
-)
+) {
+    companion object {
+        val EMPTY = SourceResolution(0, 0, 0, emptyList())
+    }
+}
