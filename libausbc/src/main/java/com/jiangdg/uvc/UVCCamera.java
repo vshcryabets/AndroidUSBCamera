@@ -43,6 +43,8 @@ import timber.log.Timber;
 
 public class UVCCamera implements IUvcCamera<UVCCamera.OpenConfiguration> {
 
+	private OpenConfiguration openConfiguration;
+
 	public static class OpenConfiguration extends IUvcCamera.OpenConfiguration {
 		final UsbControlBlock ctrlBlock;
 
@@ -131,6 +133,7 @@ public class UVCCamera implements IUvcCamera<UVCCamera.OpenConfiguration> {
     public synchronized void open(@NonNull final OpenConfiguration configuration) {
     	int result = -2;
 		close();
+		this.openConfiguration = configuration;
     	try {
 			mCtrlBlock = configuration.ctrlBlock.clone();
 			result = nativeConnect(mNativePtr,
@@ -196,14 +199,10 @@ public class UVCCamera implements IUvcCamera<UVCCamera.OpenConfiguration> {
 		return mCtrlBlock != null ? mCtrlBlock.getDeviceName() : null;
 	}
 
-	public UsbControlBlock getUsbControlBlock() {
-		return mCtrlBlock;
-	}
-
 	@NonNull
 	@Override
 	public OpenConfiguration getOpenConfiguration() {
-		return null;
+		return openConfiguration;
 	}
 
 	@NonNull

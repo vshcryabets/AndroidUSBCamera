@@ -1,25 +1,17 @@
 /*
- *  UVCCamera
- *  library and sample to access to UVC web camera on non-rooted Android device
+ * Copyright 2025 vschryabets@gmail.com
  *
- * Copyright (c) 2014-2017 saki t_saki@serenegiant.com
- * Copyright (c) 2025 vschryabets@gmail.com
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *   You may obtain a copy of the License at
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
- *
- *  All files in the folder are under this Apache License, Version 2.0.
- *  Files in the libjpeg-turbo, libusb, libuvc folder
- *  may have a different license, see the respective files.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.jiangdg.uvc
 
@@ -55,12 +47,19 @@ class TestSource : IUvcCamera<IUvcCamera.OpenConfiguration> {
     }
 
     override fun getSupportedResolutions(): Map<Int, List<SourceResolution>> {
-        TODO("Not yet implemented")
+        if (nativePtr != 0L) {
+            return nativeGetSupportedResolutions(nativePtr).mapKeys {
+                it.key.toInt()
+            }
+        } else {
+            return emptyMap()
+        }
     }
 
     private external fun nativeCreate(): Long
     private external fun nativeRelease(ptr: Long)
     private external fun nativeStopCapturing(ptr: Long)
     private external fun nativeClose(ptr: Long)
+    private external fun nativeGetSupportedResolutions(ptr: Long): Map<Integer, List<SourceResolution>>
 
 }

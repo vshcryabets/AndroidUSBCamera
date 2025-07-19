@@ -1,6 +1,7 @@
 #include <jni.h>
 #include "TestSource.h"
 #include "u8x8.h"
+#include "JniMappers.h"
 
 extern "C" {
 
@@ -12,19 +13,28 @@ Java_com_jiangdg_uvc_TestSource_nativeCreate(JNIEnv *env, jobject thiz) {
 
 JNIEXPORT void JNICALL
 Java_com_jiangdg_uvc_TestSource_nativeRelease(JNIEnv *env, jobject thiz, jlong ptr) {
-    auto *camera = (TestSource*)ptr;
+    auto *camera = (TestSource *) ptr;
     delete camera;
 }
 
 JNIEXPORT void JNICALL
 Java_com_jiangdg_uvc_TestSource_nativeStopCapturing(JNIEnv *env, jobject thiz, jlong ptr) {
-    auto *camera = (TestSource*)ptr;
+    auto *camera = (TestSource *) ptr;
     camera->stopCapturing();
 }
 
 JNIEXPORT void JNICALL
 Java_com_jiangdg_uvc_TestSource_nativeClose(JNIEnv *env, jobject thiz, jlong ptr) {
-    auto *camera = (TestSource*)ptr;
+    auto *camera = (TestSource *) ptr;
     camera->close();
+}
+
+JNIEXPORT jobject JNICALL
+Java_com_jiangdg_uvc_TestSource_nativeGetSupportedResolutions(JNIEnv *env,
+                                                              jobject thiz,
+                                                              jlong ptr) {
+    auto *camera = (TestSource *) ptr;
+    std::map<uint16_t, std::vector<Source::Resolution>> supportedSizes = camera->getSupportedResolutions();
+    return resolutionMapToJObject(supportedSizes, env);
 }
 }

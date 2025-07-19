@@ -32,6 +32,7 @@ if(BUILD_JNIWRAPPER_MODULE)
             src/UVCCameraJniImpl.cpp
             src/LibUvcHacks.cpp
             src/Camera.cpp
+            src/JniMapper.cpp
     )
 
     target_link_libraries(native
