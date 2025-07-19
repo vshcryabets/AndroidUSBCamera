@@ -35,10 +35,10 @@ import androidx.lifecycle.lifecycleScope
 import com.example.cupcake.ui.theme.AusbcTheme
 import com.jiangdg.ausbc.utils.CheckCameraPermissionUseCaseImpl
 import com.jiangdg.demo.MainActivity
+import com.vsh.domain.usecases.GetTestSourceUseCaseImpl
 import com.vsh.screens.AusbcApp
 import com.vsh.screens.DeviceListViewModel
 import com.vsh.screens.DeviceListViewModelFactory
-import com.vsh.screens.TestSourceViewModel
 import com.vsh.screens.TestSourceViewModelFactory
 import com.vsh.uvc.CheckRequirementsImpl
 import com.vsh.uvc.JpegBenchmarkImpl
@@ -88,7 +88,9 @@ class DevicesActivity : ComponentActivity() {
             AusbcTheme {
                 AusbcApp(
                     viewModel = viewModel,
-                    testSourceViewModelFactory = TestSourceViewModelFactory()
+                    testSourceViewModelFactory = TestSourceViewModelFactory(
+                        getTestSourceUseCase = GetTestSourceUseCaseImpl()
+                    )
                 )
             }
         }

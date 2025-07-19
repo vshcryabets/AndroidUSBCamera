@@ -32,10 +32,8 @@ import androidx.annotation.NonNull;
 
 import com.jiangdg.usb.USBMonitor;
 import com.jiangdg.usb.UsbControlBlock;
-import com.vsh.uvc.UvcCameraResolution;
 import com.vsh.uvc.UvcVsDeskSubtype;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -44,10 +42,12 @@ import java.util.Map;
 import timber.log.Timber;
 
 public class UVCCamera implements IUvcCamera<UVCCamera.OpenConfiguration> {
-	public static class OpenConfiguration implements IUvcCamera.OpenConfiguration {
+
+	public static class OpenConfiguration extends IUvcCamera.OpenConfiguration {
 		final UsbControlBlock ctrlBlock;
 
-		public OpenConfiguration(UsbControlBlock block) {
+		public OpenConfiguration(UsbControlBlock block, String tag) {
+			super(tag);
 			this.ctrlBlock = block;
 		}
 	}
@@ -73,7 +73,7 @@ public class UVCCamera implements IUvcCamera<UVCCamera.OpenConfiguration> {
     protected UvcFrameFormat mCurrentFrameFormat = UvcFrameFormat.FRAME_FORMAT_MJPEG;
 	protected int mCurrentWidth = 640, mCurrentHeight = 480;
 	protected float mCurrentBandwidthFactor = DEFAULT_BANDWIDTH;
-    protected Map<UvcVsDeskSubtype, List<UvcCameraResolution>> mSupportedSize = Collections.emptyMap();
+    protected Map<UvcVsDeskSubtype, List<SourceResolution>> mSupportedSize = Collections.emptyMap();
 	// these fields from here are accessed from native code and do not change name and remove
     protected long mNativePtr;
     protected int mScanningModeMin, mScanningModeMax, mScanningModeDef;
@@ -200,10 +200,22 @@ public class UVCCamera implements IUvcCamera<UVCCamera.OpenConfiguration> {
 		return mCtrlBlock;
 	}
 
-	public synchronized Map<UvcVsDeskSubtype, List<UvcCameraResolution>> getSupportedSize() {
+	@NonNull
+	@Override
+	public OpenConfiguration getOpenConfiguration() {
+		return null;
+	}
+
+	@NonNull
+	@Override
+	public Map<Integer, List<SourceResolution>> getSupportedResolutions() {
+		return nativeGetSupportedSize(mNativePtr);
+	}
+
+	public synchronized Map<UvcVsDeskSubtype, List<SourceResolution>> getSupportedSize() {
 		if (mSupportedSize.isEmpty()) {
-			HashMap<UvcVsDeskSubtype, List<UvcCameraResolution>> result = new HashMap<>();
-			var sizes = nativeGetSupportedSize(mNativePtr);
+			HashMap<UvcVsDeskSubtype, List<SourceResolution>> result = new HashMap<>();
+			var sizes = getSupportedResolutions();
 			for (var subtype: sizes.keySet()) {
 				var subtypeValue = UvcVsDeskSubtype.UVC_VS_UNDEFINED;
 				if (subtype == UvcVsDeskSubtype.UVC_VS_FORMAT_UNCOMPRESSED.getValue()) {
@@ -279,19 +291,19 @@ public class UVCCamera implements IUvcCamera<UVCCamera.OpenConfiguration> {
 		}
 	}
 
-	public List<UvcCameraResolution> getSupportedSizeList2() {
+	public List<SourceResolution> getSupportedSizeList2() {
 		return getSupportedSize2((mCurrentFrameFormat != UvcFrameFormat.FRAME_FORMAT_YUYV) ?
 				UvcVsDeskSubtype.UVC_VS_FORMAT_MJPEG : UvcVsDeskSubtype.UVC_VS_FORMAT_UNCOMPRESSED,
 				getSupportedSize());
 	}
 
-	public List<UvcCameraResolution> getSupportedSizeList2(UvcFrameFormat frameFormat) {
+	public List<SourceResolution> getSupportedSizeList2(UvcFrameFormat frameFormat) {
 		return getSupportedSize2((frameFormat != UvcFrameFormat.FRAME_FORMAT_YUYV) ?
 				UvcVsDeskSubtype.UVC_VS_FORMAT_MJPEG : UvcVsDeskSubtype.UVC_VS_FORMAT_UNCOMPRESSED,
 				getSupportedSize());
 	}
 
-	public List<UvcCameraResolution> getSupportedSize2(final UvcVsDeskSubtype type, final Map<UvcVsDeskSubtype, List<UvcCameraResolution>> supportedSize) {
+	public List<SourceResolution> getSupportedSize2(final UvcVsDeskSubtype type, final Map<UvcVsDeskSubtype, List<SourceResolution>> supportedSize) {
 		return supportedSize.getOrDefault(type, Collections.emptyList());
 	}
 
@@ -979,7 +991,7 @@ public class UVCCamera implements IUvcCamera<UVCCamera.OpenConfiguration> {
                                                    final float fps,
                                                    final int mode,
                                                    final float bandwidth);
-	private static native Map<Integer, List<UvcCameraResolution>> nativeGetSupportedSize(final long id_camera);
+	private static native Map<Integer, List<SourceResolution>> nativeGetSupportedSize(final long id_camera);
 	private static final native int nativeStartPreview(final long id_camera);
 	private static final native int nativeStopPreview(final long id_camera);
 	private static final native int nativeSetPreviewDisplay(final long id_camera, final Surface surface);

@@ -27,8 +27,9 @@ import com.jiangdg.usb.UsbControlBlock
 
 class UVCCamera2 : IUvcCamera<UVCCamera2.OpenConfiguration> {
     public class OpenConfiguration(
-        val usbControlBlock: UsbControlBlock
-    ): IUvcCamera.OpenConfiguration {
+        val usbControlBlock: UsbControlBlock,
+        tag: String
+    ): IUvcCamera.OpenConfiguration(tag) {
     }
 
     private var nativePtr : Long = 0L;
@@ -38,6 +39,10 @@ class UVCCamera2 : IUvcCamera<UVCCamera2.OpenConfiguration> {
     }
 
     override fun open(configuration: OpenConfiguration) {
+    }
+
+    override fun getOpenConfiguration(): OpenConfiguration {
+        TODO("Not yet implemented")
     }
 
     override fun close() {
@@ -50,6 +55,10 @@ class UVCCamera2 : IUvcCamera<UVCCamera2.OpenConfiguration> {
         if (nativePtr != 0L) {
             nativeStopCapturing(nativePtr)
         }
+    }
+
+    override fun getSupportedResolutions(): Map<Int, List<SourceResolution>> {
+        TODO("Not yet implemented")
     }
 
     private external fun nativeCreate(): Long

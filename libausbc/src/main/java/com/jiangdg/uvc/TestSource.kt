@@ -23,16 +23,23 @@
  */
 package com.jiangdg.uvc
 
-import com.jiangdg.usb.UsbControlBlock
-
-class TestSource() : IUvcCamera<IUvcCamera.OpenConfiguration> {
+class TestSource : IUvcCamera<IUvcCamera.OpenConfiguration> {
+    private var openConfiguration: IUvcCamera.OpenConfiguration? = null
     private var nativePtr : Long = 0L;
 
     init {
+        System.loadLibrary("native")
         nativePtr = nativeCreate()
     }
 
     override fun open(configuration: IUvcCamera.OpenConfiguration) {
+    }
+
+    override fun getOpenConfiguration(): IUvcCamera.OpenConfiguration {
+        if (openConfiguration != null)
+            return openConfiguration!!
+        else
+            throw IllegalStateException("Source isn't initialized")
     }
 
     override fun close() {
@@ -47,14 +54,13 @@ class TestSource() : IUvcCamera<IUvcCamera.OpenConfiguration> {
         }
     }
 
+    override fun getSupportedResolutions(): Map<Int, List<SourceResolution>> {
+        TODO("Not yet implemented")
+    }
+
     private external fun nativeCreate(): Long
     private external fun nativeRelease(ptr: Long)
     private external fun nativeStopCapturing(ptr: Long)
     private external fun nativeClose(ptr: Long)
 
-    companion object {
-        init {
-            System.loadLibrary("native")
-        }
-    }
 }

@@ -2139,8 +2139,8 @@ Java_com_jiangdg_uvc_UVCCamera_nativeGetSupportedSize(JNIEnv *env, jclass clazz,
     jmethodID arrayListAdd = env->GetMethodID(arrayListCls, "add", "(Ljava/lang/Object;)Z");
     jmethodID initInteger =  env->GetMethodID( integerClass, "<init>", "(I)V");
     jmethodID initFloat =  env->GetMethodID( floatClass, "<init>", "(F)V");
-    jclass uvcCameraResolutionCls = env->FindClass("com/vsh/uvc/UvcCameraResolution");
-    jmethodID uvcCameraResolutionInit = env->GetMethodID(uvcCameraResolutionCls, "<init>", "(IIILjava/util/List;)V");
+    jclass sourceResolutionCls = env->FindClass("com/jiangdg/uvc/SourceResolution");
+    jmethodID uvcCameraResolutionInit = env->GetMethodID(sourceResolutionCls, "<init>", "(IIILjava/util/List;)V");
     jobject result = env->NewObject(hashMapCls, hashMapInit);
     UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
     if (LIKELY(camera)) {
@@ -2159,7 +2159,7 @@ Java_com_jiangdg_uvc_UVCCamera_nativeGetSupportedSize(JNIEnv *env, jclass clazz,
                 }
 
                 // Create a resolution object
-                auto resolution = env->NewObject(uvcCameraResolutionCls,
+                auto resolution = env->NewObject(sourceResolutionCls,
                                                  uvcCameraResolutionInit,
                                                  it.id,
                                                  it.width,
@@ -2175,7 +2175,7 @@ Java_com_jiangdg_uvc_UVCCamera_nativeGetSupportedSize(JNIEnv *env, jclass clazz,
             env->DeleteLocalRef(key);
         }
     }
-    env->DeleteLocalRef(uvcCameraResolutionCls);
+    env->DeleteLocalRef(sourceResolutionCls);
     env->DeleteLocalRef(arrayListCls);
     env->DeleteLocalRef(hashMapCls);
     env->DeleteLocalRef(floatClass);

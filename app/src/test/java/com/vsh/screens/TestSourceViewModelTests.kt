@@ -1,0 +1,56 @@
+package com.vsh.screens
+
+import com.jiangdg.uvc.IUvcCamera
+import com.jiangdg.uvc.SourceResolution
+import com.vsh.domain.usecases.GetTestSourceUseCase
+import org.junit.Assert
+import org.junit.Test
+
+class TestSourceViewModelTests {
+    val emptySource = object: IUvcCamera<IUvcCamera.OpenConfiguration> {
+        var configuration: IUvcCamera.OpenConfiguration? = null
+
+        override fun open(configuration: IUvcCamera.OpenConfiguration) {
+            this.configuration = configuration
+        }
+
+        override fun getOpenConfiguration(): IUvcCamera.OpenConfiguration = configuration!!
+
+        override fun close() {
+        }
+
+        override fun stopCapturing() {
+        }
+
+        override fun getSupportedResolutions(): Map<Int, List<SourceResolution>> {
+            return mapOf(
+                0 to listOf(
+                    SourceResolution(0, 640, 480, listOf(15.0f,30.0f,60.0f)),
+                    SourceResolution(0, 1280, 720, listOf(30.0f)),
+                    SourceResolution(0, 1920, 1080, listOf(30.0f))
+                ),
+                1 to listOf(
+                    SourceResolution(1, 640, 480, listOf(15.0f,30.0f,60.0f)),
+                    SourceResolution(1, 1280, 720, listOf(30.0f)),
+                    SourceResolution(1, 1920, 1080, listOf(30.0f))
+                ),
+            )
+        }
+    }
+
+    val getTestSourceUseCase = object : GetTestSourceUseCase {
+        override fun invoke(): IUvcCamera<IUvcCamera.OpenConfiguration> = emptySource
+    }
+
+    @Test
+    fun viewmodelShowResolutionsAndFps() {
+        val viewModel = TestSourceViewModel(
+            getTestSourceUseCase = getTestSourceUseCase
+        )
+        val state = viewModel.state.value
+        Assert.assertNotEquals(SourceResolution.EMPTY, state.selectedResolution)
+        Assert.assertEquals("Type 0 - 640x480 @ 15.0", state.selectedResolutionStr)
+        Assert.assertEquals(10, state.resolutionList.size)
+        Assert.assertEquals(10, state.resolutionStrs.size)
+    }
+}
