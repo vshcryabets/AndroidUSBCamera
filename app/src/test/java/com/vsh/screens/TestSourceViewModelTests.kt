@@ -67,4 +67,16 @@ class TestSourceViewModelTests {
         Assert.assertEquals(10, state.resolutionList.size)
         Assert.assertEquals(10, state.resolutionStrs.size)
     }
+
+    @Test
+    fun viewModelAllowsSelection() {
+        val viewModel = TestSourceViewModel(
+            getTestSourceUseCase = getTestSourceUseCase
+        )
+        val state = viewModel.state.value
+        Assert.assertEquals(0, state.selectedResolutionIdx)
+        viewModel.onResolutionSelected(5)
+        Assert.assertEquals(5, viewModel.state.value.selectedResolutionIdx)
+
+    }
 }

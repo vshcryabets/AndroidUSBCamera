@@ -15,11 +15,15 @@
  */
 package com.vsh.screens
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -29,22 +33,62 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 
 @Composable
-fun TestSourceConfiguration(navController: NavController,
-                            viewModel: TestSourceViewModel) {
+fun TestSourceConfiguration(
+    navController: NavController,
+    viewModel: TestSourceViewModel
+) {
 
     val uiState by viewModel.state.collectAsState()
     Column {
         if (uiState.resolutionStrs.isEmpty()) {
-            Text("No Source configurations available",
-                modifier = Modifier.padding(16.dp))
+            Text(
+                "No Source configurations available",
+                modifier = Modifier.padding(16.dp)
+            )
         } else {
-            LazyColumn(
-                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
-            ) {
-                this.items(uiState.resolutionStrs) {
-                    Text(text = it)
+            Column(modifier = Modifier.fillMaxWidth()) {
+                if (uiState.resolutionStrs.isEmpty()) {
+                    Text(
+                        "No Source configurations available",
+                        modifier = Modifier.padding(16.dp)
+                    )
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.weight(1f),
+                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
+                    ) {
+                        this.itemsIndexed(uiState.resolutionStrs) { index, item ->
+                            val isSelected = index == uiState.selectedResolutionIdx
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(4.dp)
+                                    .clickable {
+                                        viewModel.onResolutionSelected(index)
+                                    }
+                                    .background(
+                                        if (isSelected)
+                                            androidx.compose.ui.graphics.Color.LightGray
+                                        else
+                                            androidx.compose.ui.graphics.Color.Transparent
+                                    )
+                                    .padding(8.dp)
+                            ) {
+                                Text(text = item)
+                            }
+                        }
+                    }
+                    androidx.compose.material3.Button(
+                        onClick = { navController.navigate(AusbcScreen.TestSourcePreview.name) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    ) {
+                        Text("Continue")
+                    }
                 }
             }
         }
     }
 }
+

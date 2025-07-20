@@ -41,6 +41,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -53,11 +54,13 @@ import androidx.navigation.compose.rememberNavController
 import com.jiangdg.demo.R
 import com.vsh.uvc.UsbDevicesMonitor
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.navigation
 
 enum class AusbcScreen() {
     Start,
     Benchmarks,
     TestSourceCfg,
+    TestSourcePreview,
 }
 
 object DeviceListScreen {
@@ -261,14 +264,33 @@ fun AusbcApp(
                     onShare = viewModel::onShareBenchmarkResults
                 )
             }
-            composable(route = AusbcScreen.TestSourceCfg.name) { backStackEntry ->
-                val testSourceViewModel: TestSourceViewModel = viewModel(
-                    viewModelStoreOwner = backStackEntry,
-                    factory = testSourceViewModelFactory)
-                TestSourceConfiguration(
-                    navController = navController,
-                    viewModel = testSourceViewModel
-                )
+            navigation(startDestination = AusbcScreen.TestSourceCfg.name, route = "test_source_graph") {
+                composable(route = AusbcScreen.TestSourceCfg.name) { backStackEntry ->
+                    val parentEntry = remember(backStackEntry) {
+                        navController.getBackStackEntry("test_source_graph")
+                    }
+                    val testSourceViewModel: TestSourceViewModel = viewModel(
+                        viewModelStoreOwner = parentEntry,
+                        factory = testSourceViewModelFactory
+                    )
+                    TestSourceConfiguration(
+                        navController = navController,
+                        viewModel = testSourceViewModel
+                    )
+                }
+                composable(route = AusbcScreen.TestSourcePreview.name) { backStackEntry ->
+                    val parentEntry = remember(backStackEntry) {
+                        navController.getBackStackEntry("test_source_graph")
+                    }
+                    val testSourceViewModel: TestSourceViewModel = viewModel(
+                        viewModelStoreOwner = parentEntry,
+                        factory = testSourceViewModelFactory
+                    )
+                    TestSourcePreview(
+                        navController = navController,
+                        viewModel = testSourceViewModel
+                    )
+                }
             }
         }
     }

@@ -82,4 +82,16 @@ class TestSourceViewModel(
         super.onCleared()
         Timber.d("TestSourceViewModel cleared")
     }
+
+    fun onResolutionSelected(index: Int) {
+        if (index < 0 || index >= _state.value.resolutionList.size) {
+            Timber.w("Invalid resolution index: $index")
+            return
+        }
+        _state.update {
+            it.copy(
+                selectedResolutionIdx = index
+            )
+        }
+    }
 }
