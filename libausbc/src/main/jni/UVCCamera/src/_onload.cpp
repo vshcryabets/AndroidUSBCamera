@@ -25,6 +25,7 @@
 #include "_onload.h"
 #include "utilbase.h"
 #include "LoadJpegImageFromAssetsUseCase.h"
+#include "JniWrapper.h"
 
 #ifndef ABI
     #define ABI 0
@@ -79,6 +80,23 @@ jint JNI_OnLoad(JavaVM *vm, void *reserved) {
     // register native methods
     int result = register_uvccamera(env);
 	setVM(vm);
+
+    // Find your Java class
+    jclass myClass = env->FindClass("com/vsh/font/FontSrcImpl");
+    if (myClass != NULL) {
+
+        // Register your native methods
+        static const JNINativeMethod methods[] = {
+                {"nativeGetFontPtr", "()J", (void *) &Java_com_vsh_font_FontSrcImpl_nativeGetFontPtr},
+        };
+
+        if (env->RegisterNatives(myClass, methods, sizeof(methods) / sizeof(methods[0])) <
+            0) {
+            return JNI_ERR;
+        }
+    }
+
+
 #if LOCAL_DEBUG
     LOGD("JNI_OnLoad:finshed:result=%d", result);
 #endif

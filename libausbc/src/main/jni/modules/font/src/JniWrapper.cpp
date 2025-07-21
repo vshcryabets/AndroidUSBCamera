@@ -1,4 +1,4 @@
-#include "jni.h"
+#include "JniWrapper.h"
 #include "u8x8.h"
 
 extern "C"

@@ -6,7 +6,7 @@ extern "C" {
 
 JNIEXPORT jlong JNICALL
 Java_com_vsh_source_TestSource_nativeCreate(JNIEnv *env, jobject thiz, jlong fontPtr) {
-    auto *source = new TestSource((const uint8_t*)fontPtr);//u8x8_font_amstrad_cpc_extended_f
+    auto *source = new TestSource((const uint8_t*)fontPtr);
     return reinterpret_cast<jlong>(source);
 }
 
@@ -33,7 +33,8 @@ Java_com_vsh_source_TestSource_nativeGetSupportedResolutions(JNIEnv *env,
                                                               jobject thiz,
                                                               jlong ptr) {
     auto *camera = (TestSource *) ptr;
-    std::map<uint16_t, std::vector<Source::Resolution>> supportedSizes = camera->getSupportedResolutions();
+    std::map<uint16_t, std::vector<Source::Resolution>> supportedSizes =
+            camera->getSupportedResolutions();
     return resolutionMapToJObject(supportedSizes, env);
 }
 }
