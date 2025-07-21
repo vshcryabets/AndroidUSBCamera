@@ -1,14 +1,17 @@
 package com.vsh.domain.usecases
 
-import com.jiangdg.uvc.Source
-import com.jiangdg.uvc.TestSource
+import com.vsh.font.FontSrc
+import com.vsh.source.Source
+import com.vsh.source.TestSource
 
 interface GetTestSourceUseCase {
     operator fun invoke(): Source<Source.OpenConfiguration>
 }
 
-class GetTestSourceUseCaseImpl: GetTestSourceUseCase {
+class GetTestSourceUseCaseImpl(
+    private val fontSrc: FontSrc
+): GetTestSourceUseCase {
     override operator fun invoke(): Source<Source.OpenConfiguration> {
-        return TestSource()
+        return TestSource(fontSrc)
     }
 }

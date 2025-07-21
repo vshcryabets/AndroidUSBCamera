@@ -32,6 +32,7 @@ import androidx.annotation.NonNull;
 
 import com.jiangdg.usb.USBMonitor;
 import com.jiangdg.usb.UsbControlBlock;
+import com.vsh.source.Source;
 import com.vsh.uvc.UvcVsDeskSubtype;
 
 import java.util.Collections;
@@ -53,6 +54,11 @@ public class UVCCamera implements Source<UVCCamera.OpenConfiguration> {
 	@Override
 	public boolean isPushSource() {
 		return true;
+	}
+
+	@Override
+	public long getNativeObject() {
+		return mNativePtr;
 	}
 
 	public static class OpenConfiguration extends Source.OpenConfiguration {

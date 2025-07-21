@@ -15,7 +15,7 @@
 */
 package com.vsh.screens
 
-import com.jiangdg.uvc.Source
+import com.vsh.source.Source
 import com.jiangdg.uvc.SourceResolution
 import com.vsh.domain.usecases.GetTestSourceUseCase
 import org.junit.Assert
@@ -51,6 +51,9 @@ class TestSourceViewModelTests {
                 ),
             )
         }
+
+        override fun isPullSource(): Boolean = true
+        override fun isPushSource(): Boolean = false
     }
 
     val getTestSourceUseCase = object : GetTestSourceUseCase {

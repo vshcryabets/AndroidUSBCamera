@@ -21,9 +21,10 @@
  *  Files in the libjpeg-turbo, libusb, libuvc folder
  *  may have a different license, see the respective files.
  */
-package com.jiangdg.uvc
+package com.vsh.source
 
 import com.jiangdg.usb.UsbControlBlock
+import com.jiangdg.uvc.SourceResolution
 
 class UVCCamera2 : Source<UVCCamera2.OpenConfiguration> {
     public class OpenConfiguration(
@@ -68,6 +69,8 @@ class UVCCamera2 : Source<UVCCamera2.OpenConfiguration> {
     override fun isPushSource(): Boolean {
         TODO("Not yet implemented")
     }
+
+    override fun getNativeObject(): Long = nativePtr
 
     private external fun nativeCreate(): Long
     private external fun nativeRelease(ptr: Long)

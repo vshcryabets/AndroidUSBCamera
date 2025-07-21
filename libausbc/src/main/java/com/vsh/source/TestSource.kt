@@ -13,15 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.jiangdg.uvc
+package com.vsh.source
 
-class TestSource : Source<Source.OpenConfiguration> {
+import com.jiangdg.uvc.SourceResolution
+import com.vsh.font.FontSrc
+
+class TestSource(
+    private val font: FontSrc
+) : Source<Source.OpenConfiguration> {
     private var openConfiguration: Source.OpenConfiguration? = null
     private var nativePtr : Long = 0L;
 
     init {
         System.loadLibrary("native")
-        nativePtr = nativeCreate()
+        nativePtr = nativeCreate(font.getFontPtr())
     }
 
     override fun open(configuration: Source.OpenConfiguration) {
@@ -64,7 +69,9 @@ class TestSource : Source<Source.OpenConfiguration> {
         TODO("Not yet implemented")
     }
 
-    private external fun nativeCreate(): Long
+    override fun getNativeObject(): Long = nativePtr
+
+    private external fun nativeCreate(fontPtr: Long): Long
     private external fun nativeRelease(ptr: Long)
     private external fun nativeStopCapturing(ptr: Long)
     private external fun nativeClose(ptr: Long)

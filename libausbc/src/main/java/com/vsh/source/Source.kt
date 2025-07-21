@@ -1,4 +1,6 @@
-package com.jiangdg.uvc
+package com.vsh.source
+
+import com.jiangdg.uvc.SourceResolution
 
 interface Source<OC: Source.OpenConfiguration> {
     open class OpenConfiguration(
@@ -8,7 +10,7 @@ interface Source<OC: Source.OpenConfiguration> {
     }
 
     fun open(configuration: OC)
-    fun getOpenConfiguration(): OC
+    fun getOpenConfiguration(): OC?
     fun close()
 
     fun stopCapturing()
@@ -17,4 +19,5 @@ interface Source<OC: Source.OpenConfiguration> {
 
     fun isPullSource() : Boolean
     fun isPushSource(): Boolean
+    fun getNativeObject(): Long
 }

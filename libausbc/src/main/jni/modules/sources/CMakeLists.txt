@@ -12,6 +12,13 @@ if(BUILD_SOURCES_MODULE)
                 list(APPEND SOURCES 
                         src/UvcCamera.cpp)
         endif()
+
+        if(BUILD_JNI_WRAPPERS)
+                list(APPEND SOURCES
+                        src/JniTestSource.cpp
+                        src/JniMapper.cpp
+                        )
+        endif()
         
         add_library(Sources STATIC
                 ${SOURCES}

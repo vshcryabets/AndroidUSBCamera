@@ -18,7 +18,7 @@ package com.vsh.screens
 import android.view.Surface
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.jiangdg.uvc.Source
+import com.vsh.source.Source
 import com.jiangdg.uvc.SourceResolution
 import com.vsh.domain.usecases.GetTestSourceUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -52,7 +52,8 @@ class TestSourceViewModel(
     init {
         Timber.d("TestSourceViewModel created")
         source = getTestSourceUseCase()
-        source.open(Source.OpenConfiguration(
+        source.open(
+            Source.OpenConfiguration(
             tag = "TestSource"
         ))
         val sourceResolutionsMap = source.getSupportedResolutions()

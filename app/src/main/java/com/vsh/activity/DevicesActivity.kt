@@ -36,6 +36,7 @@ import com.example.cupcake.ui.theme.AusbcTheme
 import com.jiangdg.ausbc.utils.CheckCameraPermissionUseCaseImpl
 import com.jiangdg.demo.MainActivity
 import com.vsh.domain.usecases.GetTestSourceUseCaseImpl
+import com.vsh.font.FontSrcImpl
 import com.vsh.screens.AusbcApp
 import com.vsh.screens.DeviceListViewModel
 import com.vsh.screens.DeviceListViewModelFactory
@@ -89,7 +90,9 @@ class DevicesActivity : ComponentActivity() {
                 AusbcApp(
                     viewModel = viewModel,
                     testSourceViewModelFactory = TestSourceViewModelFactory(
-                        getTestSourceUseCase = GetTestSourceUseCaseImpl()
+                        getTestSourceUseCase = GetTestSourceUseCaseImpl(
+                            fontSrc = FontSrcImpl()
+                        )
                     )
                 )
             }
