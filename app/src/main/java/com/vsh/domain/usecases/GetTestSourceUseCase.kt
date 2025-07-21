@@ -1,14 +1,14 @@
 package com.vsh.domain.usecases
 
-import com.jiangdg.uvc.IUvcCamera
+import com.jiangdg.uvc.Source
 import com.jiangdg.uvc.TestSource
 
 interface GetTestSourceUseCase {
-    operator fun invoke(): IUvcCamera<IUvcCamera.OpenConfiguration>
+    operator fun invoke(): Source<Source.OpenConfiguration>
 }
 
 class GetTestSourceUseCaseImpl: GetTestSourceUseCase {
-    override operator fun invoke(): IUvcCamera<IUvcCamera.OpenConfiguration> {
+    override operator fun invoke(): Source<Source.OpenConfiguration> {
         return TestSource()
     }
 }

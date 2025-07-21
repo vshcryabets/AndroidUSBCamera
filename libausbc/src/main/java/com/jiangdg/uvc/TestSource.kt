@@ -15,8 +15,8 @@
  */
 package com.jiangdg.uvc
 
-class TestSource : IUvcCamera<IUvcCamera.OpenConfiguration> {
-    private var openConfiguration: IUvcCamera.OpenConfiguration? = null
+class TestSource : Source<Source.OpenConfiguration> {
+    private var openConfiguration: Source.OpenConfiguration? = null
     private var nativePtr : Long = 0L;
 
     init {
@@ -24,10 +24,10 @@ class TestSource : IUvcCamera<IUvcCamera.OpenConfiguration> {
         nativePtr = nativeCreate()
     }
 
-    override fun open(configuration: IUvcCamera.OpenConfiguration) {
+    override fun open(configuration: Source.OpenConfiguration) {
     }
 
-    override fun getOpenConfiguration(): IUvcCamera.OpenConfiguration {
+    override fun getOpenConfiguration(): Source.OpenConfiguration {
         if (openConfiguration != null)
             return openConfiguration!!
         else
@@ -54,6 +54,14 @@ class TestSource : IUvcCamera<IUvcCamera.OpenConfiguration> {
         } else {
             return emptyMap()
         }
+    }
+
+    override fun isPullSource(): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override fun isPushSource(): Boolean {
+        TODO("Not yet implemented")
     }
 
     private external fun nativeCreate(): Long

@@ -41,11 +41,21 @@ import java.util.Map;
 
 import timber.log.Timber;
 
-public class UVCCamera implements IUvcCamera<UVCCamera.OpenConfiguration> {
+public class UVCCamera implements Source<UVCCamera.OpenConfiguration> {
 
 	private OpenConfiguration openConfiguration;
 
-	public static class OpenConfiguration extends IUvcCamera.OpenConfiguration {
+	@Override
+	public boolean isPullSource() {
+		return false;
+	}
+
+	@Override
+	public boolean isPushSource() {
+		return true;
+	}
+
+	public static class OpenConfiguration extends Source.OpenConfiguration {
 		final UsbControlBlock ctrlBlock;
 
 		public OpenConfiguration(UsbControlBlock block, String tag) {

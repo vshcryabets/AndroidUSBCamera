@@ -77,32 +77,46 @@ public:
     }
     const CaptureConfiguration getCaptureConfiguration() const;
     virtual void stopCapturing() = 0;
-    virtual std::map<uint16_t, std::vector<Resolution>> getSupportedResolutions() = 0;
-    virtual std::vector<FrameFormat> getSupportedFrameFormats() = 0;
+    virtual std::map<uint16_t, std::vector<Resolution>> getSupportedResolutions() const = 0;
+    virtual std::vector<FrameFormat> getSupportedFrameFormats() const = 0;
+    virtual bool isPullSource() const = 0;
+    virtual bool isPushSource() const = 0;
 };
 
 class PullSource : public Source {
-    public:
-        PullSource() : Source() {}
-        virtual ~PullSource() = default;
-        virtual Frame readFrame() = 0;
-        virtual bool waitNextFrame() = 0;
+public:
+    PullSource() : Source() {}
+    virtual ~PullSource() = default;
+    virtual Frame readFrame() = 0;
+    virtual bool waitNextFrame() = 0;
+    bool isPullSource() const override {;
+        return true;
+    }
+    bool isPushSource() const override {
+        return false;
+    }
 };
 
 class PushSource : public Source {
-    public:
-        using FrameCallback = std::function<void(const Frame &frame)>;
-    protected:
-        FrameCallback frameCallback;
-    public:
-        PushSource() : Source() {}
-        virtual ~PushSource() = default;
-        virtual void setFrameCallback(const FrameCallback &callback) {
-            this->frameCallback = callback;
+public:
+    using FrameCallback = std::function<void(const Frame &frame)>;
+protected:
+    FrameCallback frameCallback;
+public:
+    PushSource() : Source() {}
+    virtual ~PushSource() = default;
+    virtual void setFrameCallback(const FrameCallback &callback) {
+        this->frameCallback = callback;
+    }
+    virtual void pushFrame(const Frame &frame) {
+        if (frameCallback) {
+            frameCallback(frame);
         }
-        virtual void pushFrame(const Frame &frame) {
-            if (frameCallback) {
-                frameCallback(frame);
-            }
-        }
+    }
+    bool isPullSource() const override {;
+        return true;
+    }
+    bool isPushSource() const override {
+        return false;
+    }
 };

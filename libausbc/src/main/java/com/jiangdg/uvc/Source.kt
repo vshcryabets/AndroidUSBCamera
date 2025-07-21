@@ -1,6 +1,6 @@
 package com.jiangdg.uvc
 
-interface IUvcCamera<OC: IUvcCamera.OpenConfiguration> {
+interface Source<OC: Source.OpenConfiguration> {
     open class OpenConfiguration(
         public val tag: String,
     ) {
@@ -14,4 +14,7 @@ interface IUvcCamera<OC: IUvcCamera.OpenConfiguration> {
     fun stopCapturing()
 
     fun getSupportedResolutions(): Map<Int, List<SourceResolution>>
+
+    fun isPullSource() : Boolean
+    fun isPushSource(): Boolean
 }

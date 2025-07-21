@@ -15,7 +15,10 @@
  */
 package com.vsh.screens
 
+import android.view.SurfaceHolder
+import android.view.SurfaceView
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,7 +26,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
+import timber.log.Timber
 
 @Composable
 fun TestSourcePreview(
@@ -36,6 +41,26 @@ fun TestSourcePreview(
         Text(
             "Preview",
             modifier = Modifier.padding(16.dp)
+        )
+        AndroidView(
+            modifier = Modifier.fillMaxSize(),
+            factory = { context ->
+                SurfaceView(context).apply {
+                     holder.addCallback(object : SurfaceHolder.Callback {
+                         override fun surfaceCreated(holder: SurfaceHolder) {
+                             viewModel.onSurfaceReady(holder.surface)
+                         }
+
+                         override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
+                             viewModel.onSurfaceChanged(holder.surface!!, format, width, height)
+                         }
+
+                         override fun surfaceDestroyed(holder: SurfaceHolder) {
+                             viewModel.onSurfaceDestroyed()
+                         }
+                     })
+                }
+            },
         )
     }
 }

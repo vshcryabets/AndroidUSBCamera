@@ -83,7 +83,7 @@ void TestSourceYUV420::close()
     stopCapturing();
 }
 
-std::vector<Source::FrameFormat> TestSourceYUV420::getSupportedFrameFormats()
+std::vector<Source::FrameFormat> TestSourceYUV420::getSupportedFrameFormats() const
 {
     return {Source::FrameFormat::YUV420P};
 }
@@ -158,7 +158,7 @@ void TestSourceYUV420::drawString(std::string str, uint16_t x, uint16_t y, uint8
     }
 }
 
-std::map<uint16_t, std::vector<Source::Resolution>> TestSourceYUV420::getSupportedResolutions()
+std::map<uint16_t, std::vector<Source::Resolution>> TestSourceYUV420::getSupportedResolutions() const
 {
     std::map<uint16_t, std::vector<Source::Resolution>> result;
     std::vector<Source::Resolution> resoltions {

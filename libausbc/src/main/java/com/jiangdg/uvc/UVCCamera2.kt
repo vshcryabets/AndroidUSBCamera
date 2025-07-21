@@ -25,11 +25,11 @@ package com.jiangdg.uvc
 
 import com.jiangdg.usb.UsbControlBlock
 
-class UVCCamera2 : IUvcCamera<UVCCamera2.OpenConfiguration> {
+class UVCCamera2 : Source<UVCCamera2.OpenConfiguration> {
     public class OpenConfiguration(
         val usbControlBlock: UsbControlBlock,
         tag: String
-    ): IUvcCamera.OpenConfiguration(tag) {
+    ): Source.OpenConfiguration(tag) {
     }
 
     private var nativePtr : Long = 0L;
@@ -58,6 +58,14 @@ class UVCCamera2 : IUvcCamera<UVCCamera2.OpenConfiguration> {
     }
 
     override fun getSupportedResolutions(): Map<Int, List<SourceResolution>> {
+        TODO("Not yet implemented")
+    }
+
+    override fun isPullSource(): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override fun isPushSource(): Boolean {
         TODO("Not yet implemented")
     }
 

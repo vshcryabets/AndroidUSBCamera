@@ -15,9 +15,10 @@
 */
 package com.vsh.screens
 
+import android.view.Surface
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.jiangdg.uvc.IUvcCamera
+import com.jiangdg.uvc.Source
 import com.jiangdg.uvc.SourceResolution
 import com.vsh.domain.usecases.GetTestSourceUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,14 +45,14 @@ data class TestSourceViewState(
 class TestSourceViewModel(
     private val getTestSourceUseCase: GetTestSourceUseCase
 ) : ViewModel() {
-    private val source: IUvcCamera<*>
+    private val source: Source<*>
     private val _state = MutableStateFlow(TestSourceViewState())
     val state: StateFlow<TestSourceViewState> = _state
 
     init {
         Timber.d("TestSourceViewModel created")
         source = getTestSourceUseCase()
-        source.open(IUvcCamera.OpenConfiguration(
+        source.open(Source.OpenConfiguration(
             tag = "TestSource"
         ))
         val sourceResolutionsMap = source.getSupportedResolutions()
@@ -93,5 +94,17 @@ class TestSourceViewModel(
                 selectedResolutionIdx = index
             )
         }
+    }
+
+    fun onSurfaceDestroyed() {
+        Timber.d("onSurfaceDestroyed called")
+    }
+
+    fun onSurfaceReady(surface: Surface?) {
+
+    }
+
+    fun onSurfaceChanged(surface: Surface, format: Int, width: Int, height: Int) {
+        Timber.d("Surface changed: format=$format, width=$width, height=$height")
     }
 }

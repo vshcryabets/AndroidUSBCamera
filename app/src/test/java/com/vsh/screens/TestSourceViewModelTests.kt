@@ -15,21 +15,21 @@
 */
 package com.vsh.screens
 
-import com.jiangdg.uvc.IUvcCamera
+import com.jiangdg.uvc.Source
 import com.jiangdg.uvc.SourceResolution
 import com.vsh.domain.usecases.GetTestSourceUseCase
 import org.junit.Assert
 import org.junit.Test
 
 class TestSourceViewModelTests {
-    val emptySource = object: IUvcCamera<IUvcCamera.OpenConfiguration> {
-        var configuration: IUvcCamera.OpenConfiguration? = null
+    val emptySource = object: Source<Source.OpenConfiguration> {
+        var configuration: Source.OpenConfiguration? = null
 
-        override fun open(configuration: IUvcCamera.OpenConfiguration) {
+        override fun open(configuration: Source.OpenConfiguration) {
             this.configuration = configuration
         }
 
-        override fun getOpenConfiguration(): IUvcCamera.OpenConfiguration = configuration!!
+        override fun getOpenConfiguration(): Source.OpenConfiguration = configuration!!
 
         override fun close() {
         }
@@ -54,7 +54,7 @@ class TestSourceViewModelTests {
     }
 
     val getTestSourceUseCase = object : GetTestSourceUseCase {
-        override fun invoke(): IUvcCamera<IUvcCamera.OpenConfiguration> = emptySource
+        override fun invoke(): Source<Source.OpenConfiguration> = emptySource
     }
 
     @Test
