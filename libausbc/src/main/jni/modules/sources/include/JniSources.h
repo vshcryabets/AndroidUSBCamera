@@ -8,3 +8,5 @@
 jobject resolutionMapToJObject(
         const std::map<uint16_t, std::vector<Source::Resolution>> &map,
         JNIEnv *env);
+
+void JniSources_register(JNIEnv *env);

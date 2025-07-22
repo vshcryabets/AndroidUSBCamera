@@ -19,13 +19,14 @@
  *  limitations under the License.
  *
  * All files in the folder are under this Apache License, Version 2.0.
- * Files in the jni/libjpeg, jni/libusb, jin/libuvc, jni/rapidjson folder may have a different license, see the respective files.
+ * Files in the jni/libjpeg, jni/libusb, jin/libuvc folder may have a different license, see the respective files.
 */
 
 #include "_onload.h"
 #include "utilbase.h"
 #include "LoadJpegImageFromAssetsUseCase.h"
-#include "JniWrapper.h"
+#include "FontWrapper.h"
+#include "JniSources.h"
 
 #ifndef ABI
     #define ABI 0
@@ -81,21 +82,8 @@ jint JNI_OnLoad(JavaVM *vm, void *reserved) {
     int result = register_uvccamera(env);
 	setVM(vm);
 
-    // Find your Java class
-    jclass myClass = env->FindClass("com/vsh/font/FontSrcImpl");
-    if (myClass != NULL) {
-
-        // Register your native methods
-        static const JNINativeMethod methods[] = {
-                {"nativeGetFontPtr", "()J", (void *) &Java_com_vsh_font_FontSrcImpl_nativeGetFontPtr},
-        };
-
-        if (env->RegisterNatives(myClass, methods, sizeof(methods) / sizeof(methods[0])) <
-            0) {
-            return JNI_ERR;
-        }
-    }
-
+    FontWrapper_register(env);
+    JniSources_register(env);
 
 #if LOCAL_DEBUG
     LOGD("JNI_OnLoad:finshed:result=%d", result);

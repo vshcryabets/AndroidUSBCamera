@@ -1,4 +1,5 @@
-#include "JniMappers.h"
+#include "JniSources.h"
+#include "JniTestSource.h"
 
 jobject resolutionMapToJObject(const std::map<uint16_t, std::vector<Source::Resolution>> &map, JNIEnv *env)
 {
@@ -52,4 +53,8 @@ jobject resolutionMapToJObject(const std::map<uint16_t, std::vector<Source::Reso
     env->DeleteLocalRef(floatClass);
     env->DeleteLocalRef(integerClass);
     return result;
+}
+
+void JniSources_register(JNIEnv *env) {
+    JniTestSource_register(env);
 }

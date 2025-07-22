@@ -1,6 +1,6 @@
 #include <jni.h>
 #include "TestSource.h"
-#include "JniMappers.h"
+#include "JniSources.h"
 
 extern "C" {
 
@@ -37,4 +37,19 @@ Java_com_vsh_source_TestSource_nativeGetSupportedResolutions(JNIEnv *env,
             camera->getSupportedResolutions();
     return resolutionMapToJObject(supportedSizes, env);
 }
+}
+
+void JniTestSource_register(JNIEnv *env)
+{
+    jclass clazz = env->FindClass("com/vsh/source/TestSource");
+    if (clazz != nullptr) {
+        static const JNINativeMethod methods[] = {
+                {"nativeCreate", "(J)J", (void *) &Java_com_vsh_source_TestSource_nativeCreate},
+                {"nativeRelease", "(J)V", (void *) &Java_com_vsh_source_TestSource_nativeRelease},
+                {"nativeStopCapturing", "(J)V", (void *) &Java_com_vsh_source_TestSource_nativeStopCapturing},
+                {"nativeClose", "(J)V", (void *) &Java_com_vsh_source_TestSource_nativeClose},
+                {"nativeGetSupportedResolutions", "(J)Ljava/util/Map;", (void *) &Java_com_vsh_source_TestSource_nativeGetSupportedResolutions},
+        };
+        env->RegisterNatives(clazz, methods, sizeof(methods) / sizeof(methods[0]));
+    }
 }

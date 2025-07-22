@@ -46,7 +46,7 @@
 #include "UVCCameraJniImpl.h"
 #include "UVCPreviewJni.h"
 #include "Source.h"
-#include "JniMappers.h"
+#include "JniSources.h"
 
 /**
  * set the value into the long field

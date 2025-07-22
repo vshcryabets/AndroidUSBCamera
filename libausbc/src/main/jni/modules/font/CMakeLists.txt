@@ -5,7 +5,7 @@ list(APPEND SOURCES
 )
 
 if(BUILD_JNI_WRAPPERS)
-        list(APPEND SOURCES src/JniWrapper.cpp)
+        list(APPEND SOURCES src/FontWrapper.cpp)
 endif()
 
 add_library(U8x8Font STATIC

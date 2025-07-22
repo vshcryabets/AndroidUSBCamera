@@ -16,7 +16,7 @@ if(BUILD_SOURCES_MODULE)
         if(BUILD_JNI_WRAPPERS)
                 list(APPEND SOURCES
                         src/JniTestSource.cpp
-                        src/JniMapper.cpp
+                        src/JniSources.cpp
                         )
         endif()
         
