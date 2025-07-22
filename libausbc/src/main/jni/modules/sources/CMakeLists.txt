@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 
-if(BUILD_SOURCES_MODULE)
+if(BUILD_SOURCES_MODULE)        
         list(APPEND SOURCES 
                 src/Source.cpp
                 src/TestSource.cpp
@@ -9,20 +9,30 @@ if(BUILD_SOURCES_MODULE)
                 )
 
         if(BUILD_SOURCES_MODULE_V4L2)
-                list(APPEND SOURCES 
-                        src/UvcCamera.cpp)
+            list(APPEND SOURCES 
+                src/UvcCamera.cpp)
         endif()
 
         if(BUILD_JNI_WRAPPERS)
-                list(APPEND SOURCES
-                        src/JniTestSource.cpp
-                        src/JniSources.cpp
-                        )
+            if (NOT (CMAKE_SYSTEM_NAME STREQUAL "Android"))
+                find_package(JNI REQUIRED COMPONENTS JVM)
+            endif()
+            list(APPEND SOURCES
+                src/JniTestSource.cpp
+                src/JniSources.cpp
+                )
         endif()
         
         add_library(Sources STATIC
                 ${SOURCES}
                 )
+        if(BUILD_JNI_WRAPPERS)
+            target_include_directories(
+                Sources
+                PUBLIC
+                ${JNI_INCLUDE_DIRS}
+                )
+        endif()
 
         target_include_directories(Sources PUBLIC
                 $<INSTALL_INTERFACE:include>

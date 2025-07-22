@@ -98,7 +98,15 @@
         "__tree": "cpp",
         "__verbose_abort": "cpp",
         "execution": "cpp",
-        "print": "cpp"
+        "print": "cpp",
+        "*.cmake": "cmake",
+        "CMakeLists.txt": "cmake"
     },
-    "cmake.sourceDirectory": "${workspaceFolder}/linux/"
+    "cmake.sourceDirectory": "${workspaceFolder}/linux/",
+    "[cmake]": {
+        "editor.insertSpaces": true,
+        "editor.tabSize": 4
+    },
+    "editor.tabSize": 4,
+    "editor.detectIndentation": false
 }

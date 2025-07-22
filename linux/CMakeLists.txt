@@ -18,6 +18,7 @@ option(BUILD_SDL_PREVIEW_APP "Build SDL UVC preview sample app" OFF)
 option(BUILD_GTK_PREVIEW_APP "Build GTK UVC preview sample app" ON)
 option(BUILD_CATCH2_TESTS "Build Catch2 tests" ON)
 option(BUILD_X264_TEST_APP "Build X264 test app" ON)
+option(BUILD_JNI_WRAPPERS "Build JNI wrappers" ON)
 
 include(FetchContent)
 FetchContent_Declare(
@@ -45,6 +46,10 @@ endif()
 
 if(BUILD_ENCODERS_MODULE)
     add_subdirectory(../libausbc/src/main/jni/modules/encoders modules/encoders)
+endif()
+
+if(BUILD_JNI_WRAPPERS)
+    add_subdirectory(libs/jnilib)
 endif()
 
 add_subdirectory(../libausbc/src/main/jni/modules/font modules/font)
