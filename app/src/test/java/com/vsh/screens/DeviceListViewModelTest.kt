@@ -5,8 +5,8 @@ import com.vsh.uvc.JpegBenchmark
 import com.vsh.uvc.UsbDevicesMonitor
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
-import org.junit.Assert
-import org.junit.Test
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
 
 class DeviceListViewModelTest {
     val checkRequirementsAllGranted = object: CheckRequirements {
@@ -78,8 +78,8 @@ class DeviceListViewModelTest {
         )
         vm.onClick(testUsbDevice)
         val state = vm.state.value
-        Assert.assertTrue(state.openPreviewDevice)
-        Assert.assertEquals(testUsbDevice.usbDeviceId, state.selectedDeviceId)
+        Assertions.assertTrue(state.openPreviewDevice)
+        Assertions.assertEquals(testUsbDevice.usbDeviceId, state.selectedDeviceId)
     }
 
     @Test
@@ -91,12 +91,12 @@ class DeviceListViewModelTest {
         )
         vm.onClick(testUsbDevice)
         var state = vm.state.value
-        Assert.assertTrue(state.informUserAboutPermissions)
-        Assert.assertEquals(testUsbDevice.usbDeviceId, state.selectedDeviceId)
+        Assertions.assertTrue(state.informUserAboutPermissions)
+        Assertions.assertEquals(testUsbDevice.usbDeviceId, state.selectedDeviceId)
         vm.onUserInformedAboutPermission()
         state = vm.state.value
-        Assert.assertTrue(state.requestUsbDevicePermission)
-        Assert.assertEquals(testUsbDevice.usbDeviceId, state.selectedDeviceId)
+        Assertions.assertTrue(state.requestUsbDevicePermission)
+        Assertions.assertEquals(testUsbDevice.usbDeviceId, state.selectedDeviceId)
     }
 
     @Test
@@ -108,11 +108,11 @@ class DeviceListViewModelTest {
         )
         vm.onClick(testUsbDevice)
         var state = vm.state.value
-        Assert.assertTrue(state.informUserAboutPermissions)
-        Assert.assertEquals(testUsbDevice.usbDeviceId, state.selectedDeviceId)
+        Assertions.assertTrue(state.informUserAboutPermissions)
+        Assertions.assertEquals(testUsbDevice.usbDeviceId, state.selectedDeviceId)
         vm.onUserInformedAboutPermission()
         state = vm.state.value
-        Assert.assertTrue(state.requestCameraPermission)
-        Assert.assertEquals(testUsbDevice.usbDeviceId, state.selectedDeviceId)
+        Assertions.assertTrue(state.requestCameraPermission)
+        Assertions.assertEquals(testUsbDevice.usbDeviceId, state.selectedDeviceId)
     }
 }
