@@ -110,24 +110,28 @@ ConvertBitmapUseCase::Buffer ConvertYUV420ptoRGBAUseCase::convert(
     uint8_t* uBuffer = yBuffer + pixelsCount;
     uint8_t* vBuffer = uBuffer + (pixelsCount / 4);
 
-    size_t out_index = 0;
-    for (size_t i = 0; i < pixelsCount; i++) {
-        uint8_t y = yBuffer[i];
-        uint8_t u  = uBuffer[i / 4];
-        uint8_t v  = vBuffer[i / 4];
+    for (size_t y = 0; y < src.height; y++) {
+        for (size_t x = 0; x < src.width; x++) {
+            uint32_t offset = y * src.width + x;
+            uint8_t yValue = yBuffer[offset];
+            size_t uvOffset = y/2 * src.width/2 + x/2;
+            uint8_t uValue = uBuffer[uvOffset];
+            uint8_t vValue = vBuffer[uvOffset];
 
-        int c0 = y - 16;
-        int d = u - 128;
-        int e = v - 128;
+            int c0 = yValue - 16;
+            int d = uValue - 128;
+            int e = vValue - 128;
 
-        int r = (298 * c0 + 409 * e + 128) >> 8;
-        int g = (298 * c0 - 100 * d - 208 * e + 128) >> 8;
-        int b = (298 * c0 + 516 * d + 128) >> 8;
+            int r = (298 * c0 + 409 * e + 128) >> 8;
+            int g = (298 * c0 - 100 * d - 208 * e + 128) >> 8;
+            int b = (298 * c0 + 516 * d + 128) >> 8;
 
-        dst.buffer[out_index++] = r < 0 ? 0 : r > 255 ? 255 : r;
-        dst.buffer[out_index++] = g < 0 ? 0 : g > 255 ? 255 : g;
-        dst.buffer[out_index++] = b < 0 ? 0 : b > 255 ? 255 : b;
-        dst.buffer[out_index++] = 255;
+            size_t out_index = offset * 4;
+            dst.buffer[out_index] = r < 0 ? 0 : r > 255 ? 255 : r;
+            dst.buffer[out_index + 1] = g < 0 ? 0 : g > 255 ? 255 : g;
+            dst.buffer[out_index + 2] = b < 0 ? 0 : b > 255 ? 255 : b;
+            dst.buffer[out_index + 3] = 255;       
+        }        
     }
     return dst;
 }

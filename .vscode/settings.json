@@ -98,7 +98,8 @@
         "__tree": "cpp",
         "__verbose_abort": "cpp",
         "execution": "cpp",
-        "print": "cpp"
+        "print": "cpp",
+        "__config": "cpp"
     },
     "cmake.sourceDirectory": "${workspaceFolder}/linux/"
 }
