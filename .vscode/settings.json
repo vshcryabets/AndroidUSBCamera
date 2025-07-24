@@ -100,7 +100,8 @@
         "execution": "cpp",
         "print": "cpp",
         "*.cmake": "cmake",
-        "CMakeLists.txt": "cmake"
+        "CMakeLists.txt": "cmake",
+        "__config": "cpp"
     },
     "cmake.sourceDirectory": "${workspaceFolder}/linux/",
     "[cmake]": {

@@ -16,8 +16,8 @@
 package com.vsh.source
 
 import com.jiangdg.uvc.SourceResolution
-import org.junit.Assert
-import org.junit.Test
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
 
 class PullToPushSourceTests {
     @Test
@@ -52,7 +52,7 @@ class PullToPushSourceTests {
 
         try {
             PullToPushSource().open(pushSource)
-            Assert.fail("Expected IllegalArgumentException but none was thrown");
+            Assertions.fail("Expected IllegalArgumentException but none was thrown");
         } catch (err: IllegalArgumentException) {
         }
     }

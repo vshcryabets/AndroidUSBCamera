@@ -18,8 +18,8 @@ package com.vsh.screens
 import com.vsh.source.Source
 import com.jiangdg.uvc.SourceResolution
 import com.vsh.domain.usecases.GetTestSourceUseCase
-import org.junit.Assert
-import org.junit.Test
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
 
 class TestSourceViewModelTests {
     val emptySource = object: Source<Source.OpenConfiguration> {
@@ -54,6 +54,9 @@ class TestSourceViewModelTests {
 
         override fun isPullSource(): Boolean = true
         override fun isPushSource(): Boolean = false
+        override fun getNativeObject(): Long {
+            TODO("Not yet implemented")
+        }
     }
 
     val getTestSourceUseCase = object : GetTestSourceUseCase {
@@ -66,9 +69,9 @@ class TestSourceViewModelTests {
             getTestSourceUseCase = getTestSourceUseCase
         )
         val state = viewModel.state.value
-        Assert.assertEquals(0, state.selectedResolutionIdx)
-        Assert.assertEquals(10, state.resolutionList.size)
-        Assert.assertEquals(10, state.resolutionStrs.size)
+        Assertions.assertEquals(0, state.selectedResolutionIdx)
+        Assertions.assertEquals(10, state.resolutionList.size)
+        Assertions.assertEquals(10, state.resolutionStrs.size)
     }
 
     @Test
@@ -77,9 +80,9 @@ class TestSourceViewModelTests {
             getTestSourceUseCase = getTestSourceUseCase
         )
         val state = viewModel.state.value
-        Assert.assertEquals(0, state.selectedResolutionIdx)
+        Assertions.assertEquals(0, state.selectedResolutionIdx)
         viewModel.onResolutionSelected(5)
-        Assert.assertEquals(5, viewModel.state.value.selectedResolutionIdx)
+        Assertions.assertEquals(5, viewModel.state.value.selectedResolutionIdx)
 
     }
 }
