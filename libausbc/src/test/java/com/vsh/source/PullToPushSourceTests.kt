@@ -17,9 +17,13 @@ package com.vsh.source
 
 import com.jiangdg.uvc.SourceResolution
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import java.io.File
+
 
 class PullToPushSourceTests {
+
     @Test
     fun pullToPushSourceAcceptsOnlyPullSource() {
         val pullSource = PullToPushSource.OpenConfiguration("pull",
@@ -54,6 +58,19 @@ class PullToPushSourceTests {
             PullToPushSource().open(pushSource)
             Assertions.fail("Expected IllegalArgumentException but none was thrown");
         } catch (err: IllegalArgumentException) {
+        }
+    }
+
+    companion object {
+        @JvmStatic
+        @BeforeAll
+        fun loadNativeLibrary(): Unit {
+            // Load the library by its name, without the file extension.
+            // Gradle will find "my_native_lib.dll" in the root folder.
+            val currentDir = File(System.getProperty("user.dir"))
+            val rootDir = currentDir.parentFile
+            System.load( File(rootDir, "build/libs/jnilib/libJniWrapper.dylib").absolutePath)
+//            System.loadLibrary("my_native_lib")
         }
     }
 
