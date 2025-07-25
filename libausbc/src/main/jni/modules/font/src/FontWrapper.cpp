@@ -4,7 +4,8 @@
 extern "C"
 JNIEXPORT jlong JNICALL
 Java_com_vsh_font_FontSrcImpl_nativeGetFontPtr(JNIEnv *env, jobject thiz) {
-    return reinterpret_cast<jlong>(u8x8_font_amstrad_cpc_extended_f);
+    const uint8_t *font_ptr = u8x8_font_amstrad_cpc_extended_f;
+    return reinterpret_cast<jlong>(font_ptr);
 }
 
 void FontWrapper_register(JNIEnv *env) {
