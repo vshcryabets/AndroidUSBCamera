@@ -19,7 +19,6 @@ if(BUILD_JNIWRAPPER_MODULE)
             src/JniJpegBenchmark.cpp
             src/JniUVCCamera.cpp
             src/JniUVCCamera2.cpp
-            src/JniTestSource.cpp
             src/LoadJpegImageFromAssetsUseCase.cpp
             src/JpegBenchmark.cpp
             src/ProgressObserver.cpp

@@ -65,7 +65,7 @@ public:
 	int connect(const ConnectConfiguration & connectConfiguration);
     void disconnect();
 
-    std::map<uint16_t, std::vector<Source::Resolution>> getSupportedResolutions() override;
+    std::map<uint16_t, std::vector<Source::Resolution>> getSupportedResolutions() const override;
     int getCtrlSupports(uint64_t *supports);
 	int getProcSupports(uint64_t *supports);
     [[nodiscard]] std::shared_ptr<UVCCaptureBase> getCapturer() const;

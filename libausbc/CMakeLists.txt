@@ -15,6 +15,7 @@ option(BUILD_JNIWRAPPER_MODULE "Build the JniWrapper module" ON)
 option(BUILD_LIBUVC "Build the LibUVC library" ON)
 option(BUILD_LIBUSB "Build the LibUSB library" ON)
 option(BUILD_SOURCES_MODULE "Build Sources module" ON)
+option(BUILD_JNI_WRAPPERS "Build JNI wrappers" ON)
 
 set(ANDROID_ARM_NEON TRUE)
 set(REQUIRE_SIMD ON)

@@ -33,7 +33,7 @@ UVCCamera2::~UVCCamera2()
 
 }
 
-std::vector<Source::FrameFormat> UVCCamera2::getSupportedFrameFormats()
+std::vector<Source::FrameFormat> UVCCamera2::getSupportedFrameFormats() const
 {
     return {
         FrameFormat::RGBX
@@ -49,7 +49,7 @@ void UVCCamera2::close()
 
 }
 
-std::map<uint16_t, std::vector<Source::Resolution>> UVCCamera2::getSupportedResolutions()
+std::map<uint16_t, std::vector<Source::Resolution>> UVCCamera2::getSupportedResolutions() const
 {
 
 }
