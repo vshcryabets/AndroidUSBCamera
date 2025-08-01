@@ -4,15 +4,15 @@ if(BUILD_ENCODERS_MODULE)
         find_package(PkgConfig REQUIRED)
         pkg_check_modules(X264 REQUIRED x264)
 
-        message(STATUS "X264_CFLAGS: ${X264_CFLAGS}")
-        message(STATUS "X264_LIBRARIES: ${X264_LIBRARIES}")
-        message(STATUS "X264_LIBRARY_DIRS: ${X264_LIBRARY_DIRS}")
+        message(STATUS "Encoders X264_CFLAGS: ${X264_CFLAGS}")
+        message(STATUS "Encoders X264_LIBRARIES: ${X264_LIBRARIES}")
+        message(STATUS "Encoders X264_LIBRARY_DIRS: ${X264_LIBRARY_DIRS}")
         # message(STATUS "X264_LIBS: ${X264_LIBS}")
 
-        add_library(Encoders STATIC
+        add_library(Encoders STATIC)
+        target_sources(Encoders PRIVATE
                 src/Encoderx264.cpp
                 )
-
         target_link_directories(Encoders PRIVATE ${X264_LIBRARY_DIRS})
         target_compile_options(Encoders PRIVATE ${X264_CFLAGS})
 
@@ -26,12 +26,17 @@ if(BUILD_ENCODERS_MODULE)
                 )
 
         if (BUILD_CATCH2_TESTS)
-                add_executable(encoders_tests
+                add_executable(Encoders_tests
                         test/test_Encoderx264.cpp
                         )
-                target_compile_options(encoders_tests PRIVATE ${X264_CFLAGS})
-                target_include_directories(encoders_tests PRIVATE ./include/)
-                target_link_directories(encoders_tests PRIVATE ${X264_LIBRARY_DIRS})
-                target_link_libraries(encoders_tests PRIVATE Catch2::Catch2WithMain Encoders ${X264_LIBRARIES})
+                target_compile_options(Encoders_tests PRIVATE ${X264_CFLAGS})
+                target_include_directories(Encoders_tests PRIVATE ./include/)
+                target_link_directories(Encoders_tests PRIVATE ${X264_LIBRARY_DIRS})
+                target_link_libraries(Encoders_tests PRIVATE
+                    Catch2::Catch2WithMain Encoders 
+                    ${X264_LIBRARIES}
+                    Sources
+                    U8x8Font
+                    )
         endif()
 endif()                

@@ -1,12 +1,28 @@
 #include <catch2/catch_test_macros.hpp>
 #include "Encoderx264.h"
+#include "TestSourceYUV420.h"
+#include <iostream>
+#include "u8x8.h"
 
 TEST_CASE("testEncode", "[Encoderx264]") {
+    uint32_t testWidth = 640;
+    uint32_t testHeight = 480;
+    float testFps = 30.0f;
+    uint32_t testFrameSizeY = testWidth * testHeight;
+    uint32_t testFrameSizeU = (testWidth / 2) * (testHeight / 2);
+    TestSourceYUV420 source(u8x8_font_amstrad_cpc_extended_f);
+    source.open({}); // Open the source
+    source.startCapturing({
+        .width = testWidth,
+        .height = testHeight,
+        .fps = testFps
+    });
+
     X264Encoder encoder;
     X264EncConfiguration config;
-    config.width = 640;
-    config.height = 480;
-    config.fps_num = 30;
+    config.width = testWidth;
+    config.height = testHeight;
+    config.fps_num = (int)testFps;
     config.fps_den = 1;
     config.keyframe_interval = 60; // Keyframe every 2 seconds at 30 fps
     config.level_idc = 30;         // H.264 Level 3.0
@@ -18,22 +34,12 @@ TEST_CASE("testEncode", "[Encoderx264]") {
     encoder.open(config);
     encoder.start();
     x264_picture_t *pic_in = encoder.getPicIn();
+    Source::Frame frame = source.readFrame(); // Read a frame from the source
+    // std::cout << "Stide =" << pic_in->img.i_stride[0] << std::endl;
     int i = 0;
-    for (int y = 0; y < config.height; ++y)
-    {
-        for (int x = 0; x < config.width; ++x)
-        {
-            pic_in->img.plane[0][y * pic_in->img.i_stride[0] + x] = (x + y + i * 5) % 256; // Y plane
-        }
-    }
-    for (int y = 0; y < config.height / 2; ++y)
-    {
-        for (int x = 0; x < config.width / 2; ++x)
-        {
-            pic_in->img.plane[1][y * pic_in->img.i_stride[1] + x] = (x + y + i * 2) % 256; // U plane
-            pic_in->img.plane[2][y * pic_in->img.i_stride[2] + x] = (x + y + i * 3) % 256; // V plane
-        }
-    }
+    memcpy(pic_in->img.plane[0], frame.data, testFrameSizeY);
+    memcpy(pic_in->img.plane[1], frame.data + testFrameSizeY, testFrameSizeU);
+    memcpy(pic_in->img.plane[2], frame.data + testFrameSizeY + testFrameSizeU, testFrameSizeU);
     pic_in->i_pts = i; // Presentation timestamp for the frame
     EncoderMultiBuffer encoded = encoder.encodeFrame();
 
