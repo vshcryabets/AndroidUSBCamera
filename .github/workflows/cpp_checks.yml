@@ -47,4 +47,4 @@ jobs:
 
     - name: Sources tests
       working-directory: ${{github.workspace}}/build/modules/sources/
-      run: ./Sources_tests -s
+      run: ./Sources_tests 

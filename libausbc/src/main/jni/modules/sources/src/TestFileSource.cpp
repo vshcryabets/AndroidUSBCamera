@@ -34,7 +34,6 @@ TestFileWritter::~TestFileWritter()
 
 void TestFileWritter::write(const uint8_t *data, uint32_t size)
 {
-    std::cout << "Writing data of size: " << size << " at position: " << filePosition << std::endl;
     if (dataFile != nullptr && data != nullptr && size > 0) {
         dataFile->seekp(filePosition);
         if (filePosition % 4 != 0) {
