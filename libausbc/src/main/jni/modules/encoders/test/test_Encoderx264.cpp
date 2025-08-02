@@ -4,6 +4,7 @@
 #include <iostream>
 #include "u8x8.h"
 #include <fstream>
+#include "TestFileSource.h"
 
 TEST_CASE("testEncode", "[Encoderx264]") {
     uint32_t testWidth = 640;
@@ -25,34 +26,45 @@ TEST_CASE("testEncode", "[Encoderx264]") {
     config.height = testHeight;
     config.fps_num = (int)testFps;
     config.fps_den = 1;
-    config.keyframe_interval = 60; // Keyframe every 2 seconds at 30 fps
+    config.keyframe_interval = 30; // Keyframe every 1 second at 30 fps
     config.level_idc = 30;         // H.264 Level 3.0
     config.profile = 0;
-    config.annexb = true;        // Use Annex B format for NAL units
+    config.annexb = false;        // Use Annex B format for NAL units
     config.intra_refresh = true; // Use IDR refresh
     config.crf = 23.0f;          // CRF value
 
     encoder.open(config);
     encoder.start();
     x264_picture_t *pic_in = encoder.getPicIn();
-    Source::Frame frame = source.readFrame(); // Read a frame from the source
+    
+    uint8_t singleBuffer[testFrameSizeY + 2 * testFrameSizeU];
+    TestFileWritter framesWriter("framesFile.h264", testWidth, testHeight, "video/h264", testFps);
 
-    int i = 0;
-    size_t requiredSize = testFrameSizeY + 2 * testFrameSizeU;
-    REQUIRE(frame.size >= requiredSize); // Ensure frame.data is large enough
+    for (uint32_t i = 0; i < 60; ++i) {
+        Source::Frame frame = source.readFrame(); // Read a new frame for each iteration
+        if (frame.data == nullptr) {
+            std::cerr << "Failed to read frame from source." << std::endl;
+            break;
+        }
+    
+        size_t requiredSize = testFrameSizeY + 2 * testFrameSizeU;
+        REQUIRE(frame.size >= requiredSize); // Ensure frame.data is large enough
 
-    memcpy(pic_in->img.plane[0], frame.data, testFrameSizeY);
-    memcpy(pic_in->img.plane[1], frame.data + testFrameSizeY, testFrameSizeU);
-    memcpy(pic_in->img.plane[2], frame.data + testFrameSizeY + testFrameSizeU, testFrameSizeU);
-    pic_in->i_pts = i; // Presentation timestamp for the frame
-    EncoderMultiBuffer encoded = encoder.encodeFrame();
+        memcpy(pic_in->img.plane[0], frame.data, testFrameSizeY);
+        memcpy(pic_in->img.plane[1], frame.data + testFrameSizeY, testFrameSizeU);
+        memcpy(pic_in->img.plane[2], frame.data + testFrameSizeY + testFrameSizeU, testFrameSizeU);
+        pic_in->i_pts = i; // Presentation timestamp for the frame
+        EncoderMultiBuffer encoded = encoder.encodeFrame();
 
-    std::ofstream outFile("encoded_output.h264", std::ios::binary);
-    for (const auto& buf : encoded.buffers) {
-        outFile.write((const char*)buf.data, buf.size);
+        uint32_t bufferPosition = 0;
+        for (const auto& buf : encoded.buffers) {
+            memcpy(singleBuffer + bufferPosition, buf.data, buf.size);
+            bufferPosition += buf.size;
+        }
+        framesWriter.write(singleBuffer, bufferPosition);
+
+        REQUIRE(encoded.totalSize > 0);
+        REQUIRE(encoded.buffers.size() > 0);
     }
-    outFile.close();
-
-    REQUIRE(encoded.totalSize > 0);
-    REQUIRE(encoded.buffers.size() > 0);
+    framesWriter.finalize();
 }
