@@ -2,7 +2,7 @@
 #include <fstream>
 #include <iostream>
 
-TestFileWritter::TestFileWritter(const std::string &fileName,
+TestFileWriter::TestFileWriter(const std::string &fileName,
                 uint16_t width, 
                 uint16_t height,
                 std::string mimeType,
@@ -20,19 +20,19 @@ TestFileWritter::TestFileWritter(const std::string &fileName,
     dataFile->write((const char*)&data, sizeof(data));
     dataFile->write((const char*)&fps, sizeof(fps));
     uint32_t toc = 0;
-    dataFile->write((const char*)&toc, sizeof(toc)); // Placeholder for TO
+    dataFile->write((const char*)&toc, sizeof(toc)); // Placeholder for TOC
     data = mimeType.size();
     dataFile->write((const char*)&data, sizeof(data));
     dataFile->write(mimeType.c_str(), mimeType.size());
     filePosition = dataFile->tellp();
 }
 
-TestFileWritter::~TestFileWritter()
+TestFileWriter::~TestFileWriter()
 {
     finalize();
 }
 
-void TestFileWritter::write(const uint8_t *data, uint32_t size)
+void TestFileWriter::write(const uint8_t *data, uint32_t size)
 {
     if (dataFile != nullptr && data != nullptr && size > 0) {
         dataFile->seekp(filePosition);
@@ -50,7 +50,7 @@ void TestFileWritter::write(const uint8_t *data, uint32_t size)
     }
 }
 
-void TestFileWritter::finalize()
+void TestFileWriter::finalize()
 {
     if (dataFile) {
         uint32_t toc = filePosition;

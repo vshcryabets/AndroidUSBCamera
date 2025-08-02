@@ -14,7 +14,7 @@ public:
     bool waitNextFrame() override;
 };
 
-class TestFileWritter {
+class TestFileWriter {
 private:
     const static uint32_t TOC_POSITION = 12;
     uint32_t framesCount = 0;
@@ -22,12 +22,12 @@ private:
     std::ofstream *dataFile {nullptr};
     std::vector<uint32_t> framesTocItems;
 public:
-    TestFileWritter(const std::string &fileName,
+    TestFileWriter(const std::string &fileName,
                    uint16_t width, 
                    uint16_t height,
                    std::string mimeType,
                    float fps);
-    ~TestFileWritter();
+    ~TestFileWriter();
     
     void write(const uint8_t *data, uint32_t size);
     void finalize();

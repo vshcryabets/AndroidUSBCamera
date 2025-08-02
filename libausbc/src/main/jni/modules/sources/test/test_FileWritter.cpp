@@ -2,8 +2,8 @@
 #include "TestFileSource.h"
 #include <fstream>
 
-TEST_CASE("testHeaders", "[TestFileWritter]") {
-    TestFileWritter writer("test.bin", 640, 480, "video/h264", 29.97f);
+TEST_CASE("testHeaders", "[TestFileWriter]") {
+    TestFileWriter writer("test.bin", 640, 480, "video/h264", 29.97f);
     writer.finalize();
     // Check if the file was created and has the correct headers
     std::ifstream file("test.bin", std::ios::binary);
@@ -35,8 +35,8 @@ TEST_CASE("testHeaders", "[TestFileWritter]") {
     file.close();
 }
 
-TEST_CASE("testWriteData", "[TestFileWritter]") {
-    TestFileWritter writer("test.bin", 640, 480, "video/h264", 29.97f);
+TEST_CASE("testWriteData", "[TestFileWriter]") {
+    TestFileWriter writer("test.bin", 640, 480, "video/h264", 29.97f);
     uint8_t testData[1000] = {0x01, 0x02, 0x03, 0x04, 0x05};
     uint32_t framesCount = 160;
     for (int i = 0; i < framesCount; ++i) {
@@ -68,7 +68,7 @@ TEST_CASE("testWriteData", "[TestFileWritter]") {
     uint32_t framesCountInToc;
     file.seekg(toc, std::ios::beg); // TOC position
     file.read(reinterpret_cast<char*>(&framesCountInToc), sizeof(framesCountInToc));
-    REQUIRE(framesCountInToc == framesCount); // We wrote 3 frames
+    REQUIRE(framesCountInToc == framesCount); // We wrote framesCount frames
     std::vector<uint32_t> framesTocItems(framesCountInToc);
     for (uint32_t i = 0; i < framesCountInToc; ++i) {
         file.read(reinterpret_cast<char*>(&framesTocItems[i]), sizeof(framesTocItems[i]));
@@ -81,6 +81,6 @@ TEST_CASE("testWriteData", "[TestFileWritter]") {
         uint32_t frameSize;
         file.seekg(framesTocItems[i], std::ios::beg);
         file.read(reinterpret_cast<char*>(&frameSize), sizeof(frameSize));
-        REQUIRE(frameSize == 1000); // Each frame size should be 100 bytes
+        REQUIRE(frameSize == 1000); // Each frame size should be 1000 bytes
     }
 }
