@@ -29,7 +29,7 @@ TEST_CASE("testEncode", "[Encoderx264]") {
     config.keyframe_interval = 30; // Keyframe every 1 second at 30 fps
     config.level_idc = 30;         // H.264 Level 3.0
     config.profile = 0;
-    config.annexb = false;        // Use Annex B format for NAL units
+    config.annexb = true;        // Use Annex B format for NAL units
     config.intra_refresh = true; // Use IDR refresh
     config.crf = 23.0f;          // CRF value
 

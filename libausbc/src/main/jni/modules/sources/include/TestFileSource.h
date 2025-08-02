@@ -1,5 +1,6 @@
 #pragma once
 #include "TestSource.h"
+#include <fstream>
 
 class TestFileSource : public PullSource {
 public:
@@ -19,7 +20,7 @@ private:
     const static uint32_t TOC_POSITION = 12;
     uint32_t framesCount = 0;
     uint32_t filePosition = 0;
-    std::ofstream *dataFile {nullptr};
+    std::ofstream dataFile;
     std::vector<uint32_t> framesTocItems;
 public:
     TestFileWriter(const std::string &fileName,
