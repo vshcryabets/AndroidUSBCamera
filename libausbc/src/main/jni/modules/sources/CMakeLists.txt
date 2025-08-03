@@ -22,6 +22,7 @@ if(BUILD_SOURCES_MODULE)
                 target_sources(Sources_tests PRIVATE
                         test/test_FrameInjector.cpp
                         test/test_FileWritter.cpp
+                        test/test_TestFileSource.cpp
                         )
                 target_include_directories(Sources_tests PRIVATE ./include/)
                 target_link_libraries(Sources_tests PRIVATE Catch2::Catch2WithMain Sources)

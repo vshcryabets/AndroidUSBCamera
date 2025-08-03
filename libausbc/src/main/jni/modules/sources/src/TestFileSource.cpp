@@ -68,3 +68,87 @@ void TestFileWriter::finalize()
         filePosition = 0;
     }
 }
+
+void TestFileSource::open(const ConnectConfiguration &config)
+{
+    if (config.fileName.empty()) {
+        throw std::runtime_error("File name cannot be empty");
+    }
+    // Open the file for reading
+    dataFile.open(config.fileName, std::ios::binary);
+    if (!dataFile.is_open()) {
+        throw std::runtime_error("Failed to open file: " + config.fileName);
+    }
+    // verify magic
+    char magic[4];
+    dataFile.read(magic, sizeof(magic));
+    if (std::string(magic, sizeof(magic)) != "AUVC") {
+        throw std::runtime_error("Invalid file format");
+    }
+    // Read width and height
+    uint16_t width, height;
+    float fps;
+    dataFile.read(reinterpret_cast<char*>(&width), sizeof(width));
+    dataFile.read(reinterpret_cast<char*>(&height), sizeof(height));
+    dataFile.read(reinterpret_cast<char*>(&fps), sizeof(fps));
+    dataFile.seekg(TOC_POSITION, std::ios::beg);
+    dataFile.read(reinterpret_cast<char*>(&fileTocPosition), sizeof(fileTocPosition));
+
+    supportedResolutions[0].push_back({0, width, height, {fps}});
+
+    dataFile.seekg(fileTocPosition, std::ios::beg);
+    dataFile.read(reinterpret_cast<char*>(&framesCount), sizeof(framesCount));
+    framesTocItems.resize(framesCount);
+    for (uint32_t i = 0; i < framesCount; ++i)
+    {
+        dataFile.read(reinterpret_cast<char*>(&framesTocItems[i]), sizeof(framesTocItems[i]));
+    }
+    supportedFormats.push_back(Source::FrameFormat::ENCODED);
+}
+
+void TestFileSource::close()
+{
+    if (dataFile.is_open()) {
+        dataFile.close();
+    }
+}
+
+std::map<uint16_t, std::vector<Source::Resolution>> TestFileSource::getSupportedResolutions()
+{
+    return supportedResolutions;
+}
+
+std::vector<Source::FrameFormat> TestFileSource::getSupportedFrameFormats()
+{
+    return supportedFormats;
+}
+
+TestFileSource::TestFileSource(): framesCount(0)
+{
+
+}
+
+TestFileSource::~TestFileSource()
+{
+    stopCapturing();
+    close();
+}
+
+void TestFileSource::stopCapturing()
+{
+}
+
+bool TestFileSource::waitNextFrame() 
+{
+    return false;
+}
+
+Source::Frame TestFileSource::readFrame()
+{
+    return Source::Frame(0, 0, Source::FrameFormat::NONE);
+}
+
+void TestFileSource::startCapturing(const CaptureConfiguration &config)
+{
+
+}
