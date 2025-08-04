@@ -33,8 +33,8 @@ if(BUILD_ENCODERS_MODULE)
                 target_include_directories(Encoders_tests PRIVATE ./include/)
                 target_link_directories(Encoders_tests PRIVATE ${X264_LIBRARY_DIRS})
                 target_link_libraries(Encoders_tests PRIVATE
-                    Catch2::Catch2WithMain Encoders 
-                    ${X264_LIBRARIES}
+                    Catch2::Catch2WithMain 
+                    Encoders 
                     Sources
                     U8x8Font
                     )
