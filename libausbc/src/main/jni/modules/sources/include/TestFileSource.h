@@ -9,6 +9,7 @@ public:
     };
 private:
     const static uint32_t TOC_POSITION = 12;
+    uint32_t currentFrame = 0;
     uint32_t framesCount = 0;
     uint32_t fileTocPosition = 0;
     std::ifstream dataFile;
@@ -30,6 +31,9 @@ public:
         return framesCount;
     }
     uint32_t setCurrentFrame(uint32_t frameIndex);
+    uint32_t getCurrentFrame() const {
+        return currentFrame;
+    }
 };
 
 class TestFileWriter {

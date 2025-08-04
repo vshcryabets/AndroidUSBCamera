@@ -145,10 +145,35 @@ bool TestFileSource::waitNextFrame()
 
 Source::Frame TestFileSource::readFrame()
 {
+    if (currentFrame < framesCount) {
+        dataFile.seekg(framesTocItems[currentFrame], std::ios::beg);
+        currentFrame++;
+        if (currentFrame >= framesCount) {
+            currentFrame = 0; // Reset to the first frame if we reach the end
+        }
+        uint32_t size;
+        dataFile.read(reinterpret_cast<char*>(&size), sizeof(size));
+        if (size > 0) {
+            auto frameData = std::make_unique<uint8_t[]>(size);
+            dataFile.read(reinterpret_cast<char*>(frameData.get()), size);
+            auto result = Source::Frame(640, 480, Source::FrameFormat::ENCODED);
+            result.data = frameData.release();
+            result.size = size;
+            return result;
+        }
+    }
     return Source::Frame(0, 0, Source::FrameFormat::NONE);
 }
 
 void TestFileSource::startCapturing(const CaptureConfiguration &config)
 {
 
+}
+
+uint32_t TestFileSource::setCurrentFrame(uint32_t frameIndex)
+{
+    if (frameIndex < framesCount) {
+        currentFrame = frameIndex;
+    }
+    return currentFrame;
 }
