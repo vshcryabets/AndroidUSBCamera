@@ -4,15 +4,43 @@
 
 class TestFileSource : public PullSource {
 public:
-    TestFileSource() = default;
-    virtual ~TestFileSource() = default;
-    virtual Frame readFrame() override;
+    struct ConnectConfiguration: public Source::ConnectConfiguration {
+        std::string fileName;
+    };
+private:
+    // Header structure: 4 bytes magic + 2 bytes width + 2 bytes height + 4 bytes fps = 12 bytes
+    const static uint32_t MAGIC_SIZE = 4;
+    const static uint32_t WIDTH_SIZE = 2;
+    const static uint32_t HEIGHT_SIZE = 2;
+    const static uint32_t FPS_SIZE = 4;
+    const static uint32_t TOC_POSITION = MAGIC_SIZE + WIDTH_SIZE + HEIGHT_SIZE + FPS_SIZE;
+    uint16_t width, height;
+    float fps;
+    uint32_t currentFrame = 0;
+    uint32_t framesCount = 0;
+    uint32_t fileTocPosition = 0;
+    std::ifstream dataFile;
+    std::vector<uint32_t> framesTocItems;
+    std::vector<Source::FrameFormat> supportedFormats;
+    std::map<uint16_t, std::vector<Resolution>> supportedResolutions;
+public:
+    TestFileSource();
+    virtual ~TestFileSource();
+    Frame readFrame() override;
     void startCapturing(const CaptureConfiguration &config) override;
     void close() override;
     std::map<uint16_t, std::vector<Resolution>> getSupportedResolutions() override;
     std::vector<Source::FrameFormat> getSupportedFrameFormats() override;
     void stopCapturing() override;
     bool waitNextFrame() override;
+    virtual void open(const ConnectConfiguration &config);
+    uint32_t getFramesCount() const {
+        return framesCount;
+    }
+    uint32_t setCurrentFrame(uint32_t frameIndex);
+    uint32_t getCurrentFrame() const {
+        return currentFrame;
+    }
 };
 
 class TestFileWriter {

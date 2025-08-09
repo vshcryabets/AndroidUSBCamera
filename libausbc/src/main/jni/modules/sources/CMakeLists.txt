@@ -22,8 +22,20 @@ if(BUILD_SOURCES_MODULE)
                 target_sources(Sources_tests PRIVATE
                         test/test_FrameInjector.cpp
                         test/test_FileWritter.cpp
+                        test/test_TestFileSource.cpp
                         )
                 target_include_directories(Sources_tests PRIVATE ./include/)
                 target_link_libraries(Sources_tests PRIVATE Catch2::Catch2WithMain Sources)
+
+                set(RESOURCE_FILES
+                    "${CMAKE_CURRENT_SOURCE_DIR}/test/testh264.bin"
+                )
+                add_custom_command(
+                    TARGET Sources_tests POST_BUILD
+                    COMMAND ${CMAKE_COMMAND} -E copy
+                        ${RESOURCE_FILES}
+                        $<TARGET_FILE_DIR:Sources_tests>
+                    COMMENT "Copying resources to build directory..."
+                )
         endif()              
 endif()                

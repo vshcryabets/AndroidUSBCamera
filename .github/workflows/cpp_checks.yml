@@ -29,7 +29,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get -y update
-        sudo apt-get install -y libx264-dev libgtk-4-dev libportaudio2 portaudio19-dev 
+        sudo apt-get install -y libx264-dev libgtk-4-dev libportaudio2 portaudio19-dev libavcodec-dev libavformat-dev libavutil-dev pkg-config
         
     - name: Prepare build
       run: python workflow_build.py --prepare

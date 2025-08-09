@@ -26,6 +26,7 @@ class Source {
             RGB,
             RGBX,
             YUV420P,
+            ENCODED,
             NONE
         };
         struct Resolution {

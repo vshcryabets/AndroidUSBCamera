@@ -101,5 +101,6 @@
         "print": "cpp",
         "__config": "cpp"
     },
-    "cmake.sourceDirectory": "${workspaceFolder}/linux/"
+    "cmake.sourceDirectory": "${workspaceFolder}/linux/",
+    "cmake.configureOnEdit": false
 }
