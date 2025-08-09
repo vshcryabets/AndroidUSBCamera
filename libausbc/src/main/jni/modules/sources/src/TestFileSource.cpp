@@ -86,8 +86,6 @@ void TestFileSource::open(const ConnectConfiguration &config)
         throw std::runtime_error("Invalid file format");
     }
     // Read width and height
-    uint16_t width, height;
-    float fps;
     dataFile.read(reinterpret_cast<char*>(&width), sizeof(width));
     dataFile.read(reinterpret_cast<char*>(&height), sizeof(height));
     dataFile.read(reinterpret_cast<char*>(&fps), sizeof(fps));
@@ -156,7 +154,7 @@ Source::Frame TestFileSource::readFrame()
         if (size > 0) {
             auto frameData = std::make_unique<uint8_t[]>(size);
             dataFile.read(reinterpret_cast<char*>(frameData.get()), size);
-            auto result = Source::Frame(640, 480, Source::FrameFormat::ENCODED);
+            auto result = Source::Frame(width, height, Source::FrameFormat::ENCODED);
             result.data = frameData.release();
             result.size = size;
             return result;

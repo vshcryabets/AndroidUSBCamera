@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Decoder.h"
-#include <x264.h>
 
 struct X264DecoderConfig : public DecoderBaseConfiguration
 {
