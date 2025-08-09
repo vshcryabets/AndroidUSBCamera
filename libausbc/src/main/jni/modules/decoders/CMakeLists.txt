@@ -1,23 +1,25 @@
 cmake_minimum_required(VERSION 3.28)
 
 if(BUILD_DECODERS_MODULE)
+        ## sudo apt-get install libavcodec-dev libavformat-dev libavutil-dev pkg-config
+        ## brew install ffmpeg pkg-config
         find_package(PkgConfig REQUIRED)
-        pkg_check_modules(X264 REQUIRED x264)
+        pkg_check_modules(FFMPEG REQUIRED IMPORTED_TARGET libavcodec libavformat libavutil)
 
-        message(STATUS "X264_CFLAGS: ${X264_CFLAGS}")
-        message(STATUS "X264_LIBRARIES: ${X264_LIBRARIES}")
-        message(STATUS "X264_LIBRARY_DIRS: ${X264_LIBRARY_DIRS}")
-        # message(STATUS "X264_LIBS: ${X264_LIBS}")
+        message(STATUS "Decoders FFMPEG_CFLAGS: ${FFMPEG_CFLAGS}")
+        message(STATUS "Decoders FFMPEG_LIBRARIES: ${FFMPEG_LIBRARIES}")
+        message(STATUS "Decoders FFMPEG_LIBRARY_DIRS: ${FFMPEG_LIBRARY_DIRS}")
 
-        add_library(Decoders STATIC
-                src/Decoderx264.cpp
+        add_library(Decoders STATIC)
+
+        target_sources(Decoders PRIVATE
+                src/DecoderH264LibAVCodec.cpp
                 )
-
-        target_link_directories(Decoders PRIVATE ${X264_LIBRARY_DIRS})
-        target_compile_options(Decoders PRIVATE ${X264_CFLAGS})
+        target_link_directories(Decoders PRIVATE ${FFMPEG_LIBRARY_DIRS})
+        target_compile_options(Decoders PRIVATE ${FFMPEG_CFLAGS})
 
         target_link_libraries(Decoders PRIVATE
-                ${X264_LIBRARIES}
+                PkgConfig::FFMPEG
                 )
 
         target_include_directories(Decoders PUBLIC
@@ -26,12 +28,27 @@ if(BUILD_DECODERS_MODULE)
                 )
 
         if (BUILD_CATCH2_TESTS)
-                add_executable(decoders_tests
-                        test/test_Decoderx264.cpp
+                add_executable(Decoders_tests
+                        test/test_DecoderH264LibAVCodec.cpp
                         )
-                target_compile_options(decoders_tests PRIVATE ${X264_CFLAGS})
-                target_include_directories(decoders_tests PRIVATE ./include/)
-                target_link_directories(decoders_tests PRIVATE ${X264_LIBRARY_DIRS})
-                target_link_libraries(decoders_tests PRIVATE Catch2::Catch2WithMain Decoders ${X264_LIBRARIES})
+                target_compile_options(Decoders_tests PRIVATE ${FFMPEG_CFLAGS})
+                target_include_directories(Decoders_tests PRIVATE ./include/)
+                # target_link_directories(Decoders_tests PRIVATE ${X264_LIBRARY_DIRS})
+                target_link_libraries(Decoders_tests PRIVATE 
+                        Catch2::Catch2WithMain 
+                        Decoders 
+                        PkgConfig::FFMPEG
+                        Sources)
+                set(RESOURCE_FILES
+                    "${CMAKE_CURRENT_SOURCE_DIR}/test/framesFile.h264"
+                )
+                add_custom_command(
+                    TARGET Decoders_tests POST_BUILD
+                    COMMAND ${CMAKE_COMMAND} -E copy
+                        ${RESOURCE_FILES}
+                        $<TARGET_FILE_DIR:Decoders_tests>
+                    COMMENT "Copying resources to build directory..."
+                )
+
         endif()
 endif()                

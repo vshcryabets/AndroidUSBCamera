@@ -23,7 +23,7 @@ set(ENABLE_SHARED FALSE)
 set(ENABLE_STATIC TRUE)
 add_compile_definitions(LIBUVC_HAS_JPEG)
 
-include(./src/main/jni/libjpeg-turbo-3.1.1-static/CMakeLists.txt)
+add_subdirectory(./src/main/jni/libjpeg-turbo-3.1.1-static/)
 add_subdirectory(./src/main/jni/modules/images)
 add_subdirectory(./src/main/jni/modules/sources)
 add_subdirectory(./src/main/jni/common/)

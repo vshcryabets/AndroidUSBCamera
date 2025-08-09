@@ -12,6 +12,7 @@ public:
         Unknown = 0,
         NotInitialized,
         FailedToDecodeFrame,
+        DecoderNotFound,
     };
 
 public:
@@ -51,8 +52,7 @@ public:
     virtual ~Decoder() {};
     virtual void start() = 0;
     virtual void stop() = 0;
-    virtual DecoderMultiBuffer decodeFrame() = 0;
-    virtual DecoderMultiBuffer flush() = 0;
+    virtual DecoderMultiBuffer decodeFrame(const DecoderBuffer &inputBuffer) = 0;
 };
 
 struct DecoderBaseConfiguration

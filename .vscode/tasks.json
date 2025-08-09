@@ -6,7 +6,7 @@
             "command": "cmake",
             "args": [
                 "-B",
-                "${workspaceFolder}/build",
+                "${workspaceFolder}/linux/build",
                 "-S",
                 "${workspaceFolder}/linux/",
                 "-DCMAKE_BUILD_TYPE=Debug",
@@ -25,7 +25,7 @@
             "command": "cmake",
             "args": [
                 "--build",
-                "${workspaceFolder}/build"
+                "${workspaceFolder}/linux/build"
             ],
             "group": {
                 "kind": "build",
