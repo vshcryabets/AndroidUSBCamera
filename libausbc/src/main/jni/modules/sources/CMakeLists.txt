@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 3.22)
 if(BUILD_SOURCES_MODULE)
 
         add_library(Sources STATIC)
+        set_target_properties(Sources PROPERTIES POSITION_INDEPENDENT_CODE ON)
         target_sources(Sources PRIVATE
                 src/Source.cpp
                 src/TestSource.cpp

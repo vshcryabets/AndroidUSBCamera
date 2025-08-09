@@ -111,12 +111,12 @@ void TestFileSource::close()
     }
 }
 
-std::map<uint16_t, std::vector<Source::Resolution>> TestFileSource::getSupportedResolutions()
+std::map<uint16_t, std::vector<Source::Resolution>> TestFileSource::getSupportedResolutions() const
 {
     return supportedResolutions;
 }
 
-std::vector<Source::FrameFormat> TestFileSource::getSupportedFrameFormats()
+std::vector<Source::FrameFormat> TestFileSource::getSupportedFrameFormats() const
 {
     return supportedFormats;
 }

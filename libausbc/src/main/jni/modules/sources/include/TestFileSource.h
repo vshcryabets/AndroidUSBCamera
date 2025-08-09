@@ -1,10 +1,12 @@
 #pragma once
 #include "TestSource.h"
 #include <fstream>
+#include <vector>
+#include <map>
 
 class TestFileSource : public PullSource {
 public:
-    struct ConnectConfiguration: public Source::ConnectConfiguration {
+    struct ConnectConfiguration: public Source::OpenConfiguration {
         std::string fileName;
     };
 private:
@@ -29,8 +31,8 @@ public:
     Frame readFrame() override;
     void startCapturing(const CaptureConfiguration &config) override;
     void close() override;
-    std::map<uint16_t, std::vector<Resolution>> getSupportedResolutions() override;
-    std::vector<Source::FrameFormat> getSupportedFrameFormats() override;
+    std::map<uint16_t, std::vector<Resolution>> getSupportedResolutions() const override;
+    std::vector<FrameFormat> getSupportedFrameFormats() const override;
     void stopCapturing() override;
     bool waitNextFrame() override;
     virtual void open(const ConnectConfiguration &config);
