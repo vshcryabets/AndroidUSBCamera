@@ -32,10 +32,10 @@ jobs:
         sudo apt-get install -y libx264-dev libgtk-4-dev libportaudio2 portaudio19-dev 
         
     - name: Prepare build
-      run: python prepare.py --prepare
+      run: python workflow_build.py --prepare
 
     - name: Build
-      run: python prepare.py --build
+      run: python workflow_build.py --build
 
     - name: Tests
-      run: python prepare.py --test
+      run: python workflow_build.py --test
