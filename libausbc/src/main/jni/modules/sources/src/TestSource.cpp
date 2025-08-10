@@ -82,7 +82,7 @@ void TestSource::close()
     stopCapturing();
 }
 
-std::vector<Source::FrameFormat> TestSource::getSupportedFrameFormats()
+std::vector<Source::FrameFormat> TestSource::getSupportedFrameFormats() const
 {
     return {Source::FrameFormat::RGBA};
 }
@@ -154,7 +154,7 @@ void TestSource::drawString(std::string str, uint16_t x, uint16_t y, uint8_t ups
     }
 }
 
-std::map<uint16_t, std::vector<Source::Resolution>> TestSource::getSupportedResolutions()
+std::map<uint16_t, std::vector<Source::Resolution>> TestSource::getSupportedResolutions() const
 {
     std::map<uint16_t, std::vector<Source::Resolution>> result;
     std::vector<Source::Resolution> resoltions {

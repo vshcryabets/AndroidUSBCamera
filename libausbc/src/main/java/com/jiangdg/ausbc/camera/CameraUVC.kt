@@ -130,7 +130,7 @@ class CameraUVC(
         val request = mCameraRequest!!
         try {
             mUvcCamera = UVCCamera().apply {
-                open(mCtrlBlock!!)
+                open(UVCCamera.OpenConfiguration(mCtrlBlock!!, "CameraUVC"))
             }
         } catch (e: Exception) {
             closeCamera()

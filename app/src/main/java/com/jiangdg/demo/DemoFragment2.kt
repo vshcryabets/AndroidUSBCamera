@@ -22,8 +22,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import com.jiangdg.uvc.UVCCamera
-import com.jiangdg.uvc.UVCCamera2
+import com.vsh.source.UVCCamera2
 
 class DemoFragment2 : Fragment() {
 

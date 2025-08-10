@@ -1,8 +1,10 @@
 cmake_minimum_required(VERSION 3.22)
 
+
 if(BUILD_SOURCES_MODULE)
 
         add_library(Sources STATIC)
+        set_target_properties(Sources PROPERTIES POSITION_INDEPENDENT_CODE ON)
         target_sources(Sources PRIVATE
                 src/Source.cpp
                 src/TestSource.cpp
@@ -11,8 +13,29 @@ if(BUILD_SOURCES_MODULE)
                 src/TestFileSource.cpp
                 )
         if(BUILD_SOURCES_MODULE_V4L2)
-                target_sources(Sources PRIVATE src/UvcCamera.cpp)
+            target_sources(Sources PRIVATE
+                src/UvcCamera.cpp)
         endif()
+
+        if(BUILD_JNI_WRAPPERS)
+            if (NOT (CMAKE_SYSTEM_NAME STREQUAL "Android"))
+                find_package(JNI REQUIRED COMPONENTS JVM)
+            endif()
+            target_sources(Sources PRIVATE
+                src/JniTestSource.cpp
+                src/JniSources.cpp
+                )
+        endif()
+        
+
+        if(BUILD_JNI_WRAPPERS)
+            target_include_directories(
+                Sources
+                PUBLIC
+                ${JNI_INCLUDE_DIRS}
+                )
+        endif()
+
         target_include_directories(Sources PUBLIC
                 $<INSTALL_INTERFACE:include>
                 $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -23,9 +46,10 @@ if(BUILD_SOURCES_MODULE)
                         test/test_FrameInjector.cpp
                         test/test_FileWritter.cpp
                         test/test_TestFileSource.cpp
+                        test/test_TestSourceYUV420.cpp
                         )
                 target_include_directories(Sources_tests PRIVATE ./include/)
-                target_link_libraries(Sources_tests PRIVATE Catch2::Catch2WithMain Sources)
+                target_link_libraries(Sources_tests PRIVATE Catch2::Catch2WithMain Sources U8x8Font)
 
                 set(RESOURCE_FILES
                     "${CMAKE_CURRENT_SOURCE_DIR}/test/testh264.bin"

@@ -26,8 +26,8 @@ class TestSourceYUV420: public PullSource {
         virtual Frame readFrame() override;
         void startCapturing(const CaptureConfiguration &config) override;
         void close() override;
-        std::vector<Source::FrameFormat> getSupportedFrameFormats() override;
-        std::map<uint16_t, std::vector<Resolution>> getSupportedResolutions() override;
+        std::vector<Source::FrameFormat> getSupportedFrameFormats() const override;
+        std::map<uint16_t, std::vector<Resolution>> getSupportedResolutions() const override;
         void stopCapturing() override;
         bool waitNextFrame() override;
 };

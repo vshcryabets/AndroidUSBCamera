@@ -21,18 +21,29 @@
  *  Files in the libjpeg-turbo, libusb, libuvc folder
  *  may have a different license, see the respective files.
  */
-package com.jiangdg.uvc
+package com.vsh.source
 
 import com.jiangdg.usb.UsbControlBlock
+import com.jiangdg.uvc.SourceResolution
 
-class TestSource : IUvcCamera {
+class UVCCamera2 : Source<UVCCamera2.OpenConfiguration> {
+    public class OpenConfiguration(
+        val usbControlBlock: UsbControlBlock,
+        tag: String
+    ): Source.OpenConfiguration(tag) {
+    }
+
     private var nativePtr : Long = 0L;
 
     constructor() {
         nativePtr = nativeCreate()
     }
 
-    override fun open(usbControlBlock: UsbControlBlock) {
+    override fun open(configuration: OpenConfiguration) {
+    }
+
+    override fun getOpenConfiguration(): OpenConfiguration {
+        TODO("Not yet implemented")
     }
 
     override fun close() {
@@ -46,6 +57,24 @@ class TestSource : IUvcCamera {
             nativeStopCapturing(nativePtr)
         }
     }
+
+    override fun getSupportedFrameFormats(): List<Source.FrameFormat> {
+        return listOf(Source.FrameFormat.YUV420P, Source.FrameFormat.ENCODED)
+    }
+
+    override fun getSupportedResolutions(): Map<Int, List<SourceResolution>> {
+        TODO("Not yet implemented")
+    }
+
+    override fun isPullSource(): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override fun isPushSource(): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override fun getNativeObject(): Long = nativePtr
 
     private external fun nativeCreate(): Long
     private external fun nativeRelease(ptr: Long)

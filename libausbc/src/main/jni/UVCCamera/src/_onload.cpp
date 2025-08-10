@@ -19,12 +19,14 @@
  *  limitations under the License.
  *
  * All files in the folder are under this Apache License, Version 2.0.
- * Files in the jni/libjpeg, jni/libusb, jin/libuvc, jni/rapidjson folder may have a different license, see the respective files.
+ * Files in the jni/libjpeg, jni/libusb, jin/libuvc folder may have a different license, see the respective files.
 */
 
 #include "_onload.h"
 #include "utilbase.h"
 #include "LoadJpegImageFromAssetsUseCase.h"
+#include "FontWrapper.h"
+#include "JniSources.h"
 
 #ifndef ABI
     #define ABI 0
@@ -79,6 +81,10 @@ jint JNI_OnLoad(JavaVM *vm, void *reserved) {
     // register native methods
     int result = register_uvccamera(env);
 	setVM(vm);
+
+    FontWrapper_register(env);
+    JniSources_register(env);
+
 #if LOCAL_DEBUG
     LOGD("JNI_OnLoad:finshed:result=%d", result);
 #endif
