@@ -58,3 +58,23 @@ jobject resolutionMapToJObject(const std::map<uint16_t, std::vector<Source::Reso
 void JniSources_register(JNIEnv *env) {
     JniTestSource_register(env);
 }
+
+jobject frameFormatsToJList(std::vector<Source::FrameFormat> &formats, JNIEnv *env) {
+    jclass arrayListCls = env->FindClass("java/util/ArrayList");
+    jmethodID arrayListInit = env->GetMethodID(arrayListCls, "<init>", "()V");
+    jmethodID arrayListAdd = env->GetMethodID(arrayListCls, "add", "(Ljava/lang/Object;)Z");
+    jobject list = env->NewObject(arrayListCls, arrayListInit);
+    jclass integerClass = env->FindClass("java/lang/Integer");
+    jmethodID integerInit = env->GetMethodID(integerClass, "<init>", "(I)V");
+
+    for (const auto &format: formats) {
+        jobject formatObject = env->NewObject(integerClass, integerInit, (jint)format);
+        env->CallBooleanMethod(list, arrayListAdd, formatObject);
+        env->DeleteLocalRef(formatObject);
+    }
+
+    env->DeleteLocalRef(integerClass);
+    env->DeleteLocalRef(arrayListCls);
+    return list;
+
+}

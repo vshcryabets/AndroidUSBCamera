@@ -63,7 +63,7 @@ class TestSource(
     override fun getNativeObject(): Long = nativePtr
 
     private external fun nativeCreate(fontPtr: Long): Long
-    private external fun nativeRelease(ptr: Long)
+    external override fun nativeRelease(ptr: Long)
     private external fun nativeStopCapturing(ptr: Long)
     private external fun nativeClose(ptr: Long)
     external override fun nativeGetSupportedResolutions(ptr: Long): Map<Integer, List<SourceResolution>>

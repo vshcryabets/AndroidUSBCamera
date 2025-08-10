@@ -9,4 +9,8 @@ jobject resolutionMapToJObject(
         const std::map<uint16_t, std::vector<Source::Resolution>> &map,
         JNIEnv *env);
 
+jobject frameFormatsToJList(
+    std::vector<Source::FrameFormat> &formats, 
+    JNIEnv *env);
+
 void JniSources_register(JNIEnv *env);

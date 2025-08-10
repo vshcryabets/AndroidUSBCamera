@@ -28,7 +28,8 @@ class TestYuvSourceTests {
         Assertions.assertTrue(resolutions[0].fps.size > 1)
         Assertions.assertEquals(30.0f, resolutions[0].fps[0])
 
-        source.close();
+        source.close()
+        source.releaseNativeObject()
     }
 
     companion object {

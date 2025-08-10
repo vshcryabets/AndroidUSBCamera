@@ -40,7 +40,7 @@ class PullToPushSource: JniSource<PullToPushSource.OpenConfiguration>() {
     }
 
     private external fun nativeCreate(): Long
-    private external fun nativeRelease(ptr: Long)
+    external override fun nativeRelease(ptr: Long)
     private external fun nativeOpen(sourcePtr: Long, tag: String)
     external override fun nativeGetSupportedResolutions(ptr: Long): Map<Integer, List<SourceResolution>>
     external override fun nativeGetSupportedFrameFormats(ptr: Long): List<Integer>

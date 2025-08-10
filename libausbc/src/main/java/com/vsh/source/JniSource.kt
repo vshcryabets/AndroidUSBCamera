@@ -23,6 +23,13 @@ abstract class JniSource<OC : Source.OpenConfiguration>: Source<OC> {
         }
     }
 
+    public fun releaseNativeObject() {
+        if (nativePtr != 0L) {
+            nativeRelease(nativePtr)
+            nativePtr = 0L
+        }
+    }
+
     override fun getSupportedResolutions(): Map<Int, List<SourceResolution>> {
         if (nativePtr != 0L) {
             return nativeGetSupportedResolutions(nativePtr).mapKeys {
@@ -33,6 +40,8 @@ abstract class JniSource<OC : Source.OpenConfiguration>: Source<OC> {
         }
     }
 
+
+    abstract fun nativeRelease(nativePtr: Long)
     abstract fun nativeGetSupportedResolutions(nativePtr: Long): Map<Integer, List<SourceResolution>>
     abstract fun nativeGetSupportedFrameFormats(nativePtr: Long): List<Integer>
 }

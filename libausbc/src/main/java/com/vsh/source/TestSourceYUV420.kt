@@ -23,6 +23,14 @@ class TestSourceYUV420(
 ) : JniSource<Source.OpenConfiguration>() {
     private var openConfiguration: Source.OpenConfiguration? = null
 
+    override fun open(configuration: Source.OpenConfiguration) {
+        super.open(configuration)
+        if (nativePtr == 0L) {
+            throw IllegalStateException("Source is not initialized")
+        }
+        nativeOpen(nativePtr)
+    }
+
     override fun initNative(): Long = nativeCreate(font.getFontPtr())
 
     override fun getOpenConfiguration(): Source.OpenConfiguration {
@@ -53,10 +61,11 @@ class TestSourceYUV420(
     }
 
     private external fun nativeCreate(fontPtr: Long): Long
-    private external fun nativeRelease(ptr: Long)
+    external override fun nativeRelease(ptr: Long)
     private external fun nativeStopCapturing(ptr: Long)
     private external fun nativeClose(ptr: Long)
     external override fun nativeGetSupportedResolutions(ptr: Long): Map<Integer, List<SourceResolution>>
     external override fun nativeGetSupportedFrameFormats(ptr: Long): List<Integer>
+    external fun nativeOpen(ptr: Long)
 
 }
