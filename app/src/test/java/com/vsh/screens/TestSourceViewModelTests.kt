@@ -37,6 +37,8 @@ class TestSourceViewModelTests {
         override fun stopCapturing() {
         }
 
+        override fun getSupportedFrameFormats(): List<Source.FrameFormat> = emptyList()
+
         override fun getSupportedResolutions(): Map<Int, List<SourceResolution>> {
             return mapOf(
                 0 to listOf(

@@ -13,8 +13,8 @@ class TestYuvSourceTests {
         val font = FontSrcImpl()
         val source = TestSourceYUV420(font)
         source.open(Source.OpenConfiguration("test"))
-        val supportedFormats = source.getSupportedFrameFormats();
-        val supportedResolutions = source.getSupportedResolutions();
+        val supportedFormats = source.getSupportedFrameFormats()
+        val supportedResolutions = source.getSupportedResolutions()
 
         Assertions.assertEquals(1, supportedFormats.size)
         Assertions.assertEquals(Source.FrameFormat.YUV420P, supportedFormats[0])
@@ -35,7 +35,7 @@ class TestYuvSourceTests {
     companion object {
         @JvmStatic
         @BeforeAll
-        fun loadNativeLibrary(): Unit {
+        fun loadNativeLibrary() {
             LoadJniLibrary.loadNativeLibrary()
         }
     }

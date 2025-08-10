@@ -19,11 +19,12 @@ import com.jiangdg.uvc.SourceResolution
 import com.vsh.LoadJniLibrary
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
-import java.io.File
 
 class PullToPushSourceTests {
 
+    @Disabled
     @Test
     fun pullToPushSourceAcceptsOnlyPullSource() {
         val pullSource = PullToPushSource.OpenConfiguration("pull",

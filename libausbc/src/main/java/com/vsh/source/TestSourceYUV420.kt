@@ -61,11 +61,11 @@ class TestSourceYUV420(
     }
 
     private external fun nativeCreate(fontPtr: Long): Long
-    external override fun nativeRelease(ptr: Long)
+    external override fun nativeRelease(nativePtr: Long)
     private external fun nativeStopCapturing(ptr: Long)
     private external fun nativeClose(ptr: Long)
-    external override fun nativeGetSupportedResolutions(ptr: Long): Map<Integer, List<SourceResolution>>
-    external override fun nativeGetSupportedFrameFormats(ptr: Long): List<Integer>
+    external override fun nativeGetSupportedResolutions(nativePtr: Long): Map<Integer, List<SourceResolution>>
+    external override fun nativeGetSupportedFrameFormats(nativePtr: Long): List<Integer>
     external fun nativeOpen(ptr: Long)
 
 }

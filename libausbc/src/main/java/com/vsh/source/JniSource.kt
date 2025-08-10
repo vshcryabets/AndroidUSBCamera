@@ -23,7 +23,7 @@ abstract class JniSource<OC : Source.OpenConfiguration>: Source<OC> {
         }
     }
 
-    public fun releaseNativeObject() {
+    fun releaseNativeObject() {
         if (nativePtr != 0L) {
             nativeRelease(nativePtr)
             nativePtr = 0L

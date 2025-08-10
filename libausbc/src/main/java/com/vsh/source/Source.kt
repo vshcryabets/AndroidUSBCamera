@@ -15,7 +15,7 @@ interface Source<OC: Source.OpenConfiguration> {
     }
 
     open class OpenConfiguration(
-        public val tag: String,
+        val tag: String,
     ) {
 
     }
