@@ -30,7 +30,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
-
 data class DeviceListViewState(
     val devices: List<UsbDevicesMonitor.UsbDevice> = emptyList(),
     val openPreviewDevice: Boolean = false,
