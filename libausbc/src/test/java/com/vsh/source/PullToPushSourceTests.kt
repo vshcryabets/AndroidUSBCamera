@@ -33,6 +33,7 @@ class PullToPushSourceTests {
                 Source.OpenConfiguration("pull")
             override fun close() {}
             override fun stopCapturing() {}
+            override fun getSupportedFrameFormats(): List<Source.FrameFormat> = emptyList()
             override fun getSupportedResolutions(): Map<Int, List<SourceResolution>> = emptyMap()
             override fun isPullSource(): Boolean = true
             override fun isPushSource(): Boolean = false
@@ -52,6 +53,7 @@ class PullToPushSourceTests {
             override fun isPullSource(): Boolean = false
             override fun isPushSource(): Boolean = true
             override fun getNativeObject(): Long = 0L
+            override fun getSupportedFrameFormats(): List<Source.FrameFormat> = emptyList()
             })
 
         try {

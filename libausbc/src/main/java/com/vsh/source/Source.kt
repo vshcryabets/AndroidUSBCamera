@@ -3,6 +3,17 @@ package com.vsh.source
 import com.jiangdg.uvc.SourceResolution
 
 interface Source<OC: Source.OpenConfiguration> {
+
+    enum class FrameFormat {
+        YUYV,
+        RGBA,
+        RGB,
+        RGBX,
+        YUV420P,
+        ENCODED,
+        NONE
+    }
+
     open class OpenConfiguration(
         public val tag: String,
     ) {
@@ -15,6 +26,7 @@ interface Source<OC: Source.OpenConfiguration> {
 
     fun stopCapturing()
 
+    fun getSupportedFrameFormats(): List<FrameFormat>
     fun getSupportedResolutions(): Map<Int, List<SourceResolution>>
 
     fun isPullSource() : Boolean

@@ -35,6 +35,8 @@ import com.jiangdg.usb.UsbControlBlock;
 import com.vsh.source.Source;
 import com.vsh.uvc.UvcVsDeskSubtype;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -59,6 +61,11 @@ public class UVCCamera implements Source<UVCCamera.OpenConfiguration> {
 	@Override
 	public long getNativeObject() {
 		return mNativePtr;
+	}
+
+	@Override
+	public @NotNull List<@NotNull FrameFormat> getSupportedFrameFormats() {
+		return List.of(Source.FrameFormat.YUV420P, Source.FrameFormat.ENCODED);
 	}
 
 	public static class OpenConfiguration extends Source.OpenConfiguration {

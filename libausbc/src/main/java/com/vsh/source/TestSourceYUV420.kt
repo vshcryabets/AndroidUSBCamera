@@ -18,20 +18,12 @@ package com.vsh.source
 import com.jiangdg.uvc.SourceResolution
 import com.vsh.font.FontSrc
 
-class TestSource(
+class TestSourceYUV420(
     private val font: FontSrc
 ) : JniSource<Source.OpenConfiguration>() {
     private var openConfiguration: Source.OpenConfiguration? = null
 
-    init {
-        System.loadLibrary("native")
-        nativePtr = nativeCreate(font.getFontPtr())
-    }
-
     override fun initNative(): Long = nativeCreate(font.getFontPtr())
-
-    override fun open(configuration: Source.OpenConfiguration) {
-    }
 
     override fun getOpenConfiguration(): Source.OpenConfiguration {
         if (openConfiguration != null)
@@ -60,13 +52,11 @@ class TestSource(
         TODO("Not yet implemented")
     }
 
-    override fun getNativeObject(): Long = nativePtr
-
     private external fun nativeCreate(fontPtr: Long): Long
     private external fun nativeRelease(ptr: Long)
     private external fun nativeStopCapturing(ptr: Long)
     private external fun nativeClose(ptr: Long)
     external override fun nativeGetSupportedResolutions(ptr: Long): Map<Integer, List<SourceResolution>>
-    override external fun nativeGetSupportedFrameFormats(nativePtr: Long): List<Integer>
+    external override fun nativeGetSupportedFrameFormats(ptr: Long): List<Integer>
 
 }

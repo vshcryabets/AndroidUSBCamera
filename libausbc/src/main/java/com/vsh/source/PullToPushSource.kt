@@ -2,9 +2,8 @@ package com.vsh.source
 
 import com.jiangdg.uvc.SourceResolution
 
-class PullToPushSource: Source<PullToPushSource.OpenConfiguration> {
+class PullToPushSource: JniSource<PullToPushSource.OpenConfiguration>() {
     private var openConfig: OpenConfiguration? = null
-    private val sourcePtr: Long
 
     class OpenConfiguration(
         tag: String,
@@ -12,9 +11,7 @@ class PullToPushSource: Source<PullToPushSource.OpenConfiguration> {
     ): Source.OpenConfiguration(tag) {
     }
 
-    init {
-        sourcePtr = nativeCreate()
-    }
+    override fun initNative(): Long = nativeCreate()
 
     override fun open(configuration: OpenConfiguration) {
         if (!configuration.pullSource.isPullSource())
@@ -36,10 +33,6 @@ class PullToPushSource: Source<PullToPushSource.OpenConfiguration> {
         TODO("Not yet implemented")
     }
 
-    override fun getSupportedResolutions(): Map<Int, List<SourceResolution>> {
-        TODO("Not yet implemented")
-    }
-
     override fun isPullSource(): Boolean = false
     override fun isPushSource(): Boolean = true
     override fun getNativeObject(): Long {
@@ -49,4 +42,6 @@ class PullToPushSource: Source<PullToPushSource.OpenConfiguration> {
     private external fun nativeCreate(): Long
     private external fun nativeRelease(ptr: Long)
     private external fun nativeOpen(sourcePtr: Long, tag: String)
+    external override fun nativeGetSupportedResolutions(ptr: Long): Map<Integer, List<SourceResolution>>
+    external override fun nativeGetSupportedFrameFormats(ptr: Long): List<Integer>
 }

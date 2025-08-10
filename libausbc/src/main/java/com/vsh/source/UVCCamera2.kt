@@ -58,6 +58,10 @@ class UVCCamera2 : Source<UVCCamera2.OpenConfiguration> {
         }
     }
 
+    override fun getSupportedFrameFormats(): List<Source.FrameFormat> {
+        return listOf(Source.FrameFormat.YUV420P, Source.FrameFormat.ENCODED)
+    }
+
     override fun getSupportedResolutions(): Map<Int, List<SourceResolution>> {
         TODO("Not yet implemented")
     }
