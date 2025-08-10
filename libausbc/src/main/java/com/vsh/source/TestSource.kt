@@ -24,7 +24,6 @@ class TestSource(
     private var openConfiguration: Source.OpenConfiguration? = null
 
     init {
-        System.loadLibrary("native")
         nativePtr = nativeCreate(font.getFontPtr())
     }
 

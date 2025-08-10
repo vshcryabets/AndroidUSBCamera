@@ -90,10 +90,10 @@ public:
     virtual ~PullSource() = default;
     virtual Frame readFrame() = 0;
     virtual bool waitNextFrame() = 0;
-    bool isPullSource() const override {;
+    [[nodiscard]] bool isPullSource() const override {;
         return true;
     }
-    bool isPushSource() const override {
+    [[nodiscard]] bool isPushSource() const override {
         return false;
     }
 };
@@ -114,10 +114,10 @@ public:
             frameCallback(frame);
         }
     }
-    bool isPullSource() const override {;
-        return true;
-    }
-    bool isPushSource() const override {
+    [[nodiscard]] bool isPullSource() const override {;
         return false;
+    }
+    [[nodiscard]] bool isPushSource() const override {
+        return true;
     }
 };
