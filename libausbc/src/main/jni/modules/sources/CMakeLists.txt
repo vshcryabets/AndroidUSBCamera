@@ -46,9 +46,10 @@ if(BUILD_SOURCES_MODULE)
                         test/test_FrameInjector.cpp
                         test/test_FileWritter.cpp
                         test/test_TestFileSource.cpp
+                        test/test_TestSourceYUV420.cpp
                         )
                 target_include_directories(Sources_tests PRIVATE ./include/)
-                target_link_libraries(Sources_tests PRIVATE Catch2::Catch2WithMain Sources)
+                target_link_libraries(Sources_tests PRIVATE Catch2::Catch2WithMain Sources U8x8Font)
 
                 set(RESOURCE_FILES
                     "${CMAKE_CURRENT_SOURCE_DIR}/test/testh264.bin"

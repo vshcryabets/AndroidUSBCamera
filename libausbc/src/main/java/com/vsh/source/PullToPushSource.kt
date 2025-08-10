@@ -4,11 +4,16 @@ import com.jiangdg.uvc.SourceResolution
 
 class PullToPushSource: Source<PullToPushSource.OpenConfiguration> {
     private var openConfig: OpenConfiguration? = null
+    private val sourcePtr: Long
 
     class OpenConfiguration(
         tag: String,
         val pullSource: Source<*>
     ): Source.OpenConfiguration(tag) {
+    }
+
+    init {
+        sourcePtr = nativeCreate()
     }
 
     override fun open(configuration: OpenConfiguration) {
