@@ -47,6 +47,7 @@ if(BUILD_SOURCES_MODULE)
                         test/test_FileWritter.cpp
                         test/test_TestFileSource.cpp
                         test/test_TestSourceYUV420.cpp
+                        test/test_PullToPushSource.cpp
                         )
                 target_include_directories(Sources_tests PRIVATE ./include/)
                 target_link_libraries(Sources_tests PRIVATE Catch2::Catch2WithMain Sources U8x8Font)

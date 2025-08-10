@@ -71,13 +71,14 @@ public:
         this->sourceConfig = config;
     }
     const OpenConfiguration getOpenConfiguration() const;
-    virtual void close() = 0;
+    const CaptureConfiguration getCaptureConfiguration() const;
+
 
     virtual void startCapturing(const CaptureConfiguration &config) {
         this->captureConfiguration = config;
     }
-    const CaptureConfiguration getCaptureConfiguration() const;
     virtual void stopCapturing() = 0;
+    virtual void close() = 0;
     virtual std::map<uint16_t, std::vector<Resolution>> getSupportedResolutions() const = 0;
     virtual std::vector<FrameFormat> getSupportedFrameFormats() const = 0;
     virtual bool isPullSource() const = 0;
@@ -101,13 +102,17 @@ public:
 class PushSource : public Source {
 public:
     using FrameCallback = std::function<void(const Frame &frame)>;
+    struct OpenConfiguration: public Source::OpenConfiguration {
+        FrameCallback frameCallback;
+    };
 protected:
     FrameCallback frameCallback;
 public:
     PushSource() : Source() {}
     virtual ~PushSource() = default;
-    virtual void setFrameCallback(const FrameCallback &callback) {
-        this->frameCallback = callback;
+    virtual void open(const OpenConfiguration &config) {
+        Source::open(config);
+        this->frameCallback = config.frameCallback;
     }
     virtual void pushFrame(const Frame &frame) {
         if (frameCallback) {
