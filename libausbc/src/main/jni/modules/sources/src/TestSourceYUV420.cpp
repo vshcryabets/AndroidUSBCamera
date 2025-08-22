@@ -78,6 +78,8 @@ Source::Frame TestSourceYUV420::readFrame()
         frame.data = testData;
         frame.size = testDataSize;
         frame.timestamp = std::chrono::high_resolution_clock::now();
+    } else {
+        throw SourceError(SourceError::SOURCE_ERROR_CAPTURE_NOT_STARTED, "Capture not started or invalid configuration");
     }
     return frame;
 }
@@ -89,7 +91,9 @@ void TestSourceYUV420::startCapturing(const Source::CaptureConfiguration &config
         config.height == 0 ||
         (config.width % testYUVColors.size() != 0))
     {
-        throw SourceError(SourceError::SOURCE_ERROR_WRONG_CONFIG, "Invalid capture configuration, width,height must be > 0 and width % " + std::to_string(testYUVColors.size()) + " == 0");
+        throw SourceError(SourceError::SOURCE_ERROR_WRONG_CONFIG, 
+            "Invalid capture configuration, width,height must be > 0 and width % " +
+             std::to_string(testYUVColors.size()) + " == 0");
     }
     size_t pixelsCount = config.width * config.height;
     testDataSize = pixelsCount + pixelsCount / 2; // YUV420 requires 1.5 bytes per pixel

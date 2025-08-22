@@ -34,6 +34,13 @@ TEST_CASE("testFormatsAndResolutions", "[PullToPushSource]") {
 
     pullToPushSource.open(config);
 
+    // pullToPush capture configuration doesn't matter, it uses the pull source's configuration
+    pullToPushSource.startCapturing({
+        .width = 0,
+        .height = 0,
+        .fps = 0.0f
+    });
+
     // Wait for callback (timeout after 2 seconds)
     {
         std::unique_lock<std::mutex> lock(mtx);

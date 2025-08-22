@@ -2,6 +2,11 @@
 #include "TestSourceYUV420.h"
 #include "u8x8.h"
 
+TEST_CASE("Test source not ready before startCapture", "[TestSourceYUV420]") {
+    TestSourceYUV420 source(u8x8_font_amstrad_cpc_extended_f);
+    REQUIRE(source.isReadyForCapture() == false);
+}
+
 TEST_CASE("testFormatsAndResolutions", "[TestSourceYUV420]") {
     TestSourceYUV420 source(u8x8_font_amstrad_cpc_extended_f);
     source.open({});

@@ -10,6 +10,7 @@
 class SourceError : public std::exception {
     public:
         static const uint16_t SOURCE_ERROR_WRONG_CONFIG = 0x0001;
+        static const uint16_t SOURCE_ERROR_CAPTURE_NOT_STARTED = 0x0002;
     private:
         uint16_t code;
         std::string message;
@@ -65,7 +66,10 @@ protected:
 protected:
     uint32_t frameCounter {0};
 public:
-    Source() {};
+    Source() {
+        sourceConfig = OpenConfiguration();
+        captureConfiguration = CaptureConfiguration {0, 0, 0.0f};
+    };
     virtual ~Source() = default;
     virtual void open(const OpenConfiguration &config) {
         this->sourceConfig = config;
@@ -77,6 +81,7 @@ public:
     virtual void startCapturing(const CaptureConfiguration &config) {
         this->captureConfiguration = config;
     }
+    virtual bool isReadyForCapture() const;
     virtual void stopCapturing() = 0;
     virtual void close() = 0;
     virtual std::map<uint16_t, std::vector<Resolution>> getSupportedResolutions() const = 0;
