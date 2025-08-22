@@ -16,12 +16,19 @@ TEST_CASE("testFormatsAndResolutions", "[PullToPushSource]") {
     REQUIRE(!source->isPushSource());
 
     source->open({});
+
+    const Source::CaptureConfiguration realConfig = {
+        .width = 320,
+        .height = 240,
+        .fps = 30.0f
+    };
+
     PullToPushSource pullToPushSource;
     PullToPushSource::OpenConfiguration config;
     config.pullSource = source;
     config.frameCallback = [&](const Source::Frame &frame) {
-        REQUIRE(frame.width > 0);
-        REQUIRE(frame.height > 0);
+        REQUIRE(frame.width == realConfig.width);
+        REQUIRE(frame.height == realConfig.height);
         REQUIRE(frame.size > 0);
         REQUIRE(frame.data != nullptr);
         REQUIRE(frame.format == Source::FrameFormat::YUV420P);
@@ -35,6 +42,7 @@ TEST_CASE("testFormatsAndResolutions", "[PullToPushSource]") {
     pullToPushSource.open(config);
 
     // pullToPush capture configuration doesn't matter, it uses the pull source's configuration
+    source->startCapturing(realConfig);
     pullToPushSource.startCapturing({
         .width = 0,
         .height = 0,
@@ -47,6 +55,8 @@ TEST_CASE("testFormatsAndResolutions", "[PullToPushSource]") {
         cv.wait_for(lock, std::chrono::seconds(2), [&] { return callbackCalled.load(); });
     }
     REQUIRE(callbackCalled);
-
+    pullToPushSource.stopCapturing();
+    source->stopCapturing();
+    pullToPushSource.close();
     source->close();
 }
