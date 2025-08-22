@@ -152,6 +152,10 @@ public:
 
     ~GtkPreviewApplication()
     {
+        this->pullToPush->stopCapturing();
+        this->pullToPush->close();
+        this->testSource->stopCapturing();
+        this->testSource->close();
 #ifdef USE_YUV420_SOURCE        
         if (rgbaBuffer) {
             delete[] rgbaBuffer->buffer;
