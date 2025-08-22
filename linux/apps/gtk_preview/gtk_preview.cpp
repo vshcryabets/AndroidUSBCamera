@@ -33,6 +33,7 @@ private:
     GtkApplication *app;
     int status;
     ConvertBitmapUseCase::Buffer draw_buffer;
+    std::shared_ptr<auvc::OwnBufferFrame> lastFrame;
     std::shared_ptr<PullToPushSource> pullToPush;
     std::shared_ptr<PullSource> testSource;
 
@@ -63,13 +64,19 @@ private:
               int width,
               int height)
     {
-        auvc::Frame frame = testSource->readFrame();
+        if (lastFrame == nullptr) {
+            // No frame to draw
+            cairo_set_source_rgb(cr, 0.0, 0.0, 0.0);
+            cairo_rectangle(cr, 0, 0, width, height);
+            cairo_fill(cr);
+            return;
+        }
 #ifdef USE_YUV420_SOURCE
         convertUseCase.convert(*rgbaBuffer,
             {
-                .buffer = frame.getData(),
-                .capacity = frame.getSize(),
-                .size = frame.getSize(),
+                .buffer = lastFrame->getData(),
+                .capacity = lastFrame->getSize(),
+                .size = lastFrame->getSize(),
                 .width = captureConfig.width,
                 .height = captureConfig.height
             }
@@ -180,6 +187,14 @@ public:
         config.pullSource = testSource;
         config.frameCallback = [&](const auvc::Frame &frame) {
             // Handle the frame data from the pull source
+            if (lastFrame == nullptr) {
+                lastFrame = std::make_shared<auvc::OwnBufferFrame>(frame.getWidth(),
+                 frame.getHeight(),
+                  frame.getFormat(), 
+                  frame.getSize(), 
+                  frame.getTimestamp());
+            }
+            *lastFrame = frame;
             gtk_widget_queue_draw(draw_area);
         };
         pullToPush->open(config);
