@@ -3,6 +3,7 @@
 #include <fstream>
 #include <vector>
 #include <map>
+#include <Consumer.h>
 
 class TestFileSource : public PullSource {
 public:
@@ -45,7 +46,7 @@ public:
     }
 };
 
-class TestFileWriter {
+class TestFileWriter: auvc::Consumer {
 private:
     const static uint32_t TOC_POSITION = 12;
     uint32_t framesCount = 0;
@@ -59,7 +60,7 @@ public:
                    std::string mimeType,
                    float fps);
     ~TestFileWriter();
-    
-    void write(const uint8_t *data, uint32_t size);
-    void finalize();
+
+    void consume(const auvc::Frame& frame) override;
+    void stopConsuming() override;
 };

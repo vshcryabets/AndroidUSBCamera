@@ -5,7 +5,7 @@
 
 TEST_CASE("testReadHeaders", "[TestFileSource]") {
     TestFileWriter writer("test.bin", 640, 480, "video/h264", 29.97f);
-    writer.finalize();
+    writer.stopConsuming();
 
     TestFileSource source;
     source.open({

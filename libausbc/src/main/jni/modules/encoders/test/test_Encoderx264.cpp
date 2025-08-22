@@ -61,10 +61,13 @@ TEST_CASE("testEncode", "[Encoderx264]") {
             memcpy(singleBuffer + bufferPosition, buf.data, buf.size);
             bufferPosition += buf.size;
         }
-        framesWriter.write(singleBuffer, bufferPosition);
+        auvc::Frame singleBufferFrame(testWidth, testHeight, auvc::FrameFormat::ENCODED);
+        singleBufferFrame.data = singleBuffer;
+        singleBufferFrame.size = bufferPosition;
+        framesWriter.consume(singleBufferFrame);
 
         REQUIRE(encoded.totalSize > 0);
         REQUIRE(encoded.buffers.size() > 0);
     }
-    framesWriter.finalize();
+    framesWriter.stopConsuming();
 }

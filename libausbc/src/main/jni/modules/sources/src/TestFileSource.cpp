@@ -29,11 +29,13 @@ TestFileWriter::TestFileWriter(const std::string &fileName,
 
 TestFileWriter::~TestFileWriter()
 {
-    finalize();
+    stopConsuming();
 }
 
-void TestFileWriter::write(const uint8_t *data, uint32_t size)
+void TestFileWriter::consume(const auvc::Frame& frame)
 {
+    const uint8_t *data = frame.data;
+    uint32_t size = frame.size;
     if (dataFile.is_open() && data != nullptr && size > 0) {
         dataFile.seekp(filePosition);
         if (filePosition % 4 != 0) {
@@ -50,7 +52,7 @@ void TestFileWriter::write(const uint8_t *data, uint32_t size)
     }
 }
 
-void TestFileWriter::finalize()
+void TestFileWriter::stopConsuming()
 {
     if (dataFile.is_open()) {
         uint32_t toc = filePosition;

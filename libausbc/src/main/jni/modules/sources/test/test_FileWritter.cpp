@@ -4,7 +4,7 @@
 
 TEST_CASE("testHeaders", "[TestFileWriter]") {
     TestFileWriter writer("test.bin", 640, 480, "video/h264", 29.97f);
-    writer.finalize();
+    writer.stopConsuming();
     // Check if the file was created and has the correct headers
     std::ifstream file("test.bin", std::ios::binary);
     REQUIRE(file.is_open());
@@ -39,10 +39,13 @@ TEST_CASE("testWriteData", "[TestFileWriter]") {
     TestFileWriter writer("test.bin", 640, 480, "video/h264", 29.97f);
     uint8_t testData[1000] = {0x01, 0x02, 0x03, 0x04, 0x05};
     uint32_t framesCount = 160;
+    auvc::Frame frame(640, 480, auvc::FrameFormat::ENCODED);
+    frame.data = testData;
+    frame.size = 1000;
     for (int i = 0; i < framesCount; ++i) {
-        writer.write(testData, 1000);
+        writer.consume(frame);
     }
-    writer.finalize();
+    writer.stopConsuming();
 
     // Check if the data was written correctly
     std::ifstream file("test.bin", std::ios::binary);
