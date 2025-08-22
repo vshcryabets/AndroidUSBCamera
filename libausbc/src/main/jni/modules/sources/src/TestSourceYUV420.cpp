@@ -75,7 +75,7 @@ auvc::Frame TestSourceYUV420::readFrame()
         return auvc::Frame(
             captureConfiguration.width, 
             captureConfiguration.height, 
-            auvc::FrameFormat::RGBA,
+            auvc::FrameFormat::YUV420P,
             testData,
             testDataSize,
             std::chrono::high_resolution_clock::now()
