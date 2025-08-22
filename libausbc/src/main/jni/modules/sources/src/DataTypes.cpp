@@ -7,11 +7,13 @@ Frame& Frame::operator=(const Frame& other) {
         return *this;
     }
     // Deep copy the data
-    if (getData() && size == other.size) {
+    if (size == other.size) {
         width = other.width;
         height = other.height;
         format = other.format;
-        std::copy(other.getData(), other.getData() + other.size, getData());
+        if (getData() && other.getData()) {
+            std::copy(other.getData(), other.getData() + other.size, getData());
+        }
         timestamp = other.timestamp;
     } else {
         throw std::runtime_error("Frame assignment operator: size mismatch or null data");

@@ -43,8 +43,8 @@ void PullToPushSource::startCapturing(const Source::CaptureConfiguration &config
     if (!pullSource->isReadyForCapture()) {
         throw SourceError(SourceError::SOURCE_ERROR_CAPTURE_NOT_STARTED, "Pull source not started");
     }
+    running = true;
     workerThread = std::thread([this]() {
-        running = true;
         while (running) {
             if (pullSource->waitNextFrame()) {
                 if (!running) {

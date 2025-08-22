@@ -29,5 +29,5 @@ TEST_CASE("OwnBufferFrame can be assigned to any frame with different buffer siz
     REQUIRE(frame2.getWidth() == 640);
     REQUIRE(frame2.getHeight() == 480);
     REQUIRE(frame2.getFormat() == auvc::FrameFormat::RGB);
-    REQUIRE(std::equal(frame1.getData(), frame1.getData() + 6, frame2.getData()));
+    REQUIRE(std::equal(frame1.getData(), frame1.getData() + frame1.getSize(), frame2.getData()));
 }
