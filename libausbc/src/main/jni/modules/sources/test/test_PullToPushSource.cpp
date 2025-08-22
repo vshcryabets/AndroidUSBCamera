@@ -6,7 +6,7 @@
 #include <condition_variable>
 #include <mutex>
 
-TEST_CASE("testFormatsAndResolutions", "[TestSourceYUV420]") {
+TEST_CASE("testFormatsAndResolutions", "[PullToPushSource]") {
     std::atomic<bool> callbackCalled{false};
     std::mutex mtx;
     std::condition_variable cv;

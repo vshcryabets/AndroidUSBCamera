@@ -45,3 +45,25 @@ TEST_CASE("testCapture", "[TestSourceYUV420]") {
     source.stopCapturing();
     source.close();
 }
+
+TEST_CASE("Test that source give frames with delay", "[TestSourceYUV420]") {
+    TestSourceYUV420 source(u8x8_font_amstrad_cpc_extended_f);
+    source.open({});
+    source.startCapturing(Source::CaptureConfiguration {
+        .width = 640, 
+        .height = 480,
+        .fps = 10.0f
+    });
+    std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+    for (int i = 0; i < 10; i++) {
+        source.waitNextFrame();
+        auto frame = source.readFrame();
+    }
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    // 10 frames at 10 fps should take at least 900 ms (some margin for scheduling)
+    REQUIRE(duration >= 900);
+
+    source.stopCapturing();
+    source.close();
+}

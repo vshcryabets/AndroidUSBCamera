@@ -11,6 +11,7 @@ if(BUILD_SOURCES_MODULE)
                 src/TestSourceYUV420.cpp
                 src/FrameDataInjectUseCase.cpp
                 src/TestFileSource.cpp
+                src/PullToPushSource.cpp
                 )
         if(BUILD_SOURCES_MODULE_V4L2)
             target_sources(Sources PRIVATE

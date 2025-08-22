@@ -10,12 +10,9 @@ public:
 protected:
     std::shared_ptr<PullSource> pullSource {nullptr};
 public:
-    PullToPushSource() : PushSource() {}
-    virtual ~PullToPushSource() = default;
-    virtual void open(const OpenConfiguration &config) {
-        PushSource::open(config);
-        this->pullSource = config.pullSource;
-    }
+    PullToPushSource();
+    virtual ~PullToPushSource();
+    virtual void open(const OpenConfiguration &config);
     void stopCapturing() override;
     void close() override;
     std::map<uint16_t, std::vector<Resolution>> getSupportedResolutions() const override;
