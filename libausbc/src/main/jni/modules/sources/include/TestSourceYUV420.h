@@ -17,6 +17,8 @@ class TestSourceYUV420: public PullSource {
         const uint8_t *customFont;
         std::chrono::steady_clock::time_point captureStartTime;
         std::string sourceName;
+        std::chrono::steady_clock::time_point nextFrameTime;
+        std::chrono::milliseconds frameInterval {0};
     private:
         void drawString(std::string str, uint16_t x, uint16_t y, uint8_t upscale = 1);
         void drawChar(char c, uint16_t x, uint16_t y, uint8_t upscale = 1);

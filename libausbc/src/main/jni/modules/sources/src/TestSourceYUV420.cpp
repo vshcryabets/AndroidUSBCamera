@@ -1,5 +1,6 @@
 #include "TestSourceYUV420.h"
 #include <iostream>
+#include <thread>
 
 TestSourceYUV420::TestSourceYUV420(const uint8_t *customFont): customFont(customFont)
 {
@@ -22,6 +23,7 @@ TestSourceYUV420::~TestSourceYUV420()
 Source::Frame TestSourceYUV420::readFrame()
 {
     frameCounter++;
+    nextFrameTime = std::chrono::steady_clock::now() + frameInterval;
     Frame frame(captureConfiguration.width, captureConfiguration.height, FrameFormat::YUV420P);
     frame.data = nullptr;
     frame.size = 0;
@@ -95,6 +97,7 @@ void TestSourceYUV420::startCapturing(const Source::CaptureConfiguration &config
     testDataU = testData + pixelsCount; // U plane starts after Y plane
     testDataV = testDataU + pixelsCount / 4;
     captureStartTime = std::chrono::steady_clock::now();
+    frameInterval = std::chrono::milliseconds(static_cast<int>(1000.0f / config.fps));
     sourceName = "TestSource YUV420p " + std::to_string(config.width) + "x" + std::to_string(config.height);
 }
 
@@ -122,7 +125,11 @@ void TestSourceYUV420::stopCapturing()
 
 bool TestSourceYUV420::waitNextFrame()
 {
-    return true; // Always return true for test source
+    if (nextFrameTime.time_since_epoch().count() == 0) {
+        return true;
+    }
+    std::this_thread::sleep_until(nextFrameTime);
+    return true;
 }
 
 void TestSourceYUV420::drawChar(char c, uint16_t x, uint16_t y, uint8_t upscale) 
