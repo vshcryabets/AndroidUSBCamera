@@ -29,9 +29,9 @@ public:
 
     };
     struct CaptureConfiguration {
-        uint32_t width;
-        uint32_t height;
-        float fps;
+        uint32_t width {0};
+        uint32_t height {0};
+        float fps {0.0f};
     };
     
 protected:
@@ -42,7 +42,7 @@ protected:
 public:
     Source() {
         sourceConfig = OpenConfiguration();
-        captureConfiguration = CaptureConfiguration {0, 0, 0.0f};
+        captureConfiguration = CaptureConfiguration();
     };
     virtual ~Source() = default;
     virtual void open(const OpenConfiguration &config) {

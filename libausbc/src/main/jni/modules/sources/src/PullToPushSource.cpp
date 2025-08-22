@@ -47,7 +47,13 @@ void PullToPushSource::startCapturing(const Source::CaptureConfiguration &config
         running = true;
         while (running) {
             if (pullSource->waitNextFrame()) {
+                if (!running) {
+                    break;
+                }
                 auto frame = pullSource->readFrame();
+                if (!running) {
+                    break;
+                }
                 this->pushFrame(frame);
             }
         }
