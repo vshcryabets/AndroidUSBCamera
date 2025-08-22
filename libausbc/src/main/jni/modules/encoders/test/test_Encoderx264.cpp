@@ -41,7 +41,7 @@ TEST_CASE("testEncode", "[Encoderx264]") {
     TestFileWriter framesWriter("framesFile.h264", testWidth, testHeight, "video/h264", testFps);
 
     for (uint32_t i = 0; i < 60; ++i) {
-        Source::Frame frame = source.readFrame(); // Read a new frame for each iteration
+        auvc::Frame frame = source.readFrame(); // Read a new frame for each iteration
         if (frame.data == nullptr) {
             std::cerr << "Failed to read frame from source." << std::endl;
             break;

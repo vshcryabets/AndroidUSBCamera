@@ -16,7 +16,7 @@ TEST_CASE("testReadHeaders", "[TestFileSource]") {
 
     REQUIRE(supportedResolutions.size() == 1);
     REQUIRE(supportedFormats.size() == 1);
-    REQUIRE(supportedFormats[0] == Source::FrameFormat::ENCODED);
+    REQUIRE(supportedFormats[0] == auvc::FrameFormat::ENCODED);
     
     auto firstResolution = supportedResolutions.begin();
     REQUIRE(firstResolution != supportedResolutions.end());

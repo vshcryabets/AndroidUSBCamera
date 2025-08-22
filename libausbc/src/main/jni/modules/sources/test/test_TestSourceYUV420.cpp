@@ -15,7 +15,7 @@ TEST_CASE("testFormatsAndResolutions", "[TestSourceYUV420]") {
     auto supportedResolutions = source.getSupportedResolutions();
 
     REQUIRE(supportedFormats.size() == 1);
-    REQUIRE(supportedFormats[0] == Source::FrameFormat::YUV420P);
+    REQUIRE(supportedFormats[0] == auvc::FrameFormat::YUV420P);
 
     REQUIRE(supportedResolutions.size() == 1);
     auto firstResolution = supportedResolutions.begin();
@@ -43,7 +43,7 @@ TEST_CASE("testCapture", "[TestSourceYUV420]") {
     auto frame = source.readFrame();
     REQUIRE(frame.width == 640);
     REQUIRE(frame.height == 480);
-    REQUIRE(frame.format == Source::FrameFormat::YUV420P);
+    REQUIRE(frame.format == auvc::FrameFormat::YUV420P);
     REQUIRE(frame.data != nullptr);
     REQUIRE(frame.size == 640*480 * 3 / 2); // YUV420P has 1.5 bytes per pixel
 

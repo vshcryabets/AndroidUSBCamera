@@ -28,7 +28,7 @@ PullToPushSource::getSupportedResolutions() const
     return {};
 }
 
-std::vector<Source::FrameFormat> 
+std::vector<auvc::FrameFormat> 
 PullToPushSource::getSupportedFrameFormats() const
 {
     return {};

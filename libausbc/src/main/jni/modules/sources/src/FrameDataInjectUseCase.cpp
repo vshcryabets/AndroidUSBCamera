@@ -22,7 +22,7 @@ FrameDataInjectUseCaseRGBXImpl::FrameDataInjectUseCaseRGBXImpl(
 }
 
 void FrameDataInjectUseCase::injectData(
-    Source::Frame &frame,
+    auvc::Frame &frame,
     const char *data,
     uint8_t dataSize) const
 {
@@ -55,7 +55,7 @@ void FrameDataInjectUseCase::injectData(
 }
 
 uint32_t FrameDataInjectUseCaseRGBXImpl::getMiddleRgb(
-    const Source::Frame &frame,
+    const auvc::Frame &frame,
     uint16_t x,
     uint16_t y) const
 {
@@ -78,14 +78,14 @@ uint32_t FrameDataInjectUseCaseRGBXImpl::getMiddleRgb(
     bacc /= (quadWidth * quadHeight);
     return (racc << 16) | (gacc << 8) | bacc;
 }
-uint16_t FrameDataInjectUseCase::getDataSize(const Source::Frame &frame, 
+uint16_t FrameDataInjectUseCase::getDataSize(const auvc::Frame &frame, 
     uint16_t x, uint16_t y) const
 {
     uint32_t rgb = getMiddleRgb(frame, x, y);
     return ((rgb >> 16) & 0xF0) | ((rgb >> 12) & 0x0F);
 }
 
-void FrameDataInjectUseCase::readData(const Source::Frame &frame, 
+void FrameDataInjectUseCase::readData(const auvc::Frame &frame, 
     uint16_t x, uint16_t y, 
     char *outBuffer, uint8_t outBufferMaxSize) const
 {
@@ -113,7 +113,7 @@ void FrameDataInjectUseCase::readData(const Source::Frame &frame,
 }
 
 void FrameDataInjectUseCaseRGBXImpl::setMiddleRgb(
-    Source::Frame &frame,
+    auvc::Frame &frame,
     uint16_t x,
     uint16_t y,
     uint32_t rgb) const
@@ -149,7 +149,7 @@ FrameDataInjectUseCaseYUV420pImpl::FrameDataInjectUseCaseYUV420pImpl(
 {
 }
 
-uint32_t FrameDataInjectUseCaseYUV420pImpl::getMiddleRgb(const Source::Frame &frame, uint16_t x, uint16_t y) const
+uint32_t FrameDataInjectUseCaseYUV420pImpl::getMiddleRgb(const auvc::Frame &frame, uint16_t x, uint16_t y) const
 {
     size_t offset = y * frame.width + x;
     size_t uPlaneOffset = frame.width * frame.height;
@@ -183,7 +183,7 @@ uint32_t FrameDataInjectUseCaseYUV420pImpl::getMiddleRgb(const Source::Frame &fr
     uint8_t bacc = static_cast<uint8_t>(std::min(std::max((int)bValue, 0), 255));
     return (racc << 16) | (gacc << 8) | bacc;
 }
-void FrameDataInjectUseCaseYUV420pImpl::setMiddleRgb(Source::Frame &frame, uint16_t x, uint16_t y, uint32_t rgb) const 
+void FrameDataInjectUseCaseYUV420pImpl::setMiddleRgb(auvc::Frame &frame, uint16_t x, uint16_t y, uint32_t rgb) const 
 {
     uint8_t rValue = (rgb >> 16) & 0xFF;
     uint8_t gValue = (rgb >> 8) & 0xFF;

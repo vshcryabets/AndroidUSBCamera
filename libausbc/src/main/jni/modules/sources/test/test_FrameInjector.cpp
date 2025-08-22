@@ -47,7 +47,7 @@ TEST_CASE("get4bit must return 0", "[FrameDataInjectUseCaseRGBXImpl]") {
 TEST_CASE("setMiddleRgb", "[FrameDataInjectUseCaseRGBXImpl]") {
     FrameDataInjectUseCaseRGBXImpl useCase(8,8);
 
-    Source::Frame frame(32, 32, Source::FrameFormat::RGBX);
+    auvc::Frame frame(32, 32, auvc::FrameFormat::RGBX);
     frame.size = frame.width * frame.height * 4;
     frame.data = new uint8_t[frame.size];
     for (size_t i = 0; i < frame.size; ++i) { frame.data[i] = 0x00; }
@@ -68,7 +68,7 @@ TEST_CASE("setMiddleRgb", "[FrameDataInjectUseCaseRGBXImpl]") {
 TEST_CASE("getDataSize", "[FrameDataInjectUseCaseRGBXImpl]") {
     FrameDataInjectUseCaseRGBXImpl useCase(8,8);
 
-    Source::Frame frame(256, 128, Source::FrameFormat::RGBX);
+    auvc::Frame frame(256, 128, auvc::FrameFormat::RGBX);
     frame.size = frame.width * 128 * 4;
     frame.data = new uint8_t[frame.size];
     for (size_t i = 0; i < frame.size; ++i) { frame.data[i] = 0x80; }
@@ -89,7 +89,7 @@ TEST_CASE("getDataSize", "[FrameDataInjectUseCaseRGBXImpl]") {
 TEST_CASE("injectDataOverflowException", "[FrameDataInjectUseCaseRGBXImpl]") {
     FrameDataInjectUseCaseRGBXImpl useCase(8,8);
 
-    Source::Frame frame(128, 128, Source::FrameFormat::RGBX);
+    auvc::Frame frame(128, 128, auvc::FrameFormat::RGBX);
     frame.size = frame.width * 128 * 4;
     frame.data = new uint8_t[frame.size];
     for (size_t i = 0; i < frame.size; ++i) { frame.data[i] = 0x80; }
@@ -108,7 +108,7 @@ TEST_CASE("injectDataOverflowException", "[FrameDataInjectUseCaseRGBXImpl]") {
 TEST_CASE("readData", "[FrameDataInjectUseCaseRGBXImpl]") {
     FrameDataInjectUseCaseRGBXImpl useCase(8,8);
 
-    Source::Frame frame(256, 128, Source::FrameFormat::RGBX);
+    auvc::Frame frame(256, 128, auvc::FrameFormat::RGBX);
     frame.size = frame.width * 128 * 4;
     frame.data = new uint8_t[frame.size];
     for (size_t i = 0; i < frame.size; ++i) { frame.data[i] = 0x80; }
@@ -128,7 +128,7 @@ TEST_CASE("readData", "[FrameDataInjectUseCaseRGBXImpl]") {
 TEST_CASE("setMiddleRgb", "[FrameDataInjectUseCaseYUV420pImpl]") {
     FrameDataInjectUseCaseYUV420pImpl useCase(8,8);
 
-    Source::Frame frame(32, 32, Source::FrameFormat::YUV420P);
+    auvc::Frame frame(32, 32, auvc::FrameFormat::YUV420P);
     frame.size = frame.width * frame.height + (frame.width * frame.height) / 2;
     frame.data = new uint8_t[frame.size];
     for (size_t i = 0; i < frame.size; ++i) { frame.data[i] = 0x80; }
@@ -150,7 +150,7 @@ TEST_CASE("setMiddleRgb", "[FrameDataInjectUseCaseYUV420pImpl]") {
 TEST_CASE("readData", "[FrameDataInjectUseCaseYUV420pImpl]") {
     FrameDataInjectUseCaseYUV420pImpl useCase(8,8);
 
-    Source::Frame frame(256, 128, Source::FrameFormat::YUV420P);
+    auvc::Frame frame(256, 128, auvc::FrameFormat::YUV420P);
     frame.size = frame.width * frame.height + (frame.width * frame.height) / 2;
     frame.data = new uint8_t[frame.size];
     for (size_t i = 0; i < frame.size; ++i) { frame.data[i] = 0x80; }

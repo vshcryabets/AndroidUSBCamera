@@ -59,7 +59,7 @@ void JniSources_register(JNIEnv *env) {
     JniTestSource_register(env);
 }
 
-jobject frameFormatsToJList(const std::vector<Source::FrameFormat> &formats, JNIEnv *env) {
+jobject frameFormatsToJList(const std::vector<auvc::FrameFormat> &formats, JNIEnv *env) {
     jclass arrayListCls = env->FindClass("java/util/ArrayList");
     jmethodID arrayListInit = env->GetMethodID(arrayListCls, "<init>", "()V");
     jmethodID arrayListAdd = env->GetMethodID(arrayListCls, "add", "(Ljava/lang/Object;)Z");

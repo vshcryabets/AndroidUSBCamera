@@ -64,7 +64,7 @@ private:
               int width,
               int height)
     {
-        Source::Frame frame = testSource.readFrame();
+        auvc::Frame frame = testSource.readFrame();
         auto captureConfig = testSource.getCaptureConfiguration();
 #ifdef USE_YUV420_SOURCE
         convertUseCase.convert(*rgbaBuffer,

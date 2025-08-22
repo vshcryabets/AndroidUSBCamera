@@ -1,7 +1,5 @@
 #pragma once
-#include <cstdint>
-#include <cstddef>
-#include <chrono>
+#include "DataTypes.h"
 #include <functional>
 #include <vector>
 #include <string>
@@ -21,15 +19,6 @@ class SourceError : public std::exception {
 
 class Source {
 public:
-    enum FrameFormat {
-        YUYV,
-        RGBA,
-        RGB,
-        RGBX,
-        YUV420P,
-        ENCODED,
-        NONE
-    };
     struct Resolution {
         const uint8_t id;
         const uint16_t width;
@@ -44,22 +33,7 @@ public:
         uint32_t height;
         float fps;
     };
-    struct Frame {
-        const uint16_t width;
-        const uint16_t height;
-        const FrameFormat format;
-
-        uint8_t* data {nullptr};
-        size_t size;
-        std::chrono::high_resolution_clock::time_point timestamp {std::chrono::high_resolution_clock::now()};
-
-        Frame(uint16_t width, uint16_t height, FrameFormat format)
-            : width(width),
-            height(height),
-            format(format),
-            data(nullptr),
-            size(0) {}
-    };
+    
 protected:
     OpenConfiguration sourceConfig;
     CaptureConfiguration captureConfiguration;
@@ -85,7 +59,7 @@ public:
     virtual void stopCapturing() = 0;
     virtual void close() = 0;
     virtual std::map<uint16_t, std::vector<Resolution>> getSupportedResolutions() const = 0;
-    virtual std::vector<FrameFormat> getSupportedFrameFormats() const = 0;
+    virtual std::vector<auvc::FrameFormat> getSupportedFrameFormats() const = 0;
     virtual bool isPullSource() const = 0;
     virtual bool isPushSource() const = 0;
 };
@@ -94,7 +68,7 @@ class PullSource : public Source {
 public:
     PullSource() : Source() {}
     virtual ~PullSource() = default;
-    virtual Frame readFrame() = 0;
+    virtual auvc::Frame readFrame() = 0;
     virtual bool waitNextFrame() = 0;
     [[nodiscard]] bool isPullSource() const override {;
         return true;
@@ -106,7 +80,7 @@ public:
 
 class PushSource : public Source {
 public:
-    using FrameCallback = std::function<void(const Frame &frame)>;
+    using FrameCallback = std::function<void(const auvc::Frame &frame)>;
     struct OpenConfiguration: public Source::OpenConfiguration {
         FrameCallback frameCallback;
     };
@@ -119,7 +93,7 @@ public:
         Source::open(config);
         this->frameCallback = config.frameCallback;
     }
-    virtual void pushFrame(const Frame &frame) {
+    virtual void pushFrame(const auvc::Frame &frame) {
         if (frameCallback) {
             frameCallback(frame);
         }

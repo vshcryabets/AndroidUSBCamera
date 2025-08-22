@@ -61,7 +61,7 @@ extern "C"
         jlong itemPtr)
     {
         auto *source = reinterpret_cast<TestSourceYUV420 *>(itemPtr);
-        std::vector<Source::FrameFormat> formats = source->getSupportedFrameFormats();
+        std::vector<auvc::FrameFormat> formats = source->getSupportedFrameFormats();
         return frameFormatsToJList(formats, env);
     }
 

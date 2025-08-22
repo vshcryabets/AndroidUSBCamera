@@ -101,7 +101,7 @@ void TestFileSource::open(const ConnectConfiguration &config)
     {
         dataFile.read(reinterpret_cast<char*>(&framesTocItems[i]), sizeof(framesTocItems[i]));
     }
-    supportedFormats.push_back(Source::FrameFormat::ENCODED);
+    supportedFormats.push_back(auvc::FrameFormat::ENCODED);
 }
 
 void TestFileSource::close()
@@ -116,7 +116,7 @@ std::map<uint16_t, std::vector<Source::Resolution>> TestFileSource::getSupported
     return supportedResolutions;
 }
 
-std::vector<Source::FrameFormat> TestFileSource::getSupportedFrameFormats() const
+std::vector<auvc::FrameFormat> TestFileSource::getSupportedFrameFormats() const
 {
     return supportedFormats;
 }
@@ -141,7 +141,7 @@ bool TestFileSource::waitNextFrame()
     return false;
 }
 
-Source::Frame TestFileSource::readFrame()
+auvc::Frame TestFileSource::readFrame()
 {
     if (currentFrame < framesCount) {
         dataFile.seekg(framesTocItems[currentFrame], std::ios::beg);
@@ -154,13 +154,13 @@ Source::Frame TestFileSource::readFrame()
         if (size > 0) {
             auto frameData = std::make_unique<uint8_t[]>(size);
             dataFile.read(reinterpret_cast<char*>(frameData.get()), size);
-            auto result = Source::Frame(width, height, Source::FrameFormat::ENCODED);
+            auto result = auvc::Frame(width, height, auvc::FrameFormat::ENCODED);
             result.data = frameData.release();
             result.size = size;
             return result;
         }
     }
-    return Source::Frame(0, 0, Source::FrameFormat::NONE);
+    return auvc::Frame(0, 0, auvc::FrameFormat::NONE);
 }
 
 void TestFileSource::startCapturing(const CaptureConfiguration &config)

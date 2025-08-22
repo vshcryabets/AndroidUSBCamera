@@ -21,5 +21,5 @@ public:
     void stopCapturing() override;
     void close() override;
     std::map<uint16_t, std::vector<Resolution>> getSupportedResolutions() const override;
-    std::vector<FrameFormat> getSupportedFrameFormats() const override;
+    std::vector<auvc::FrameFormat> getSupportedFrameFormats() const override;
 };

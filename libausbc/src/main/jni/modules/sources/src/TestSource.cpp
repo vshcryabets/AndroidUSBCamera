@@ -19,10 +19,10 @@ TestSource::~TestSource()
     close();
 }
 
-Source::Frame TestSource::readFrame()
+auvc::Frame TestSource::readFrame()
 {
     frameCounter++;
-    Frame frame(captureConfiguration.width, captureConfiguration.height, FrameFormat::RGBA);
+    auvc::Frame frame(captureConfiguration.width, captureConfiguration.height, auvc::FrameFormat::RGBA);
     frame.data = nullptr;
     frame.size = 0;
     if (testData)
@@ -82,9 +82,9 @@ void TestSource::close()
     stopCapturing();
 }
 
-std::vector<Source::FrameFormat> TestSource::getSupportedFrameFormats() const
+std::vector<auvc::FrameFormat> TestSource::getSupportedFrameFormats() const
 {
-    return {Source::FrameFormat::RGBA};
+    return {auvc::FrameFormat::RGBA};
 }
 
 void TestSource::stopCapturing()

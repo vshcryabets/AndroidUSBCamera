@@ -20,11 +20,11 @@ TestSourceYUV420::~TestSourceYUV420()
     close();
 }
 
-Source::Frame TestSourceYUV420::readFrame()
+auvc::Frame TestSourceYUV420::readFrame()
 {
     frameCounter++;
     nextFrameTime = std::chrono::steady_clock::now() + frameInterval;
-    Frame frame(captureConfiguration.width, captureConfiguration.height, FrameFormat::YUV420P);
+    auvc::Frame frame(captureConfiguration.width, captureConfiguration.height, auvc::FrameFormat::YUV420P);
     frame.data = nullptr;
     frame.size = 0;
     if (testData)
@@ -110,9 +110,9 @@ void TestSourceYUV420::close()
     stopCapturing();
 }
 
-std::vector<Source::FrameFormat> TestSourceYUV420::getSupportedFrameFormats() const
+std::vector<auvc::FrameFormat> TestSourceYUV420::getSupportedFrameFormats() const
 {
-    return {Source::FrameFormat::YUV420P};
+    return {auvc::FrameFormat::YUV420P};
 }
 
 void TestSourceYUV420::stopCapturing()
