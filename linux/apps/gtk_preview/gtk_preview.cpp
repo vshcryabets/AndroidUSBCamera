@@ -6,6 +6,7 @@
 #include "TestSource.h"
 #include "TestSourceYUV420.h"
 #include "ImageUseCases.h"
+#include "PullToPushSource.h"
 
 #include <gtk/gtk.h>
 #include <cairo.h>
@@ -32,21 +33,19 @@ private:
     GtkApplication *app;
     int status;
     ConvertBitmapUseCase::Buffer draw_buffer;
-#ifdef USE_YUV420_SOURCE    
-    TestSourceYUV420 testSource;
-#else
-    TestSource testSource;
-#endif
+    std::shared_ptr<PullToPushSource> pullToPush;
+    std::shared_ptr<PullSource> testSource;
+
     ConvertYUV420ptoRGBAUseCase convertUseCase;
 #ifdef USE_YUV420_SOURCE   
     ConvertBitmapUseCase::Buffer *rgbaBuffer;
 #endif
+    Source::CaptureConfiguration captureConfig = {
+        .width = 640,
+        .height = 480,
+        .fps = 30.0f};
+
 private:
-    static gboolean staticTimeout(gpointer user_data)
-    {
-        static_cast<GtkPreviewApplication *>(user_data)->onTimeout();
-        return true; // Continue calling this function
-    }
 
     static void staticActivate(GtkApplication *app, gpointer user_data)
     {
@@ -64,30 +63,18 @@ private:
               int width,
               int height)
     {
-        auvc::Frame frame = testSource.readFrame();
-        auto captureConfig = testSource.getCaptureConfiguration();
+        auvc::Frame frame = testSource->readFrame();
 #ifdef USE_YUV420_SOURCE
         convertUseCase.convert(*rgbaBuffer,
             {
-                .buffer = frame.data,
-                .capacity = frame.size,
-                .size = frame.size,
+                .buffer = frame.getData(),
+                .capacity = frame.getSize(),
+                .size = frame.getSize(),
                 .width = captureConfig.width,
                 .height = captureConfig.height
             }
         );
 #endif
-        // // Write frame.data to a file (for example, as raw YUV420 data)
-        // FILE *file = fopen("frame.yuv", "wb");
-        // if (file) {
-        //     fwrite(frame.data, 1, frame.size, file);
-        //     fclose(file);
-        // }
-        // file = fopen("frame.rgb", "wb");
-        // if (file) {
-        //     fwrite(rgbaBuffer->buffer, 1, rgbaBuffer->size, file);
-        //     fclose(file);
-        // }
 
         cairo_format_t format = CAIRO_FORMAT_ARGB32;
         cairo_surface_t* surface = cairo_image_surface_create_for_data(
@@ -144,15 +131,13 @@ private:
 
         gtk_window_present(GTK_WINDOW(window));
 
-        g_timeout_add(33, this->staticTimeout, this);
+        // g_timeout_add(33, this->staticTimeout, this);
+        testSource->startCapturing(captureConfig);
+        pullToPush->startCapturing({});
     }
 
-    void onTimeout()
-    {
-        gtk_widget_queue_draw(draw_area);
-    }
 public:
-    GtkPreviewApplication(): testSource(u8x8_font_amstrad_cpc_extended_f)
+    GtkPreviewApplication(): testSource(nullptr)
     {
         app = gtk_application_new("org.vsh.gtk4preview", G_APPLICATION_DEFAULT_FLAGS);
         g_signal_connect(app, "activate", G_CALLBACK(&staticActivate), this);
@@ -175,12 +160,9 @@ public:
 
     int run(int argc, char *argv[])
     {
-        Source::CaptureConfiguration captureConfig = {
-            .width = 640,
-            .height = 480,
-            .fps = 30.0f};
-        testSource.startCapturing(captureConfig);
-#ifdef USE_YUV420_SOURCE        
+
+#ifdef USE_YUV420_SOURCE
+        testSource = std::make_shared<TestSourceYUV420>(u8x8_font_amstrad_cpc_extended_f);
         size_t rgbaBufferSize = captureConfig.width * captureConfig.height * 4;
         rgbaBuffer = new ConvertBitmapUseCase::Buffer{
             .buffer = new uint8_t[rgbaBufferSize],
@@ -188,7 +170,20 @@ public:
             .size = 0,
             .width = 640,
             .height = 480};
+#else
+        testSource = std::make_shared<TestSource>(u8x8_font_amstrad_cpc_extended_f);            
 #endif            
+
+
+        pullToPush = std::make_shared<PullToPushSource>();
+        PullToPushSource::OpenConfiguration config;
+        config.pullSource = testSource;
+        config.frameCallback = [&](const auvc::Frame &frame) {
+            // Handle the frame data from the pull source
+            gtk_widget_queue_draw(draw_area);
+        };
+        pullToPush->open(config);
+
         status = g_application_run(G_APPLICATION(app), argc, argv);
         return status;
     }

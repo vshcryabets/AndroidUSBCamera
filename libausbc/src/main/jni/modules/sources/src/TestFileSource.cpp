@@ -34,8 +34,8 @@ TestFileWriter::~TestFileWriter()
 
 void TestFileWriter::consume(const auvc::Frame& frame)
 {
-    const uint8_t *data = frame.data;
-    uint32_t size = frame.size;
+    const uint8_t *data = frame.getData();
+    uint32_t size = frame.getSize();
     if (dataFile.is_open() && data != nullptr && size > 0) {
         dataFile.seekp(filePosition);
         if (filePosition % 4 != 0) {
@@ -156,13 +156,17 @@ auvc::Frame TestFileSource::readFrame()
         if (size > 0) {
             auto frameData = std::make_unique<uint8_t[]>(size);
             dataFile.read(reinterpret_cast<char*>(frameData.get()), size);
-            auto result = auvc::Frame(width, height, auvc::FrameFormat::ENCODED);
-            result.data = frameData.release();
-            result.size = size;
-            return result;
+            return auvc::Frame(
+                width, 
+                height, 
+                auvc::FrameFormat::ENCODED,
+                frameData.release(),
+                size,
+                std::chrono::high_resolution_clock::now()
+            );
         }
     }
-    return auvc::Frame(0, 0, auvc::FrameFormat::NONE);
+    return auvc::Frame(0, 0, auvc::FrameFormat::NONE, nullptr, 0, std::chrono::high_resolution_clock::now());
 }
 
 void TestFileSource::startCapturing(const CaptureConfiguration &config)

@@ -22,9 +22,6 @@ TestSource::~TestSource()
 auvc::Frame TestSource::readFrame()
 {
     frameCounter++;
-    auvc::Frame frame(captureConfiguration.width, captureConfiguration.height, auvc::FrameFormat::RGBA);
-    frame.data = nullptr;
-    frame.size = 0;
     if (testData)
     {
         uint16_t chunkWidth = captureConfiguration.width / testRGBAColors.size();
@@ -55,11 +52,17 @@ auvc::Frame TestSource::readFrame()
             seconds, millis);
         drawString(std::string(timeStr), 20, 40, 1);
 
-        frame.data = testData;
-        frame.size = testDataSize;
-        frame.timestamp = std::chrono::high_resolution_clock::now();
+        return auvc::Frame(
+            captureConfiguration.width, 
+            captureConfiguration.height, 
+            auvc::FrameFormat::RGBA,
+            testData,
+            testDataSize,
+            std::chrono::high_resolution_clock::now()
+        );
     }
-    return frame;
+    throw SourceError(SourceError::SOURCE_ERROR_CAPTURE_NOT_STARTED, 
+        "Capture not started or invalid configuration");
 }
 
 void TestSource::startCapturing(const Source::CaptureConfiguration &config)

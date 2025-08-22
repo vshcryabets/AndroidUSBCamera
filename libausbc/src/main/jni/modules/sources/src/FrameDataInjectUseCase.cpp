@@ -29,7 +29,7 @@ void FrameDataInjectUseCase::injectData(
     uint8_t currentQuad = 0;
     uint16_t bitPos = 0;
     uint16_t bitsCount = dataSize * 8;
-    if (((bitsCount + 8) / 12 + 1) > frame.width / quadWidth)
+    if (((bitsCount + 8) / 12 + 1) > frame.getWidth() / quadWidth)
     {
         throw std::overflow_error("Data size exceeds available space in the frame.");
     }
@@ -59,7 +59,7 @@ uint32_t FrameDataInjectUseCaseRGBXImpl::getMiddleRgb(
     uint16_t x,
     uint16_t y) const
 {
-    size_t offset = (y * frame.width + x) * 4;
+    size_t offset = (y * frame.getWidth() + x) * 4;
     uint32_t racc = 0;
     uint32_t gacc = 0;
     uint32_t bacc = 0;
@@ -67,10 +67,10 @@ uint32_t FrameDataInjectUseCaseRGBXImpl::getMiddleRgb(
     {
         for (size_t j = 0; j < quadWidth; ++j)
         {
-            size_t idx = (i * frame.width + j) * 4;
-            racc += static_cast<uint32_t>(frame.data[offset + idx]);
-            gacc += static_cast<uint32_t>(frame.data[offset + idx + 1]);
-            bacc += static_cast<uint32_t>(frame.data[offset + idx + 2]);
+            size_t idx = (i * frame.getWidth() + j) * 4;
+            racc += static_cast<uint32_t>(frame.getData()[offset + idx]);
+            gacc += static_cast<uint32_t>(frame.getData()[offset + idx + 1]);
+            bacc += static_cast<uint32_t>(frame.getData()[offset + idx + 2]);
         }
     }
     racc /= (quadWidth * quadHeight);
@@ -118,15 +118,15 @@ void FrameDataInjectUseCaseRGBXImpl::setMiddleRgb(
     uint16_t y,
     uint32_t rgb) const
 {
-    size_t offset = (y * frame.width + x) * 4;
+    size_t offset = (y * frame.getWidth() + x) * 4;
     for (size_t i = 0; i < quadHeight; ++i)
     {
         for (size_t j = 0; j < quadWidth; ++j)
         {
-            size_t idx = (i * frame.width + j) * 4;
-            frame.data[offset + idx] = static_cast<uint8_t>((rgb >> 16) & 0xFF);    // Red
-            frame.data[offset + idx + 1] = static_cast<uint8_t>((rgb >> 8) & 0xFF); // Green
-            frame.data[offset + idx + 2] = static_cast<uint8_t>(rgb & 0xFF);        // Blue
+            size_t idx = (i * frame.getWidth() + j) * 4;
+            frame.getData()[offset + idx] = static_cast<uint8_t>((rgb >> 16) & 0xFF);    // Red
+            frame.getData()[offset + idx + 1] = static_cast<uint8_t>((rgb >> 8) & 0xFF); // Green
+            frame.getData()[offset + idx + 2] = static_cast<uint8_t>(rgb & 0xFF);        // Blue
         }
     }
 }
@@ -151,22 +151,25 @@ FrameDataInjectUseCaseYUV420pImpl::FrameDataInjectUseCaseYUV420pImpl(
 
 uint32_t FrameDataInjectUseCaseYUV420pImpl::getMiddleRgb(const auvc::Frame &frame, uint16_t x, uint16_t y) const
 {
-    size_t offset = y * frame.width + x;
-    size_t uPlaneOffset = frame.width * frame.height;
-    size_t vPlaneOffset = uPlaneOffset + (frame.width * frame.height) / 4;
+    size_t width = frame.getWidth();
+    size_t height = frame.getHeight();
+    size_t offset = y * width + x;
+    size_t uPlaneOffset = width * height;
+    size_t vPlaneOffset = uPlaneOffset + (width * height) / 4;
     uPlaneOffset += offset / 4;
     vPlaneOffset += offset / 4;
     float yacc = 0;
     float uacc = 0;
     float vacc = 0;
+    uint8_t* data = frame.getData();
     for (size_t i = 0; i < quadHeight; ++i)
     {
         for (size_t j = 0; j < quadWidth; ++j)
         {
-            size_t idx = i * frame.width + j;
-            yacc += frame.data[offset + idx];
-            uacc += frame.data[uPlaneOffset + idx/4];
-            vacc += frame.data[vPlaneOffset + idx/4];
+            size_t idx = i * width + j;
+            yacc += data[offset + idx];
+            uacc += data[uPlaneOffset + idx/4];
+            vacc += data[vPlaneOffset + idx/4];
         }
     }
     float yValue = yacc / (quadWidth * quadHeight);
@@ -185,6 +188,10 @@ uint32_t FrameDataInjectUseCaseYUV420pImpl::getMiddleRgb(const auvc::Frame &fram
 }
 void FrameDataInjectUseCaseYUV420pImpl::setMiddleRgb(auvc::Frame &frame, uint16_t x, uint16_t y, uint32_t rgb) const 
 {
+    size_t width = frame.getWidth();
+    size_t height = frame.getHeight();
+    uint8_t* data = frame.getData();
+
     uint8_t rValue = (rgb >> 16) & 0xFF;
     uint8_t gValue = (rgb >> 8) & 0xFF;
     uint8_t bValue = rgb & 0xFF;
@@ -193,17 +200,17 @@ void FrameDataInjectUseCaseYUV420pImpl::setMiddleRgb(auvc::Frame &frame, uint16_
     uint8_t uValue = static_cast<uint8_t>(-0.169 * rValue - 0.331 * gValue + 0.5 * bValue + 128);
     uint8_t vValue = static_cast<uint8_t>(0.5 * rValue - 0.419 * gValue - 0.081 * bValue + 128);
 
-    size_t uPlaneOffset = frame.width * frame.height;
-    size_t vPlaneOffset = uPlaneOffset + (frame.width * frame.height) / 4;
+    size_t uPlaneOffset = width * height;
+    size_t vPlaneOffset = uPlaneOffset + (width * height) / 4;
 
     for (size_t i = 0; i < quadHeight; ++i)
     {
         for (size_t j = 0; j < quadWidth; ++j)
         {
-            size_t yIndex = (y + i) * frame.width + (x + j);
-            frame.data[yIndex] = yValue;
-            frame.data[uPlaneOffset + yIndex / 4] = uValue;
-            frame.data[vPlaneOffset + yIndex / 4] = vValue;
+            size_t yIndex = (y + i) * width + (x + j);
+            data[yIndex] = yValue;
+            data[uPlaneOffset + yIndex / 4] = uValue;
+            data[vPlaneOffset + yIndex / 4] = vValue;
         }
     }
 }

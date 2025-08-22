@@ -24,9 +24,6 @@ auvc::Frame TestSourceYUV420::readFrame()
 {
     frameCounter++;
     nextFrameTime = std::chrono::steady_clock::now() + frameInterval;
-    auvc::Frame frame(captureConfiguration.width, captureConfiguration.height, auvc::FrameFormat::YUV420P);
-    frame.data = nullptr;
-    frame.size = 0;
     if (testData)
     {
         const uint16_t width = captureConfiguration.width;
@@ -75,13 +72,17 @@ auvc::Frame TestSourceYUV420::readFrame()
             seconds, millis);
         drawString(std::string(timeStr), 20, 40, 1);
 
-        frame.data = testData;
-        frame.size = testDataSize;
-        frame.timestamp = std::chrono::high_resolution_clock::now();
-    } else {
-        throw SourceError(SourceError::SOURCE_ERROR_CAPTURE_NOT_STARTED, "Capture not started or invalid configuration");
+        return auvc::Frame(
+            captureConfiguration.width, 
+            captureConfiguration.height, 
+            auvc::FrameFormat::RGBA,
+            testData,
+            testDataSize,
+            std::chrono::high_resolution_clock::now()
+        );
     }
-    return frame;
+    throw SourceError(SourceError::SOURCE_ERROR_CAPTURE_NOT_STARTED, 
+        "Capture not started or invalid configuration");
 }
 
 void TestSourceYUV420::startCapturing(const Source::CaptureConfiguration &config)

@@ -27,11 +27,11 @@ TEST_CASE("testFormatsAndResolutions", "[PullToPushSource]") {
     PullToPushSource::OpenConfiguration config;
     config.pullSource = source;
     config.frameCallback = [&](const auvc::Frame &frame) {
-        REQUIRE(frame.width == realConfig.width);
-        REQUIRE(frame.height == realConfig.height);
-        REQUIRE(frame.size > 0);
-        REQUIRE(frame.data != nullptr);
-        REQUIRE(frame.format == auvc::FrameFormat::YUV420P);
+        REQUIRE(frame.getWidth() == realConfig.width);
+        REQUIRE(frame.getHeight() == realConfig.height);
+        REQUIRE(frame.getSize() > 0);
+        REQUIRE(frame.getData() != nullptr);
+        REQUIRE(frame.getFormat() == auvc::FrameFormat::YUV420P);
         {
             std::lock_guard<std::mutex> lock(mtx);
             callbackCalled = true;

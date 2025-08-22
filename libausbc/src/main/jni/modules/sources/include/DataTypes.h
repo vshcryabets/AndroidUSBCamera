@@ -15,21 +15,37 @@ enum FrameFormat {
         NONE
     };
 
-struct Frame {
-    const uint16_t width;
-    const uint16_t height;
-    const FrameFormat format;
-
-    uint8_t* data {nullptr};
+class Frame {
+private:
+    uint16_t width;
+    uint16_t height;
+    FrameFormat format;
+    uint8_t* data;
     size_t size;
-    std::chrono::high_resolution_clock::time_point timestamp {std::chrono::high_resolution_clock::now()};
+    std::chrono::high_resolution_clock::time_point timestamp;
+public:
 
-    Frame(uint16_t width, uint16_t height, FrameFormat format)
+    Frame(uint16_t width, 
+        uint16_t height, 
+        FrameFormat format,
+        uint8_t* data,
+        size_t size,
+        std::chrono::high_resolution_clock::time_point timestamp
+    )
         : width(width),
         height(height),
         format(format),
-        data(nullptr),
-        size(0) {}
+        data(data),
+        size(size),
+        timestamp(timestamp) {}
+
+    Frame& operator=(const Frame& other);
+    [[nodiscard]] uint16_t getWidth() const { return width; }
+    [[nodiscard]] uint16_t getHeight() const { return height; }
+    [[nodiscard]] FrameFormat getFormat() const { return format; }
+    [[nodiscard]] uint8_t* getData() const { return data; }
+    [[nodiscard]] size_t getSize() const { return size; }
+    [[nodiscard]] std::chrono::high_resolution_clock::time_point getTimestamp() const { return timestamp; }
 };
 
 } // namespace auvc

@@ -8,7 +8,7 @@ PullToPushSource::PullToPushSource()
 
 PullToPushSource::~PullToPushSource()
 {
-
+    close();
 }
 
 void PullToPushSource::open(const OpenConfiguration &config) {
@@ -45,14 +45,12 @@ void PullToPushSource::startCapturing(const Source::CaptureConfiguration &config
     }
     workerThread = std::thread([this]() {
         running = true;
-        std::cout << "PullToPushSource: Worker thread started" << std::endl;
         while (running) {
             if (pullSource->waitNextFrame()) {
                 auto frame = pullSource->readFrame();
                 this->pushFrame(frame);
             }
         }
-        std::cout << "PullToPushSource: Worker thread ended" << std::endl;
     });
 }
 

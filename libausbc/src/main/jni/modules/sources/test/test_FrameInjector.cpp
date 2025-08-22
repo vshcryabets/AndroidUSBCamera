@@ -46,17 +46,26 @@ TEST_CASE("get4bit must return 0", "[FrameDataInjectUseCaseRGBXImpl]") {
 
 TEST_CASE("setMiddleRgb", "[FrameDataInjectUseCaseRGBXImpl]") {
     FrameDataInjectUseCaseRGBXImpl useCase(8,8);
+    uint16_t width = 32;
+    uint16_t height = 32;
+    const auto frameSize = width * height * 4;
+    auvc::Frame frame(
+        width, 
+        height, 
+        auvc::FrameFormat::RGBX,
+        new uint8_t[frameSize],
+        frameSize,
+        std::chrono::high_resolution_clock::now()
+    );
 
-    auvc::Frame frame(32, 32, auvc::FrameFormat::RGBX);
-    frame.size = frame.width * frame.height * 4;
-    frame.data = new uint8_t[frame.size];
-    for (size_t i = 0; i < frame.size; ++i) { frame.data[i] = 0x00; }
+    uint8_t* data = frame.getData();
+    for (size_t i = 0; i < frame.getSize(); ++i) { data[i] = 0x00; }
 
     useCase.setMiddleRgb(frame, 0, 0, 0x123456);
     REQUIRE(0x123456 == useCase.getMiddleRgb(frame, 0, 0));
-    REQUIRE(0x12 == frame.data[0]);
-    REQUIRE(0x34 == frame.data[1]);
-    REQUIRE(0x56 == frame.data[2]);
+    REQUIRE(0x12 == data[0]);
+    REQUIRE(0x34 == data[1]);
+    REQUIRE(0x56 == data[2]);
 
     useCase.setMiddleRgb(frame, 8, 0, 0xABCDEF);
     useCase.setMiddleRgb(frame, 16, 0, 0x444444);
@@ -67,11 +76,18 @@ TEST_CASE("setMiddleRgb", "[FrameDataInjectUseCaseRGBXImpl]") {
 
 TEST_CASE("getDataSize", "[FrameDataInjectUseCaseRGBXImpl]") {
     FrameDataInjectUseCaseRGBXImpl useCase(8,8);
-
-    auvc::Frame frame(256, 128, auvc::FrameFormat::RGBX);
-    frame.size = frame.width * 128 * 4;
-    frame.data = new uint8_t[frame.size];
-    for (size_t i = 0; i < frame.size; ++i) { frame.data[i] = 0x80; }
+    uint16_t width = 256;
+    uint16_t height = 128;
+    const auto frameSize = width * height * 4;
+    auvc::Frame frame(
+        width, 
+        height, 
+        auvc::FrameFormat::RGBX,
+        new uint8_t[frameSize],
+        frameSize,
+        std::chrono::high_resolution_clock::now()
+    );
+    for (size_t i = 0; i < frame.getSize(); ++i) { frame.getData()[i] = 0x80; }
 
     // Test data
     uint8_t data[] = {0xCA, 0xFE, 0xBE, 0xEF, 
@@ -89,10 +105,17 @@ TEST_CASE("getDataSize", "[FrameDataInjectUseCaseRGBXImpl]") {
 TEST_CASE("injectDataOverflowException", "[FrameDataInjectUseCaseRGBXImpl]") {
     FrameDataInjectUseCaseRGBXImpl useCase(8,8);
 
-    auvc::Frame frame(128, 128, auvc::FrameFormat::RGBX);
-    frame.size = frame.width * 128 * 4;
-    frame.data = new uint8_t[frame.size];
-    for (size_t i = 0; i < frame.size; ++i) { frame.data[i] = 0x80; }
+    uint16_t width = 128;
+    uint32_t frameSize = width * 128 * 4;
+    auvc::Frame frame(
+        width, 
+        128, 
+        auvc::FrameFormat::RGBX,
+        new uint8_t[frameSize],
+        frameSize,
+        std::chrono::high_resolution_clock::now()
+    );
+    for (size_t i = 0; i < frame.getSize(); ++i) { frame.getData()[i] = 0x80; }
 
     // Test data
     uint8_t data[] = {0xCA, 0xFE, 0xBE, 0xEF, 
@@ -107,11 +130,17 @@ TEST_CASE("injectDataOverflowException", "[FrameDataInjectUseCaseRGBXImpl]") {
 
 TEST_CASE("readData", "[FrameDataInjectUseCaseRGBXImpl]") {
     FrameDataInjectUseCaseRGBXImpl useCase(8,8);
-
-    auvc::Frame frame(256, 128, auvc::FrameFormat::RGBX);
-    frame.size = frame.width * 128 * 4;
-    frame.data = new uint8_t[frame.size];
-    for (size_t i = 0; i < frame.size; ++i) { frame.data[i] = 0x80; }
+    uint16_t width = 256;
+    uint32_t frameSize = width * 128 * 4;
+    auvc::Frame frame(
+        width, 
+        128, 
+        auvc::FrameFormat::RGBX,
+        new uint8_t[frameSize],
+        frameSize,
+        std::chrono::high_resolution_clock::now()
+    );
+    for (size_t i = 0; i < frame.getSize(); ++i) { frame.getData()[i] = 0x80; }
 
     // Test data
     const char *data = "Test data string, which is longer 16 bytes";
@@ -128,17 +157,27 @@ TEST_CASE("readData", "[FrameDataInjectUseCaseRGBXImpl]") {
 TEST_CASE("setMiddleRgb", "[FrameDataInjectUseCaseYUV420pImpl]") {
     FrameDataInjectUseCaseYUV420pImpl useCase(8,8);
 
-    auvc::Frame frame(32, 32, auvc::FrameFormat::YUV420P);
-    frame.size = frame.width * frame.height + (frame.width * frame.height) / 2;
-    frame.data = new uint8_t[frame.size];
-    for (size_t i = 0; i < frame.size; ++i) { frame.data[i] = 0x80; }
+    uint16_t width = 32;
+    uint16_t height = 32;
+    uint32_t frameSize = width * height + (width * height) / 2;
+    auvc::Frame frame(
+        width, 
+        height, 
+        auvc::FrameFormat::YUV420P,
+        new uint8_t[frameSize],
+        frameSize,
+        std::chrono::high_resolution_clock::now()
+    );
+
+    uint8_t* data = frame.getData();
+    for (size_t i = 0; i < frame.getSize(); ++i) { data[i] = 0x80; }
 
     useCase.setMiddleRgb(frame, 0, 0, 0xA83858);
     REQUIRE(0xA03050 == (useCase.getMiddleRgb(frame, 0, 0) & 0xF0F0F0) );
-    REQUIRE(0x5D == frame.data[0]);
-    REQUIRE(0x5D == frame.data[1]);
-    REQUIRE(0x5D == frame.data[2]);
-    REQUIRE(0x7D == frame.data[frame.width * frame.height]);
+    REQUIRE(0x5D == data[0]);
+    REQUIRE(0x5D == data[1]);
+    REQUIRE(0x5D == data[2]);
+    REQUIRE(0x7D == data[frame.getWidth() * frame.getHeight()]);
 
     useCase.setMiddleRgb(frame, 8, 0, 0xA8C8E8);
     useCase.setMiddleRgb(frame, 16, 0, 0x444444);
@@ -150,10 +189,20 @@ TEST_CASE("setMiddleRgb", "[FrameDataInjectUseCaseYUV420pImpl]") {
 TEST_CASE("readData", "[FrameDataInjectUseCaseYUV420pImpl]") {
     FrameDataInjectUseCaseYUV420pImpl useCase(8,8);
 
-    auvc::Frame frame(256, 128, auvc::FrameFormat::YUV420P);
-    frame.size = frame.width * frame.height + (frame.width * frame.height) / 2;
-    frame.data = new uint8_t[frame.size];
-    for (size_t i = 0; i < frame.size; ++i) { frame.data[i] = 0x80; }
+    uint16_t width = 256;
+    uint16_t height = 128;
+    uint32_t frameSize = width * height + (width * height) / 2;
+    auvc::Frame frame(
+        width, 
+        height, 
+        auvc::FrameFormat::YUV420P,
+        new uint8_t[frameSize],
+        frameSize,
+        std::chrono::high_resolution_clock::now()
+    );
+
+    uint8_t* frameData = frame.getData();
+    for (size_t i = 0; i < frame.getSize(); ++i) { frameData[i] = 0x80; }
 
     // Test data
     const char *data = "Test";

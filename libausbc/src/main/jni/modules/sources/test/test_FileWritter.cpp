@@ -39,9 +39,11 @@ TEST_CASE("testWriteData", "[TestFileWriter]") {
     TestFileWriter writer("test.bin", 640, 480, "video/h264", 29.97f);
     uint8_t testData[1000] = {0x01, 0x02, 0x03, 0x04, 0x05};
     uint32_t framesCount = 160;
-    auvc::Frame frame(640, 480, auvc::FrameFormat::ENCODED);
-    frame.data = testData;
-    frame.size = 1000;
+    auvc::Frame frame(640, 480, auvc::FrameFormat::ENCODED,
+        testData,
+        1000,
+        std::chrono::high_resolution_clock::now()
+    );
     for (int i = 0; i < framesCount; ++i) {
         writer.consume(frame);
     }
