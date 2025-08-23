@@ -17,16 +17,18 @@ class TestSourceYUV420: public PullSource {
         const uint8_t *customFont;
         std::chrono::steady_clock::time_point captureStartTime;
         std::string sourceName;
+        std::chrono::steady_clock::time_point nextFrameTime;
+        std::chrono::milliseconds frameInterval {0};
     private:
         void drawString(std::string str, uint16_t x, uint16_t y, uint8_t upscale = 1);
         void drawChar(char c, uint16_t x, uint16_t y, uint8_t upscale = 1);
     public:
         TestSourceYUV420(const uint8_t *customFont);
         virtual ~TestSourceYUV420();
-        virtual Frame readFrame() override;
+        virtual auvc::Frame readFrame() override;
         void startCapturing(const CaptureConfiguration &config) override;
         void close() override;
-        std::vector<Source::FrameFormat> getSupportedFrameFormats() const override;
+        std::vector<auvc::FrameFormat> getSupportedFrameFormats() const override;
         std::map<uint16_t, std::vector<Resolution>> getSupportedResolutions() const override;
         void stopCapturing() override;
         bool waitNextFrame() override;

@@ -29,11 +29,13 @@ TestFileWriter::TestFileWriter(const std::string &fileName,
 
 TestFileWriter::~TestFileWriter()
 {
-    finalize();
+    stopConsuming();
 }
 
-void TestFileWriter::write(const uint8_t *data, uint32_t size)
+void TestFileWriter::consume(const auvc::Frame& frame)
 {
+    const uint8_t *data = frame.getData();
+    uint32_t size = frame.getSize();
     if (dataFile.is_open() && data != nullptr && size > 0) {
         dataFile.seekp(filePosition);
         if (filePosition % 4 != 0) {
@@ -50,7 +52,7 @@ void TestFileWriter::write(const uint8_t *data, uint32_t size)
     }
 }
 
-void TestFileWriter::finalize()
+void TestFileWriter::stopConsuming()
 {
     if (dataFile.is_open()) {
         uint32_t toc = filePosition;
@@ -101,7 +103,7 @@ void TestFileSource::open(const ConnectConfiguration &config)
     {
         dataFile.read(reinterpret_cast<char*>(&framesTocItems[i]), sizeof(framesTocItems[i]));
     }
-    supportedFormats.push_back(Source::FrameFormat::ENCODED);
+    supportedFormats.push_back(auvc::FrameFormat::ENCODED);
 }
 
 void TestFileSource::close()
@@ -116,7 +118,7 @@ std::map<uint16_t, std::vector<Source::Resolution>> TestFileSource::getSupported
     return supportedResolutions;
 }
 
-std::vector<Source::FrameFormat> TestFileSource::getSupportedFrameFormats() const
+std::vector<auvc::FrameFormat> TestFileSource::getSupportedFrameFormats() const
 {
     return supportedFormats;
 }
@@ -141,7 +143,7 @@ bool TestFileSource::waitNextFrame()
     return false;
 }
 
-Source::Frame TestFileSource::readFrame()
+auvc::Frame TestFileSource::readFrame()
 {
     if (currentFrame < framesCount) {
         dataFile.seekg(framesTocItems[currentFrame], std::ios::beg);
@@ -154,13 +156,17 @@ Source::Frame TestFileSource::readFrame()
         if (size > 0) {
             auto frameData = std::make_unique<uint8_t[]>(size);
             dataFile.read(reinterpret_cast<char*>(frameData.get()), size);
-            auto result = Source::Frame(width, height, Source::FrameFormat::ENCODED);
-            result.data = frameData.release();
-            result.size = size;
-            return result;
+            return auvc::Frame(
+                width, 
+                height, 
+                auvc::FrameFormat::ENCODED,
+                frameData.release(),
+                size,
+                std::chrono::high_resolution_clock::now()
+            );
         }
     }
-    return Source::Frame(0, 0, Source::FrameFormat::NONE);
+    return auvc::Frame(0, 0, auvc::FrameFormat::NONE, nullptr, 0, std::chrono::high_resolution_clock::now());
 }
 
 void TestFileSource::startCapturing(const CaptureConfiguration &config)

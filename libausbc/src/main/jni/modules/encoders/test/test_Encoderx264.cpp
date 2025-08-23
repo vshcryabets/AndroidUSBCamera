@@ -41,18 +41,18 @@ TEST_CASE("testEncode", "[Encoderx264]") {
     TestFileWriter framesWriter("framesFile.h264", testWidth, testHeight, "video/h264", testFps);
 
     for (uint32_t i = 0; i < 60; ++i) {
-        Source::Frame frame = source.readFrame(); // Read a new frame for each iteration
-        if (frame.data == nullptr) {
+        auvc::Frame frame = source.readFrame(); // Read a new frame for each iteration
+        if (frame.getData() == nullptr) {
             std::cerr << "Failed to read frame from source." << std::endl;
             break;
         }
     
         size_t requiredSize = testFrameSizeY + 2 * testFrameSizeU;
-        REQUIRE(frame.size >= requiredSize); // Ensure frame.data is large enough
+        REQUIRE(frame.getSize() >= requiredSize); // Ensure frame.data is large enough
 
-        memcpy(pic_in->img.plane[0], frame.data, testFrameSizeY);
-        memcpy(pic_in->img.plane[1], frame.data + testFrameSizeY, testFrameSizeU);
-        memcpy(pic_in->img.plane[2], frame.data + testFrameSizeY + testFrameSizeU, testFrameSizeU);
+        memcpy(pic_in->img.plane[0], frame.getData(), testFrameSizeY);
+        memcpy(pic_in->img.plane[1], frame.getData() + testFrameSizeY, testFrameSizeU);
+        memcpy(pic_in->img.plane[2], frame.getData() + testFrameSizeY + testFrameSizeU, testFrameSizeU);
         pic_in->i_pts = i; // Presentation timestamp for the frame
         EncoderMultiBuffer encoded = encoder.encodeFrame();
 
@@ -61,10 +61,18 @@ TEST_CASE("testEncode", "[Encoderx264]") {
             memcpy(singleBuffer + bufferPosition, buf.data, buf.size);
             bufferPosition += buf.size;
         }
-        framesWriter.write(singleBuffer, bufferPosition);
+        auvc::Frame singleBufferFrame(
+            testWidth, 
+            testHeight, 
+            auvc::FrameFormat::ENCODED,
+            singleBuffer,
+            bufferPosition,
+            std::chrono::high_resolution_clock::now()
+        );
+        framesWriter.consume(singleBufferFrame);
 
         REQUIRE(encoded.totalSize > 0);
         REQUIRE(encoded.buffers.size() > 0);
     }
-    framesWriter.finalize();
+    framesWriter.stopConsuming();
 }

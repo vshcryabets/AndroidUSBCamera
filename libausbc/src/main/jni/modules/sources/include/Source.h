@@ -1,7 +1,5 @@
 #pragma once
-#include <cstdint>
-#include <cstddef>
-#include <chrono>
+#include "DataTypes.h"
 #include <functional>
 #include <vector>
 #include <string>
@@ -10,6 +8,7 @@
 class SourceError : public std::exception {
     public:
         static const uint16_t SOURCE_ERROR_WRONG_CONFIG = 0x0001;
+        static const uint16_t SOURCE_ERROR_CAPTURE_NOT_STARTED = 0x0002;
     private:
         uint16_t code;
         std::string message;
@@ -20,15 +19,6 @@ class SourceError : public std::exception {
 
 class Source {
 public:
-    enum FrameFormat {
-        YUYV,
-        RGBA,
-        RGB,
-        RGBX,
-        YUV420P,
-        ENCODED,
-        NONE
-    };
     struct Resolution {
         const uint8_t id;
         const uint16_t width;
@@ -39,47 +29,37 @@ public:
 
     };
     struct CaptureConfiguration {
-        uint32_t width;
-        uint32_t height;
-        float fps;
+        uint32_t width {0};
+        uint32_t height {0};
+        float fps {0.0f};
     };
-    struct Frame {
-        const uint16_t width;
-        const uint16_t height;
-        const FrameFormat format;
-
-        uint8_t* data {nullptr};
-        size_t size;
-        std::chrono::high_resolution_clock::time_point timestamp {std::chrono::high_resolution_clock::now()};
-
-        Frame(uint16_t width, uint16_t height, FrameFormat format)
-            : width(width),
-            height(height),
-            format(format),
-            data(nullptr),
-            size(0) {}
-    };
+    
 protected:
     OpenConfiguration sourceConfig;
     CaptureConfiguration captureConfiguration;
 protected:
     uint32_t frameCounter {0};
 public:
-    Source() {};
+    Source() {
+        sourceConfig = OpenConfiguration();
+        captureConfiguration = CaptureConfiguration();
+    };
     virtual ~Source() = default;
     virtual void open(const OpenConfiguration &config) {
         this->sourceConfig = config;
     }
     const OpenConfiguration getOpenConfiguration() const;
-    virtual void close() = 0;
+    const CaptureConfiguration getCaptureConfiguration() const;
+
 
     virtual void startCapturing(const CaptureConfiguration &config) {
         this->captureConfiguration = config;
     }
-    const CaptureConfiguration getCaptureConfiguration() const;
+    virtual bool isReadyForCapture() const;
     virtual void stopCapturing() = 0;
+    virtual void close() = 0;
     virtual std::map<uint16_t, std::vector<Resolution>> getSupportedResolutions() const = 0;
-    virtual std::vector<FrameFormat> getSupportedFrameFormats() const = 0;
+    virtual std::vector<auvc::FrameFormat> getSupportedFrameFormats() const = 0;
     virtual bool isPullSource() const = 0;
     virtual bool isPushSource() const = 0;
 };
@@ -88,7 +68,7 @@ class PullSource : public Source {
 public:
     PullSource() : Source() {}
     virtual ~PullSource() = default;
-    virtual Frame readFrame() = 0;
+    virtual auvc::Frame readFrame() = 0;
     virtual bool waitNextFrame() = 0;
     [[nodiscard]] bool isPullSource() const override {;
         return true;
@@ -100,16 +80,20 @@ public:
 
 class PushSource : public Source {
 public:
-    using FrameCallback = std::function<void(const Frame &frame)>;
+    using FrameCallback = std::function<void(const auvc::Frame &frame)>;
+    struct OpenConfiguration: public Source::OpenConfiguration {
+        FrameCallback frameCallback;
+    };
 protected:
     FrameCallback frameCallback;
 public:
     PushSource() : Source() {}
     virtual ~PushSource() = default;
-    virtual void setFrameCallback(const FrameCallback &callback) {
-        this->frameCallback = callback;
+    virtual void open(const OpenConfiguration &config) {
+        Source::open(config);
+        this->frameCallback = config.frameCallback;
     }
-    virtual void pushFrame(const Frame &frame) {
+    virtual void pushFrame(const auvc::Frame &frame) {
         if (frameCallback) {
             frameCallback(frame);
         }

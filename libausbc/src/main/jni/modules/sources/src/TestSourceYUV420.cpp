@@ -1,5 +1,6 @@
 #include "TestSourceYUV420.h"
 #include <iostream>
+#include <thread>
 
 TestSourceYUV420::TestSourceYUV420(const uint8_t *customFont): customFont(customFont)
 {
@@ -19,12 +20,10 @@ TestSourceYUV420::~TestSourceYUV420()
     close();
 }
 
-Source::Frame TestSourceYUV420::readFrame()
+auvc::Frame TestSourceYUV420::readFrame()
 {
     frameCounter++;
-    Frame frame(captureConfiguration.width, captureConfiguration.height, FrameFormat::YUV420P);
-    frame.data = nullptr;
-    frame.size = 0;
+    nextFrameTime = std::chrono::steady_clock::now() + frameInterval;
     if (testData)
     {
         const uint16_t width = captureConfiguration.width;
@@ -73,11 +72,17 @@ Source::Frame TestSourceYUV420::readFrame()
             seconds, millis);
         drawString(std::string(timeStr), 20, 40, 1);
 
-        frame.data = testData;
-        frame.size = testDataSize;
-        frame.timestamp = std::chrono::high_resolution_clock::now();
+        return auvc::Frame(
+            captureConfiguration.width, 
+            captureConfiguration.height, 
+            auvc::FrameFormat::YUV420P,
+            testData,
+            testDataSize,
+            std::chrono::high_resolution_clock::now()
+        );
     }
-    return frame;
+    throw SourceError(SourceError::SOURCE_ERROR_CAPTURE_NOT_STARTED, 
+        "Capture not started or invalid configuration");
 }
 
 void TestSourceYUV420::startCapturing(const Source::CaptureConfiguration &config)
@@ -87,7 +92,9 @@ void TestSourceYUV420::startCapturing(const Source::CaptureConfiguration &config
         config.height == 0 ||
         (config.width % testYUVColors.size() != 0))
     {
-        throw SourceError(SourceError::SOURCE_ERROR_WRONG_CONFIG, "Invalid capture configuration, width,height must be > 0 and width % " + std::to_string(testYUVColors.size()) + " == 0");
+        throw SourceError(SourceError::SOURCE_ERROR_WRONG_CONFIG, 
+            "Invalid capture configuration, width,height must be > 0 and width % " +
+             std::to_string(testYUVColors.size()) + " == 0");
     }
     size_t pixelsCount = config.width * config.height;
     testDataSize = pixelsCount + pixelsCount / 2; // YUV420 requires 1.5 bytes per pixel
@@ -95,6 +102,7 @@ void TestSourceYUV420::startCapturing(const Source::CaptureConfiguration &config
     testDataU = testData + pixelsCount; // U plane starts after Y plane
     testDataV = testDataU + pixelsCount / 4;
     captureStartTime = std::chrono::steady_clock::now();
+    frameInterval = std::chrono::milliseconds(static_cast<int>(1000.0f / config.fps));
     sourceName = "TestSource YUV420p " + std::to_string(config.width) + "x" + std::to_string(config.height);
 }
 
@@ -103,9 +111,9 @@ void TestSourceYUV420::close()
     stopCapturing();
 }
 
-std::vector<Source::FrameFormat> TestSourceYUV420::getSupportedFrameFormats() const
+std::vector<auvc::FrameFormat> TestSourceYUV420::getSupportedFrameFormats() const
 {
-    return {Source::FrameFormat::YUV420P};
+    return {auvc::FrameFormat::YUV420P};
 }
 
 void TestSourceYUV420::stopCapturing()
@@ -122,7 +130,11 @@ void TestSourceYUV420::stopCapturing()
 
 bool TestSourceYUV420::waitNextFrame()
 {
-    return true; // Always return true for test source
+    if (nextFrameTime.time_since_epoch().count() == 0) {
+        return true;
+    }
+    std::this_thread::sleep_until(nextFrameTime);
+    return true;
 }
 
 void TestSourceYUV420::drawChar(char c, uint16_t x, uint16_t y, uint8_t upscale) 

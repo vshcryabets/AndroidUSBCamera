@@ -5,7 +5,7 @@
 
 TEST_CASE("testReadHeaders", "[TestFileSource]") {
     TestFileWriter writer("test.bin", 640, 480, "video/h264", 29.97f);
-    writer.finalize();
+    writer.stopConsuming();
 
     TestFileSource source;
     source.open({
@@ -16,7 +16,7 @@ TEST_CASE("testReadHeaders", "[TestFileSource]") {
 
     REQUIRE(supportedResolutions.size() == 1);
     REQUIRE(supportedFormats.size() == 1);
-    REQUIRE(supportedFormats[0] == Source::FrameFormat::ENCODED);
+    REQUIRE(supportedFormats[0] == auvc::FrameFormat::ENCODED);
     
     auto firstResolution = supportedResolutions.begin();
     REQUIRE(firstResolution != supportedResolutions.end());
@@ -50,7 +50,7 @@ TEST_CASE("testFramesReading", "[TestFileSource]") {
 
     REQUIRE(source.setCurrentFrame(10) == 10);
     for (size_t i = 0; i < 10 ; i++) {
-        REQUIRE(source.readFrame().data != nullptr);
+        REQUIRE(source.readFrame().getData() != nullptr);
     }
     REQUIRE(source.getCurrentFrame() == 20);
 }

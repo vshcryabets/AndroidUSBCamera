@@ -3,6 +3,7 @@
 #include <fstream>
 #include <vector>
 #include <map>
+#include <Consumer.h>
 
 class TestFileSource : public PullSource {
 public:
@@ -23,16 +24,16 @@ private:
     uint32_t fileTocPosition = 0;
     std::ifstream dataFile;
     std::vector<uint32_t> framesTocItems;
-    std::vector<Source::FrameFormat> supportedFormats;
+    std::vector<auvc::FrameFormat> supportedFormats;
     std::map<uint16_t, std::vector<Resolution>> supportedResolutions;
 public:
     TestFileSource();
     virtual ~TestFileSource();
-    Frame readFrame() override;
+    auvc::Frame readFrame() override;
     void startCapturing(const CaptureConfiguration &config) override;
     void close() override;
     std::map<uint16_t, std::vector<Resolution>> getSupportedResolutions() const override;
-    std::vector<FrameFormat> getSupportedFrameFormats() const override;
+    std::vector<auvc::FrameFormat> getSupportedFrameFormats() const override;
     void stopCapturing() override;
     bool waitNextFrame() override;
     virtual void open(const ConnectConfiguration &config);
@@ -45,7 +46,7 @@ public:
     }
 };
 
-class TestFileWriter {
+class TestFileWriter: auvc::Consumer {
 private:
     const static uint32_t TOC_POSITION = 12;
     uint32_t framesCount = 0;
@@ -59,7 +60,7 @@ public:
                    std::string mimeType,
                    float fps);
     ~TestFileWriter();
-    
-    void write(const uint8_t *data, uint32_t size);
-    void finalize();
+
+    void consume(const auvc::Frame& frame) override;
+    void stopConsuming() override;
 };
