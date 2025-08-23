@@ -51,7 +51,7 @@ TEST_CASE("testCapture", "[TestSourceYUV420]") {
     source.close();
 }
 
-TEST_CASE("Test that source give frames with delay", "[TestSourceYUV420]") {
+TEST_CASE("Test that source gives frames with delay", "[TestSourceYUV420]") {
     TestSourceYUV420 source(u8x8_font_amstrad_cpc_extended_f);
     source.open({});
     source.startCapturing(Source::CaptureConfiguration {

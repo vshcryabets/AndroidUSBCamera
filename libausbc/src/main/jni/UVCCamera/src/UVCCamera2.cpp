@@ -33,10 +33,10 @@ UVCCamera2::~UVCCamera2()
 
 }
 
-std::vector<Source::FrameFormat> UVCCamera2::getSupportedFrameFormats() const
+std::vector<auvc::FrameFormat> UVCCamera2::getSupportedFrameFormats() const
 {
     return {
-        FrameFormat::RGBX
+        auvc::FrameFormat::RGBX
     };
 }
 

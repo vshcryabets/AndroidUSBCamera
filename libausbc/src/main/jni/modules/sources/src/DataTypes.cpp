@@ -16,7 +16,7 @@ Frame& Frame::operator=(const Frame& other) {
         }
         timestamp = other.timestamp;
     } else {
-        throw std::runtime_error("Frame assignment operator: size mismatch or null data");
+        throw std::runtime_error("Frame assignment operator: size mismatch");
     }
 
     return *this;
