@@ -197,7 +197,7 @@ void UVCPreviewJni::onFinished(uint16_t deviceId) {
 }
 
 void UVCPreviewJni::onFrameLost(uint16_t deviceId, std::chrono::steady_clock::time_point timestamp, uint8_t reason) {
-    LOGD("onFrameDropped %lld reason = %d", timestamp.time_since_epoch(), reason);
+    LOGD("onFrameDropped %lld reason = %d", timestamp.time_since_epoch().count(), reason);
 }
 
 void UVCPreviewJni::onFailed(uint16_t deviceId, UvcCaptureFailed error) {

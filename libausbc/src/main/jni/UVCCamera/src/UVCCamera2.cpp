@@ -51,5 +51,5 @@ void UVCCamera2::close()
 
 std::map<uint16_t, std::vector<Source::Resolution>> UVCCamera2::getSupportedResolutions() const
 {
-
+    return {};
 }
