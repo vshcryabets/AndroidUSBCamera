@@ -1,3 +1,4 @@
+#include "UvcCamera.h"
 #include <string.h> //memset
 #include <stdlib.h> //calloc
 #include <unistd.h> //close
@@ -167,8 +168,8 @@ UvcCamera::~UvcCamera() {
     // uninit_device();
     // close_device();
 }
-void UvcCamera::open(const UvcCamera::Configuration & config) {
-    Source::open(config.source);
+void UvcCamera::open(const UvcCamera::OpenConfiguration & config) {
+    Source::open(config);
     this->uvcConfig = config;
     struct stat st;
 
@@ -395,12 +396,11 @@ void UvcCamera::stopCapturing()
 }
 
 
-UvcCamera::Frame UvcCamera::readFrame(){
+auvc::Frame UvcCamera::readFrame(){
     frameCounter++;
     struct v4l2_buffer buf;
     unsigned int i;
-    Frame result;
-    result.format = Source::FrameFormat::YUYV;
+    auvc::Frame result;
 
     switch (io) {
         case IO_METHOD_READ:
@@ -416,9 +416,14 @@ UvcCamera::Frame UvcCamera::readFrame(){
                         throw UvcException(UvcException::Type::ReadError);
                 }
             }
-            printf("Process image 1 %p %d\n", buffers[0].start, buffers[0].length);
-            result.data = (uint8_t*)buffers[0].start;
-            result.size = buffers[0].length;
+            result = auvc::Frame(
+                getCaptureConfiguration().width,
+                getCaptureConfiguration().height,
+                auvc::FrameFormat::YUYV,
+                (uint8_t*)buffers[0].start,
+                buffers[0].length,
+                std::chrono::high_resolution_clock::now()
+            );
             break;
 
         case IO_METHOD_MMAP:
@@ -430,7 +435,14 @@ UvcCamera::Frame UvcCamera::readFrame(){
             if (-1 == xioctl(fd, VIDIOC_DQBUF, &buf)) {
                 switch (errno) {
                     case EAGAIN:
-                        return Frame();
+                        return auvc::Frame(
+                            0,
+                            0,
+                            auvc::FrameFormat::NONE,
+                            nullptr,
+                            0,
+                            std::chrono::high_resolution_clock::now()
+                        );
 
                     case EIO:
                         /* Could ignore EIO, see spec. */
@@ -443,8 +455,15 @@ UvcCamera::Frame UvcCamera::readFrame(){
             }
 
             //printf("Process image 2 %p %d\n", buffers[buf.index].start, buf.bytesused);
-            result.data = (uint8_t*)buffers[buf.index].start;
-            result.size = buf.bytesused;
+            result = auvc::Frame(
+                getCaptureConfiguration().width,
+                getCaptureConfiguration().height,
+                auvc::FrameFormat::YUYV,
+                (uint8_t*)buffers[buf.index].start,
+                buf.bytesused,
+                std::chrono::high_resolution_clock::now()
+            );
+
             if (-1 == xioctl(fd, VIDIOC_QBUF, &buf))
                 throw UvcException(UvcException::Type::IoCtlError);
             break;
@@ -458,7 +477,14 @@ UvcCamera::Frame UvcCamera::readFrame(){
             if (-1 == xioctl(fd, VIDIOC_DQBUF, &buf)) {
                 switch (errno) {
                     case EAGAIN:
-                        return Frame();
+                        return auvc::Frame(
+                            0,
+                            0,
+                            auvc::FrameFormat::NONE,
+                            nullptr,
+                            0,
+                            std::chrono::high_resolution_clock::now()
+                        );
 
                     case EIO:
                         /* Could ignore EIO, see spec. */
@@ -475,9 +501,14 @@ UvcCamera::Frame UvcCamera::readFrame(){
                     && buf.length == buffers[i].length)
                     break;
 
-            //printf("Process image 3 %p %d\n", (void *)buf.m.userptr, buf.bytesused);
-            result.data = (uint8_t*)buf.m.userptr;
-            result.size = buf.bytesused;
+            result = auvc::Frame(
+                getCaptureConfiguration().width,
+                getCaptureConfiguration().height,
+                auvc::FrameFormat::YUYV,
+                (uint8_t*)buf.m.userptr,
+                buf.bytesused,
+                std::chrono::high_resolution_clock::now()
+            );
             if (-1 == xioctl(fd, VIDIOC_QBUF, &buf))
                 throw UvcException(UvcException::Type::IoCtlError);
             break;
@@ -506,6 +537,6 @@ bool UvcCamera::waitNextFrame() {
     return r > 0;
 }
 
-std::vector<Source::FrameFormat> UvcCamera::getSupportedFrameFormats() {
-    return { Source::FrameFormat::YUV422 };
+std::vector<auvc::FrameFormat> UvcCamera::getSupportedFrameFormats() const {
+    return { auvc::FrameFormat::YUYV };
 }
