@@ -35,9 +35,10 @@ TEST_CASE("testEncode", "[Encoderx264]") {
 
     encoder.open(config);
     encoder.start();
-    x264_picture_t *pic_in = encoder.getPicIn();
     
-    uint8_t singleBuffer[testFrameSizeY + 2 * testFrameSizeU];
+    auvc::OwnBufferFrame frame(testWidth, testHeight, auvc::FrameFormat::YUV420P, 
+        testFrameSizeY + 2 * testFrameSizeU, std::chrono::high_resolution_clock::now()  );
+
     TestFileWriter framesWriter("framesFile.h264", testWidth, testHeight, "video/h264", testFps);
 
     for (uint32_t i = 0; i < 60; ++i) {
@@ -50,11 +51,11 @@ TEST_CASE("testEncode", "[Encoderx264]") {
         size_t requiredSize = testFrameSizeY + 2 * testFrameSizeU;
         REQUIRE(frame.getSize() >= requiredSize); // Ensure frame.data is large enough
 
-        memcpy(pic_in->img.plane[0], frame.getData(), testFrameSizeY);
-        memcpy(pic_in->img.plane[1], frame.getData() + testFrameSizeY, testFrameSizeU);
-        memcpy(pic_in->img.plane[2], frame.getData() + testFrameSizeY + testFrameSizeU, testFrameSizeU);
-        pic_in->i_pts = i; // Presentation timestamp for the frame
-        EncoderMultiBuffer encoded = encoder.encodeFrame();
+        memcpy(frame.getData(), frame.getData(), testFrameSizeY);
+        memcpy(frame.getData() + testFrameSizeY, frame.getData() + testFrameSizeY, testFrameSizeU);
+        memcpy(frame.getData() + testFrameSizeY + testFrameSizeU, frame.getData() + testFrameSizeY + testFrameSizeU, testFrameSizeU);
+        frame.setTimestamp(i); // Presentation timestamp for the frame
+        encoder.consume(frame);
 
         uint32_t bufferPosition = 0;
         for (const auto& buf : encoded.buffers) {

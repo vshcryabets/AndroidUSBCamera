@@ -49,6 +49,7 @@ public:
     [[nodiscard]] virtual uint8_t* getData() const { return data; }
     [[nodiscard]] size_t getSize() const { return size; }
     [[nodiscard]] std::chrono::high_resolution_clock::time_point getTimestamp() const { return timestamp; }
+    void setTimestamp(const std::chrono::high_resolution_clock::time_point &newTimestamp) { timestamp = newTimestamp; }
 };
 
 /**

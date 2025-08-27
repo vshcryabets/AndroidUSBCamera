@@ -50,8 +50,6 @@ public:
     }
     const OpenConfiguration getOpenConfiguration() const;
     const CaptureConfiguration getCaptureConfiguration() const;
-
-
     virtual void startCapturing(const CaptureConfiguration &config) {
         this->captureConfiguration = config;
     }

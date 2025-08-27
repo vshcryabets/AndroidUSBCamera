@@ -4,6 +4,7 @@
 #include <exception>
 #include <string>
 #include "Consumer.h"
+#include "Source.h"
 
 class EncoderException : public std::exception
 {
@@ -45,24 +46,21 @@ struct EncoderMultiBuffer
     size_t totalSize{0};
 };
 
-class Encoder: auvc::Consumer
-{
-public:
-    Encoder() = default;
-    virtual ~Encoder() {};
-    virtual void start() = 0;
-    virtual void stop() = 0;
-    virtual void consume(const auvc::Frame& frame) override = 0;
-    // virtual EncoderMultiBuffer encodeFrame() = 0;
-    // virtual EncoderMultiBuffer flush() = 0;
-};
-
-struct EncoderBaseConfiguration
+struct EncoderBaseConfiguration: public PushSource::OpenConfiguration
 {
     uint32_t width;
     uint32_t height;
     uint16_t fps_num;
     uint16_t fps_den;
+};
+
+class Encoder: public auvc::Consumer, public PushSource
+{
+public:
+    Encoder() = default;
+    virtual ~Encoder() {};
+    // virtual EncoderMultiBuffer encodeFrame() = 0;
+    // virtual EncoderMultiBuffer flush() = 0;
 };
 
 template <typename T>
@@ -75,6 +73,7 @@ public:
     EncoderWithConfiguration() = default;
     virtual void open(const T &config)
     {
+        PushSource::open(config);
         this->config = config;
     }
     virtual const T &getConfiguration() const

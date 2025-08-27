@@ -25,11 +25,8 @@ public:
     X264Encoder();
     virtual ~X264Encoder();
     virtual void open(const X264EncConfiguration &config) override;
-    void start() override;
-    void stop() override;
     void close() override;
     void consume(const auvc::Frame& frame) override;
-    // x264_picture_t* getPicIn();
-    // EncoderMultiBuffer encodeFrame() override;
-    // EncoderMultiBuffer flush() override;
+    void startCapturing(const CaptureConfiguration &config) override;
+    void stopCapturing() override;
 };
