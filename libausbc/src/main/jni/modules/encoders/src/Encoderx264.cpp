@@ -35,9 +35,9 @@ void X264Encoder::open(const X264EncConfiguration &config)
     }
 }
 
-void X264Encoder::startCapturing(const CaptureConfiguration &config)
+void X264Encoder::startProducing(const CaptureConfiguration &config)
 {
-    PushSource::startCapturing(config);
+    PushSource::startProducing(config);
     if (encoder == nullptr)
     {
         throw EncoderException(EncoderException::Type::NotInitialized, 
@@ -46,9 +46,9 @@ void X264Encoder::startCapturing(const CaptureConfiguration &config)
     x264_picture_alloc(&pic_in, x264_param.i_csp, x264_param.i_width, x264_param.i_height);
 }
 
-void X264Encoder::stopCapturing() {
+void X264Encoder::stopProducing() {
     x264_picture_clean(&pic_in);
-    PushSource::stopCapturing();
+    PushSource::stopProducing();
     // x264_picture_clean(&pic_out);
 }
 

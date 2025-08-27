@@ -14,11 +14,12 @@ TEST_CASE("testEncode", "[Encoderx264]") {
     uint32_t testFrameSizeU = (testWidth / 2) * (testHeight / 2);
     TestSourceYUV420 source(u8x8_font_amstrad_cpc_extended_f);
     source.open({}); // Open the source
-    source.startCapturing({
+    source.startProducing({
         .width = testWidth,
         .height = testHeight,
         .fps = testFps
     });
+
 
     X264Encoder encoder;
     X264EncConfiguration config;
@@ -33,13 +34,18 @@ TEST_CASE("testEncode", "[Encoderx264]") {
     config.intra_refresh = true; // Use IDR refresh
     config.crf = 23.0f;          // CRF value
 
-    encoder.open(config);
-    encoder.start();
-    
-    auvc::OwnBufferFrame frame(testWidth, testHeight, auvc::FrameFormat::YUV420P, 
-        testFrameSizeY + 2 * testFrameSizeU, std::chrono::high_resolution_clock::now()  );
 
     TestFileWriter framesWriter("framesFile.h264", testWidth, testHeight, "video/h264", testFps);
+
+    config.frameCallback = [&framesWriter](const auvc::Frame &frame) {
+        framesWriter.consume(frame);
+        REQUIRE(frame.getSize() > 0);
+        REQUIRE(frame.getData() != nullptr);
+    };
+
+    encoder.open(config);
+    encoder.startProducing({});  
+
 
     for (uint32_t i = 0; i < 60; ++i) {
         auvc::Frame frame = source.readFrame(); // Read a new frame for each iteration
@@ -54,26 +60,23 @@ TEST_CASE("testEncode", "[Encoderx264]") {
         memcpy(frame.getData(), frame.getData(), testFrameSizeY);
         memcpy(frame.getData() + testFrameSizeY, frame.getData() + testFrameSizeY, testFrameSizeU);
         memcpy(frame.getData() + testFrameSizeY + testFrameSizeU, frame.getData() + testFrameSizeY + testFrameSizeU, testFrameSizeU);
-        frame.setTimestamp(i); // Presentation timestamp for the frame
+        frame.setTimestamp(std::chrono::high_resolution_clock::now()); // Presentation timestamp for the frame
         encoder.consume(frame);
 
-        uint32_t bufferPosition = 0;
-        for (const auto& buf : encoded.buffers) {
-            memcpy(singleBuffer + bufferPosition, buf.data, buf.size);
-            bufferPosition += buf.size;
-        }
-        auvc::Frame singleBufferFrame(
-            testWidth, 
-            testHeight, 
-            auvc::FrameFormat::ENCODED,
-            singleBuffer,
-            bufferPosition,
-            std::chrono::high_resolution_clock::now()
-        );
-        framesWriter.consume(singleBufferFrame);
+        // uint32_t bufferPosition = 0;
+        // for (const auto& buf : encoded.buffers) {
+        //     memcpy(singleBuffer + bufferPosition, buf.data, buf.size);
+        //     bufferPosition += buf.size;
+        // }
+        // auvc::Frame singleBufferFrame(
+        //     testWidth, 
+        //     testHeight, 
+        //     auvc::FrameFormat::ENCODED,
+        //     singleBuffer,
+        //     bufferPosition,
+        //     std::chrono::high_resolution_clock::now()
+        // );
 
-        REQUIRE(encoded.totalSize > 0);
-        REQUIRE(encoded.buffers.size() > 0);
     }
     framesWriter.stopConsuming();
 }

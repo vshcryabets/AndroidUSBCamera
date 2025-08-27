@@ -18,7 +18,7 @@ void PullToPushSource::open(const OpenConfiguration &config) {
 
 void PullToPushSource::close()
 {
-    stopCapturing();
+    stopProducing();
     pullSource = nullptr;
 }
 
@@ -34,7 +34,7 @@ PullToPushSource::getSupportedFrameFormats() const
     return {};
 }
 
-void PullToPushSource::startCapturing(const Source::CaptureConfiguration &config) 
+void PullToPushSource::startProducing(const Source::CaptureConfiguration &config) 
 {
     // start worker thread that pulls frames from pullSource and pushes them via pushFrame
     if (!pullSource) {
@@ -60,7 +60,7 @@ void PullToPushSource::startCapturing(const Source::CaptureConfiguration &config
     });
 }
 
-void PullToPushSource::stopCapturing()
+void PullToPushSource::stopProducing()
 {
     // stop worker thread
     running = false;

@@ -130,11 +130,11 @@ TestFileSource::TestFileSource(): framesCount(0)
 
 TestFileSource::~TestFileSource()
 {
-    stopCapturing();
+    stopProducing();
     close();
 }
 
-void TestFileSource::stopCapturing()
+void TestFileSource::stopProducing()
 {
 }
 
@@ -169,7 +169,7 @@ auvc::Frame TestFileSource::readFrame()
     return auvc::Frame(0, 0, auvc::FrameFormat::NONE, nullptr, 0, std::chrono::high_resolution_clock::now());
 }
 
-void TestFileSource::startCapturing(const CaptureConfiguration &config)
+void TestFileSource::startProducing(const CaptureConfiguration &config)
 {
 
 }

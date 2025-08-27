@@ -65,9 +65,9 @@ auvc::Frame TestSource::readFrame()
         "Capture not started or invalid configuration");
 }
 
-void TestSource::startCapturing(const Source::CaptureConfiguration &config)
+void TestSource::startProducing(const Source::CaptureConfiguration &config)
 {
-    Source::startCapturing(config);
+    Source::startProducing(config);
     if (config.width == 0 ||
         config.height == 0 ||
         (config.width % testRGBAColors.size() != 0))
@@ -82,7 +82,7 @@ void TestSource::startCapturing(const Source::CaptureConfiguration &config)
 
 void TestSource::close()
 {
-    stopCapturing();
+    stopProducing();
 }
 
 std::vector<auvc::FrameFormat> TestSource::getSupportedFrameFormats() const
@@ -90,7 +90,7 @@ std::vector<auvc::FrameFormat> TestSource::getSupportedFrameFormats() const
     return {auvc::FrameFormat::RGBA};
 }
 
-void TestSource::stopCapturing()
+void TestSource::stopProducing()
 {
     if (testData)
     {

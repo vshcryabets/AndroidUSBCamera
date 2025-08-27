@@ -1,6 +1,5 @@
 #pragma once
 #include "DataTypes.h"
-#include <functional>
 #include <vector>
 #include <string>
 #include <map>
@@ -50,11 +49,11 @@ public:
     }
     const OpenConfiguration getOpenConfiguration() const;
     const CaptureConfiguration getCaptureConfiguration() const;
-    virtual void startCapturing(const CaptureConfiguration &config) {
+    virtual void startProducing(const CaptureConfiguration &config) {
         this->captureConfiguration = config;
     }
     virtual bool isReadyForCapture() const;
-    virtual void stopCapturing() = 0;
+    virtual void stopProducing() = 0;
     virtual void close() = 0;
     virtual std::map<uint16_t, std::vector<Resolution>> getSupportedResolutions() const = 0;
     virtual std::vector<auvc::FrameFormat> getSupportedFrameFormats() const = 0;
@@ -73,33 +72,5 @@ public:
     }
     [[nodiscard]] bool isPushSource() const override {
         return false;
-    }
-};
-
-class PushSource : public Source {
-public:
-    using FrameCallback = std::function<void(const auvc::Frame &frame)>;
-    struct OpenConfiguration: public Source::OpenConfiguration {
-        FrameCallback frameCallback;
-    };
-protected:
-    FrameCallback frameCallback;
-public:
-    PushSource() : Source() {}
-    virtual ~PushSource() = default;
-    virtual void open(const OpenConfiguration &config) {
-        Source::open(config);
-        this->frameCallback = config.frameCallback;
-    }
-    virtual void pushFrame(const auvc::Frame &frame) {
-        if (frameCallback) {
-            frameCallback(frame);
-        }
-    }
-    [[nodiscard]] bool isPullSource() const override {;
-        return false;
-    }
-    [[nodiscard]] bool isPushSource() const override {
-        return true;
     }
 };

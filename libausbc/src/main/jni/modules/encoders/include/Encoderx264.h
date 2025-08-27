@@ -27,6 +27,9 @@ public:
     virtual void open(const X264EncConfiguration &config) override;
     void close() override;
     void consume(const auvc::Frame& frame) override;
-    void startCapturing(const CaptureConfiguration &config) override;
-    void stopCapturing() override;
+    void stopConsuming() override;
+    void startProducing(const CaptureConfiguration &config) override;
+    void stopProducing() override;
+    std::vector<auvc::FrameFormat> getSupportedFrameFormats() const override;
+    std::map<uint16_t, std::vector<Source::Resolution>> getSupportedResolutions() const override;
 };

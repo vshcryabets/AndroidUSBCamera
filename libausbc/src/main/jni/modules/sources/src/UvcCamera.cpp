@@ -327,9 +327,9 @@ void UvcCamera::init_device() {
     }
 }
 
-void UvcCamera::startCapturing(const Source::CaptureConfiguration &config)
+void UvcCamera::startProducing(const Source::CaptureConfiguration &config)
 {
-    Source::startCapturing(config);
+    Source::startProducing(config);
     init_device();
 
     unsigned int i;
@@ -378,7 +378,7 @@ void UvcCamera::startCapturing(const Source::CaptureConfiguration &config)
     }
 }
 
-void UvcCamera::stopCapturing()
+void UvcCamera::stopProducing()
 {
     enum v4l2_buf_type type;
 

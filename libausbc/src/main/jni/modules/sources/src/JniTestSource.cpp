@@ -24,7 +24,7 @@ extern "C"
     Java_com_vsh_source_TestSource_nativeStopCapturing(JNIEnv *env, jobject thiz, jlong ptr)
     {
         auto *camera = (TestSource *)ptr;
-        camera->stopCapturing();
+        camera->stopProducing();
     }
 
     JNIEXPORT void JNICALL

@@ -57,8 +57,8 @@ class UvcCamera: public PullSource {
         virtual ~UvcCamera();
         virtual void open(const UvcCamera::OpenConfiguration & config);
         void close() override;
-        void startCapturing(const Source::CaptureConfiguration &config) override;
-        void stopCapturing() override;
+        void startProducing(const Source::CaptureConfiguration &config) override;
+        void stopProducing() override;
         auvc::Frame readFrame() override;
         bool waitNextFrame() override;
         std::vector<auvc::FrameFormat> getSupportedFrameFormats() const override;
