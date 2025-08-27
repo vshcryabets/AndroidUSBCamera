@@ -3,6 +3,7 @@
 #include <vector>
 #include <exception>
 #include <string>
+#include "Consumer.h"
 
 class EncoderException : public std::exception
 {
@@ -44,15 +45,16 @@ struct EncoderMultiBuffer
     size_t totalSize{0};
 };
 
-class Encoder
+class Encoder: auvc::Consumer
 {
 public:
     Encoder() = default;
     virtual ~Encoder() {};
     virtual void start() = 0;
     virtual void stop() = 0;
-    virtual EncoderMultiBuffer encodeFrame() = 0;
-    virtual EncoderMultiBuffer flush() = 0;
+    virtual void consume(const auvc::Frame& frame) override = 0;
+    // virtual EncoderMultiBuffer encodeFrame() = 0;
+    // virtual EncoderMultiBuffer flush() = 0;
 };
 
 struct EncoderBaseConfiguration

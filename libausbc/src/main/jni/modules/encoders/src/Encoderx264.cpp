@@ -59,47 +59,47 @@ void X264Encoder::close() {
     }
 }
 
-x264_picture_t* X264Encoder::getPicIn() {
-    return &pic_in;
-}
+// x264_picture_t* X264Encoder::getPicIn() {
+//     return &pic_in;
+// }
 
-EncoderMultiBuffer X264Encoder::encodeFrame() {
-    if (encoder == nullptr)
-    {
-        throw EncoderException(EncoderException::Type::NotInitialized, "Encoder not initialized. Call open() first.");
-    }
-    EncoderMultiBuffer result;
-    x264_nal_t *nals = NULL;
-    int num_nals = 0;
-    result.totalSize = x264_encoder_encode(encoder, &nals, &num_nals, &pic_in, &pic_out);
-    if (result.totalSize < 0)
-    {
-        throw EncoderException(EncoderException::Type::FailedToEncodeFrame, 
-            "Failed to encode frame. Error code: " + 
-            std::to_string(result.totalSize));
-    }
-    for (int j = 0; j < num_nals; ++j) {
-        EncoderBuffer buffer;
-        buffer.data = nals[j].p_payload;
-        buffer.size = nals[j].i_payload;
-        result.buffers.push_back(buffer);
-    }
-    return result;
-}
+// EncoderMultiBuffer X264Encoder::encodeFrame() {
+//     if (encoder == nullptr)
+//     {
+//         throw EncoderException(EncoderException::Type::NotInitialized, "Encoder not initialized. Call open() first.");
+//     }
+//     EncoderMultiBuffer result;
+//     x264_nal_t *nals = NULL;
+//     int num_nals = 0;
+//     result.totalSize = x264_encoder_encode(encoder, &nals, &num_nals, &pic_in, &pic_out);
+//     if (result.totalSize < 0)
+//     {
+//         throw EncoderException(EncoderException::Type::FailedToEncodeFrame, 
+//             "Failed to encode frame. Error code: " + 
+//             std::to_string(result.totalSize));
+//     }
+//     for (int j = 0; j < num_nals; ++j) {
+//         EncoderBuffer buffer;
+//         buffer.data = nals[j].p_payload;
+//         buffer.size = nals[j].i_payload;
+//         result.buffers.push_back(buffer);
+//     }
+//     return result;
+// }
 
-EncoderMultiBuffer X264Encoder::flush() {
-    EncoderMultiBuffer result;
-        // x264_nal_t *nals = NULL;
-    // int num_nals = 0;
-    // while (x264_encoder_encode(encoder, &nals, &num_nals, NULL, &pic_out) > 0)
-    // {
-    //     if (nals)
-    //     {
-    //         for (int j = 0; j < num_nals; ++j)
-    //         {
-    //             // output_file.write((char*)nals[j].p_payload, nals[j].i_payload);
-    //         }
-    //     }
-    // }
-    return result;
-}
+// EncoderMultiBuffer X264Encoder::flush() {
+//     EncoderMultiBuffer result;
+//         // x264_nal_t *nals = NULL;
+//     // int num_nals = 0;
+//     // while (x264_encoder_encode(encoder, &nals, &num_nals, NULL, &pic_out) > 0)
+//     // {
+//     //     if (nals)
+//     //     {
+//     //         for (int j = 0; j < num_nals; ++j)
+//     //         {
+//     //             // output_file.write((char*)nals[j].p_payload, nals[j].i_payload);
+//     //         }
+//     //     }
+//     // }
+//     return result;
+// }

@@ -28,7 +28,8 @@ public:
     void start() override;
     void stop() override;
     void close() override;
-    x264_picture_t* getPicIn();
-    EncoderMultiBuffer encodeFrame() override;
-    EncoderMultiBuffer flush() override;
+    void consume(const auvc::Frame& frame) override;
+    // x264_picture_t* getPicIn();
+    // EncoderMultiBuffer encodeFrame() override;
+    // EncoderMultiBuffer flush() override;
 };
