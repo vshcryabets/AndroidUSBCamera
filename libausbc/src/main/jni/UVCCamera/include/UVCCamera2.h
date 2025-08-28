@@ -26,9 +26,9 @@
 #pragma once
 
 #include "Camera.h"
-#include "Source.h"
+#include "PushSource.h"
 
-class UVCCamera2: public Camera, public PushSource {
+class UVCCamera2: public Camera, public auvc::PushSource {
 public:
     struct ConnectConfiguration {
         int vid;
