@@ -58,10 +58,6 @@ TEST_CASE("testEncode", "[Encoderx264]") {
     
         size_t requiredSize = testFrameSizeY + 2 * testFrameSizeU;
         REQUIRE(frame.getSize() >= requiredSize); // Ensure frame.data is large enough
-
-        memcpy(frame.getData(), frame.getData(), testFrameSizeY);
-        memcpy(frame.getData() + testFrameSizeY, frame.getData() + testFrameSizeY, testFrameSizeU);
-        memcpy(frame.getData() + testFrameSizeY + testFrameSizeU, frame.getData() + testFrameSizeY + testFrameSizeU, testFrameSizeU);
         frame.setTimestamp(std::chrono::high_resolution_clock::now()); // Presentation timestamp for the frame
         encoder.consume(frame);
     }

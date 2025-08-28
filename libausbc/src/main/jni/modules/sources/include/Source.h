@@ -51,7 +51,7 @@ public:
     const OpenConfiguration getOpenConfiguration() const;
     virtual void close() {};
     // producing
-    const ProducingConfiguration getProcudingConfiguration() const;
+    const ProducingConfiguration getProducingConfiguration() const;
     virtual void startProducing(const ProducingConfiguration &config) {
         this->captureConfiguration = config;
     }

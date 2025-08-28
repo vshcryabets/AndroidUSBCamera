@@ -5,7 +5,7 @@ const Source::OpenConfiguration Source::getOpenConfiguration() const
     return this->sourceConfig;
 }
 
-const Source::ProducingConfiguration Source::getProcudingConfiguration() const
+const Source::ProducingConfiguration Source::getProducingConfiguration() const
 {
     return this->captureConfiguration;
 }

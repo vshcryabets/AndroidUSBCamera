@@ -288,7 +288,7 @@ void UvcCamera::init_device() {
 
     fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     if (force_format) {
-        auto config = getProcudingConfiguration();
+        auto config = getProducingConfiguration();
         fmt.fmt.pix.width = config.width;
         fmt.fmt.pix.height = config.height;
         fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV; //V4L2_PIX_FMT_H264; //replace
@@ -417,8 +417,8 @@ auvc::Frame UvcCamera::readFrame(){
                 }
             }
             result = auvc::Frame(
-                getProcudingConfiguration().width,
-                getProcudingConfiguration().height,
+                getProducingConfiguration().width,
+                getProducingConfiguration().height,
                 auvc::FrameFormat::YUYV,
                 (uint8_t*)buffers[0].start,
                 buffers[0].length,
@@ -456,8 +456,8 @@ auvc::Frame UvcCamera::readFrame(){
 
             //printf("Process image 2 %p %d\n", buffers[buf.index].start, buf.bytesused);
             result = auvc::Frame(
-                getProcudingConfiguration().width,
-                getProcudingConfiguration().height,
+                getProducingConfiguration().width,
+                getProducingConfiguration().height,
                 auvc::FrameFormat::YUYV,
                 (uint8_t*)buffers[buf.index].start,
                 buf.bytesused,
@@ -502,8 +502,8 @@ auvc::Frame UvcCamera::readFrame(){
                     break;
 
             result = auvc::Frame(
-                getProcudingConfiguration().width,
-                getProcudingConfiguration().height,
+                getProducingConfiguration().width,
+                getProducingConfiguration().height,
                 auvc::FrameFormat::YUYV,
                 (uint8_t*)buf.m.userptr,
                 buf.bytesused,
