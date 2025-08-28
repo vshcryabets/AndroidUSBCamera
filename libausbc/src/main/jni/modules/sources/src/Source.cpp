@@ -5,7 +5,7 @@ const Source::OpenConfiguration Source::getOpenConfiguration() const
     return this->sourceConfig;
 }
 
-const Source::CaptureConfiguration Source::getCaptureConfiguration() const
+const Source::ProducingConfiguration Source::getProcudingConfiguration() const
 {
     return this->captureConfiguration;
 }
@@ -14,7 +14,7 @@ const char* SourceError::what() const noexcept {
     return message.c_str();
 }
 
-bool Source::isReadyForCapture() const {
+bool Source::isReadyForProducing() const {
     return captureConfiguration.width != 0 && 
     captureConfiguration.height != 0 && 
     captureConfiguration.fps != 0.0f;

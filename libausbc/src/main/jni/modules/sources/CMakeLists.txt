@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
 
-
 add_library(Sources STATIC)
 set_target_properties(Sources PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_sources(Sources PRIVATE
@@ -40,6 +39,7 @@ target_include_directories(Sources PUBLIC
         $<INSTALL_INTERFACE:include>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         )
+
 if (BUILD_CATCH2_TESTS)
         add_executable(Sources_tests)
         target_sources(Sources_tests PRIVATE

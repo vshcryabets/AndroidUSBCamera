@@ -30,7 +30,7 @@ public:
     TestFileSource();
     virtual ~TestFileSource();
     auvc::Frame readFrame() override;
-    void startProducing(const CaptureConfiguration &config) override;
+    void startProducing(const ProducingConfiguration &config) override;
     void close() override;
     std::map<uint16_t, std::vector<Resolution>> getSupportedResolutions() const override;
     std::vector<auvc::FrameFormat> getSupportedFrameFormats() const override;
@@ -63,4 +63,7 @@ public:
 
     void consume(const auvc::Frame& frame) override;
     void stopConsuming() override;
+    uint32_t getFramesCount() const {
+        return framesCount;
+    }
 };

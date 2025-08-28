@@ -17,7 +17,7 @@ TEST_CASE("testFormatsAndResolutions", "[PullToPushSource]") {
 
     source->open({});
 
-    const Source::CaptureConfiguration realConfig = {
+    const Source::ProducingConfiguration realConfig = {
         .width = 320,
         .height = 240,
         .fps = 30.0f

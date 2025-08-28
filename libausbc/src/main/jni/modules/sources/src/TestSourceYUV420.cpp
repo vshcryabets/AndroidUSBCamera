@@ -85,7 +85,7 @@ auvc::Frame TestSourceYUV420::readFrame()
         "Capture not started or invalid configuration");
 }
 
-void TestSourceYUV420::startProducing(const Source::CaptureConfiguration &config)
+void TestSourceYUV420::startProducing(const Source::ProducingConfiguration &config)
 {
     Source::startProducing(config);
     if (config.width == 0 ||

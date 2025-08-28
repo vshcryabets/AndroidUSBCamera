@@ -5,6 +5,7 @@
 #include "u8x8.h"
 #include <fstream>
 #include "TestFileSource.h"
+#include <atomic>
 
 TEST_CASE("testEncode", "[Encoderx264]") {
     uint32_t testWidth = 640;
@@ -36,9 +37,10 @@ TEST_CASE("testEncode", "[Encoderx264]") {
 
 
     TestFileWriter framesWriter("framesFile.h264", testWidth, testHeight, "video/h264", testFps);
-
-    config.frameCallback = [&framesWriter](const auvc::Frame &frame) {
+    std::atomic<int> callbackCalled{0};
+    config.frameCallback = [&framesWriter, &callbackCalled](const auvc::Frame &frame) {
         framesWriter.consume(frame);
+        callbackCalled++;
         REQUIRE(frame.getSize() > 0);
         REQUIRE(frame.getData() != nullptr);
     };
@@ -62,21 +64,8 @@ TEST_CASE("testEncode", "[Encoderx264]") {
         memcpy(frame.getData() + testFrameSizeY + testFrameSizeU, frame.getData() + testFrameSizeY + testFrameSizeU, testFrameSizeU);
         frame.setTimestamp(std::chrono::high_resolution_clock::now()); // Presentation timestamp for the frame
         encoder.consume(frame);
-
-        // uint32_t bufferPosition = 0;
-        // for (const auto& buf : encoded.buffers) {
-        //     memcpy(singleBuffer + bufferPosition, buf.data, buf.size);
-        //     bufferPosition += buf.size;
-        // }
-        // auvc::Frame singleBufferFrame(
-        //     testWidth, 
-        //     testHeight, 
-        //     auvc::FrameFormat::ENCODED,
-        //     singleBuffer,
-        //     bufferPosition,
-        //     std::chrono::high_resolution_clock::now()
-        // );
-
     }
+    REQUIRE(callbackCalled.load() == 60);
+    REQUIRE(framesWriter.getFramesCount() == 60);
     framesWriter.stopConsuming();
 }

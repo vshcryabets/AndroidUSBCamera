@@ -65,7 +65,7 @@ auvc::Frame TestSource::readFrame()
         "Capture not started or invalid configuration");
 }
 
-void TestSource::startProducing(const Source::CaptureConfiguration &config)
+void TestSource::startProducing(const Source::ProducingConfiguration &config)
 {
     Source::startProducing(config);
     if (config.width == 0 ||

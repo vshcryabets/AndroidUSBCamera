@@ -66,18 +66,18 @@ public:
 template <typename T>
 class EncoderWithConfiguration
 {
-private:
-    T config;
+protected:
+    T encoderConfig;
 
 public:
     EncoderWithConfiguration() = default;
     virtual void open(const T &config)
     {
-        this->config = config;
+        this->encoderConfig = config;
     }
-    virtual const T &getConfiguration() const
+    virtual const T &getEncoderConfiguration() const
     {
-        return config;
+        return encoderConfig;
     }
     virtual void close() = 0;
     virtual ~EncoderWithConfiguration() {}

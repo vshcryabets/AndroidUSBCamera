@@ -17,7 +17,7 @@ public:
     PullToPushSource();
     virtual ~PullToPushSource();
     virtual void open(const OpenConfiguration &config);
-    void startProducing(const CaptureConfiguration &config) override;
+    void startProducing(const ProducingConfiguration &config) override;
     void stopProducing() override;
     void close() override;
     std::map<uint16_t, std::vector<Resolution>> getSupportedResolutions() const override;

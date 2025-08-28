@@ -18,7 +18,7 @@ option(BUILD_JPEGBENCHMARK_APP "Build Jpegbenchmark app 1" OFF)
 option(BUILD_SDL_PREVIEW_APP "Build SDL UVC preview sample app" OFF)
 option(BUILD_GTK_PREVIEW_APP "Build GTK UVC preview sample app" ON)
 option(BUILD_CATCH2_TESTS "Build Catch2 tests" ON)
-option(BUILD_X264_TEST_APP "Build X264 test app" ON)
+option(BUILD_X264_TEST_APP "Build X264 test app" OFF)
 option(BUILD_JNI_WRAPPERS "Build JNI wrappers" ON)
 
 include(FetchContent)

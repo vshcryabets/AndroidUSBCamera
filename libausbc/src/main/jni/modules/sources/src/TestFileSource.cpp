@@ -49,11 +49,13 @@ void TestFileWriter::consume(const auvc::Frame& frame)
         filePosition += sizeof(size);
         dataFile.write(reinterpret_cast<const char*>(data), size);
         filePosition += size;
+        framesCount++;
     }
 }
 
 void TestFileWriter::stopConsuming()
 {
+    framesCount = 0;
     if (dataFile.is_open()) {
         uint32_t toc = filePosition;
         // write frames count
@@ -169,7 +171,7 @@ auvc::Frame TestFileSource::readFrame()
     return auvc::Frame(0, 0, auvc::FrameFormat::NONE, nullptr, 0, std::chrono::high_resolution_clock::now());
 }
 
-void TestFileSource::startProducing(const CaptureConfiguration &config)
+void TestFileSource::startProducing(const ProducingConfiguration &config)
 {
 
 }

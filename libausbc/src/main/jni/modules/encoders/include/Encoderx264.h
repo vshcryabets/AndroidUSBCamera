@@ -20,6 +20,8 @@ private:
     x264_t *encoder = nullptr;
     x264_picture_t pic_in;
     x264_picture_t pic_out;
+    size_t frameYSize;
+    std::vector<uint8_t> encodedBuffer;
 
 public:
     X264Encoder();
@@ -28,7 +30,7 @@ public:
     void close() override;
     void consume(const auvc::Frame& frame) override;
     void stopConsuming() override;
-    void startProducing(const CaptureConfiguration &config) override;
+    void startProducing(const ProducingConfiguration &config) override;
     void stopProducing() override;
     std::vector<auvc::FrameFormat> getSupportedFrameFormats() const override;
     std::map<uint16_t, std::vector<Source::Resolution>> getSupportedResolutions() const override;

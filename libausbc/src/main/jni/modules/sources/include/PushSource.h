@@ -23,6 +23,11 @@ namespace auvc {
             this->consumer = config.consumer;
             this->frameCallback = config.frameCallback;
         }
+        virtual void close() {
+            Source::close();
+            consumer = nullptr;
+            frameCallback = nullptr;
+        }
         virtual void pushFrame(const auvc::Frame &frame) {
             if (frameCallback) {
                 frameCallback(frame);

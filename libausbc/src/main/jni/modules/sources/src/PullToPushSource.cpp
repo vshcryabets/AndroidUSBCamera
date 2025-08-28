@@ -34,13 +34,13 @@ PullToPushSource::getSupportedFrameFormats() const
     return {};
 }
 
-void PullToPushSource::startProducing(const Source::CaptureConfiguration &config) 
+void PullToPushSource::startProducing(const Source::ProducingConfiguration &config) 
 {
     // start worker thread that pulls frames from pullSource and pushes them via pushFrame
     if (!pullSource) {
         throw SourceError(SourceError::SOURCE_ERROR_WRONG_CONFIG, "Pull source not set");
     }
-    if (!pullSource->isReadyForCapture()) {
+    if (!pullSource->isReadyForProducing()) {
         throw SourceError(SourceError::SOURCE_ERROR_CAPTURE_NOT_STARTED, "Pull source not started");
     }
     running = true;
