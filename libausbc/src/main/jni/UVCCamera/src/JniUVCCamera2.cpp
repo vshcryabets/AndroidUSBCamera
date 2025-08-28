@@ -17,7 +17,7 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_jiangdg_uvc_UVCCamera2_nativeStopCapturing(JNIEnv *env, jobject thiz, jlong ptr) {
     auto *camera = (UVCCamera2*)ptr;
-    camera->stopCapturing();
+    camera->stopProducing();
 }
 extern "C"
 JNIEXPORT void JNICALL

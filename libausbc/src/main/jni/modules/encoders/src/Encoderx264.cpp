@@ -1,5 +1,6 @@
 #include "Encoderx264.h"
 #include <iostream>
+#include <string.h>
 
 X264Encoder::X264Encoder()
 {
@@ -35,71 +36,78 @@ void X264Encoder::open(const X264EncConfiguration &config)
     }
 }
 
-void X264Encoder::start()
+void X264Encoder::startProducing(const ProducingConfiguration &config)
 {
+    PushSource::startProducing(config);
     if (encoder == nullptr)
     {
         throw EncoderException(EncoderException::Type::NotInitialized, 
             "Encoder not initialized. Call open() first.");
     }
+    frameYSize = x264_param.i_width * x264_param.i_height;
     x264_picture_alloc(&pic_in, x264_param.i_csp, x264_param.i_width, x264_param.i_height);
 }
 
-void X264Encoder::stop() {
+void X264Encoder::stopProducing() {
     x264_picture_clean(&pic_in);
     // x264_picture_clean(&pic_out);
 }
 
 void X264Encoder::close() {
-    stop();
     if (encoder != nullptr)
     {
         x264_encoder_close(encoder);
         encoder = nullptr;
     }
+    PushSource::close();
 }
 
-x264_picture_t* X264Encoder::getPicIn() {
-    return &pic_in;
+void X264Encoder::stopConsuming() {
+    // nothing to do
 }
 
-EncoderMultiBuffer X264Encoder::encodeFrame() {
+void X264Encoder::consume(const auvc::Frame &frame) {
     if (encoder == nullptr)
     {
-        throw EncoderException(EncoderException::Type::NotInitialized, "Encoder not initialized. Call open() first.");
+        throw EncoderException(EncoderException::Type::NotInitialized, "Encoder not initialized. Call startProducing() first.");
     }
-    EncoderMultiBuffer result;
     x264_nal_t *nals = NULL;
+    memcpy(pic_in.img.plane[0], frame.getData(), frameYSize);
+    memcpy(pic_in.img.plane[1], frame.getData() + frameYSize, frameYSize / 4);
+    memcpy(pic_in.img.plane[2], frame.getData() + frameYSize + frameYSize / 4, frameYSize / 4);
     int num_nals = 0;
-    result.totalSize = x264_encoder_encode(encoder, &nals, &num_nals, &pic_in, &pic_out);
-    if (result.totalSize < 0)
+    int bufferSize = x264_encoder_encode(encoder, &nals, &num_nals, &pic_in, &pic_out);
+    if (bufferSize < 0)
     {
         throw EncoderException(EncoderException::Type::FailedToEncodeFrame, 
             "Failed to encode frame. Error code: " + 
-            std::to_string(result.totalSize));
+            std::to_string(bufferSize));
     }
-    for (int j = 0; j < num_nals; ++j) {
-        EncoderBuffer buffer;
-        buffer.data = nals[j].p_payload;
-        buffer.size = nals[j].i_payload;
-        result.buffers.push_back(buffer);
+    
+    if (bufferSize > 0 && nals != nullptr) {
+        if (encodedBuffer.size() < bufferSize)
+            encodedBuffer.resize(bufferSize);
+        memcpy(encodedBuffer.data(), nals[0].p_payload, bufferSize);
+        auvc::Frame encFrame = auvc::Frame(
+            encoderConfig.width,
+            encoderConfig.height,
+            auvc::FrameFormat::ENCODED,
+            encodedBuffer.data(),
+            bufferSize,
+            frame.getTimestamp()
+        );
+        if (encoderConfig.frameCallback) {
+            encoderConfig.frameCallback(encFrame);
+        } else if (encoderConfig.consumer) {
+            encoderConfig.consumer->consume(encFrame);
+        }
     }
-    return result;
 }
 
-EncoderMultiBuffer X264Encoder::flush() {
-    EncoderMultiBuffer result;
-        // x264_nal_t *nals = NULL;
-    // int num_nals = 0;
-    // while (x264_encoder_encode(encoder, &nals, &num_nals, NULL, &pic_out) > 0)
-    // {
-    //     if (nals)
-    //     {
-    //         for (int j = 0; j < num_nals; ++j)
-    //         {
-    //             // output_file.write((char*)nals[j].p_payload, nals[j].i_payload);
-    //         }
-    //     }
-    // }
-    return result;
+std::vector<auvc::FrameFormat> X264Encoder::getSupportedFrameFormats() const {
+    return {};
+}
+
+std::map<uint16_t, std::vector<Source::Resolution>> X264Encoder::getSupportedResolutions() const {
+    return {};
 }

@@ -4,7 +4,7 @@
 
 TEST_CASE("Test source not ready before startCapture", "[TestSourceYUV420]") {
     TestSourceYUV420 source(u8x8_font_amstrad_cpc_extended_f);
-    REQUIRE(source.isReadyForCapture() == false);
+    REQUIRE(source.isReadyForProducing() == false);
 }
 
 TEST_CASE("testFormatsAndResolutions", "[TestSourceYUV420]") {
@@ -34,7 +34,7 @@ TEST_CASE("testFormatsAndResolutions", "[TestSourceYUV420]") {
 TEST_CASE("testCapture", "[TestSourceYUV420]") {
     TestSourceYUV420 source(u8x8_font_amstrad_cpc_extended_f);
     source.open({});
-    source.startCapturing(Source::CaptureConfiguration {
+    source.startProducing(Source::ProducingConfiguration {
         .width = 640, 
         .height = 480,
         .fps = 30.0f
@@ -47,14 +47,14 @@ TEST_CASE("testCapture", "[TestSourceYUV420]") {
     REQUIRE(frame.getData() != nullptr);
     REQUIRE(frame.getSize() == 640*480 * 3 / 2); // YUV420P has 1.5 bytes per pixel
 
-    source.stopCapturing();
+    source.stopProducing();
     source.close();
 }
 
 TEST_CASE("Test that source gives frames with delay", "[TestSourceYUV420]") {
     TestSourceYUV420 source(u8x8_font_amstrad_cpc_extended_f);
     source.open({});
-    source.startCapturing(Source::CaptureConfiguration {
+    source.startProducing(Source::ProducingConfiguration {
         .width = 640, 
         .height = 480,
         .fps = 10.0f
@@ -69,6 +69,6 @@ TEST_CASE("Test that source gives frames with delay", "[TestSourceYUV420]") {
     // 10 frames at 10 fps should take at least 900 ms (some margin for scheduling)
     REQUIRE(duration >= 900);
 
-    source.stopCapturing();
+    source.stopProducing();
     source.close();
 }

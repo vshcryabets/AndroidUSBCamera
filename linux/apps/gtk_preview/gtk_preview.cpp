@@ -41,7 +41,7 @@ private:
 #ifdef USE_YUV420_SOURCE   
     ConvertBitmapUseCase::Buffer *rgbaBuffer;
 #endif
-    Source::CaptureConfiguration captureConfig = {
+    Source::ProducingConfiguration captureConfig = {
         .width = 640,
         .height = 480,
         .fps = 30.0f};
@@ -139,8 +139,8 @@ private:
         gtk_window_present(GTK_WINDOW(window));
 
         // g_timeout_add(33, this->staticTimeout, this);
-        testSource->startCapturing(captureConfig);
-        pullToPush->startCapturing({});
+        testSource->startProducing(captureConfig);
+        pullToPush->startProducing({});
     }
 
 public:
@@ -152,9 +152,9 @@ public:
 
     ~GtkPreviewApplication()
     {
-        this->pullToPush->stopCapturing();
+        this->pullToPush->stopProducing();
         this->pullToPush->close();
-        this->testSource->stopCapturing();
+        this->testSource->stopProducing();
         this->testSource->close();
 #ifdef USE_YUV420_SOURCE        
         if (rgbaBuffer) {

@@ -2,7 +2,6 @@
 
 #include <exception>
 #include <stdint.h>
-#include <chrono>
 #include "Source.h"
 
 class UvcException : public std::exception {
@@ -24,11 +23,10 @@ class UvcException : public std::exception {
     const char* what() const noexcept override;
 };
 
-class UvcCamera: public Source {
+class UvcCamera: public PullSource {
     public:
-        struct Configuration  {
+        struct OpenConfiguration: public Source::OpenConfiguration  {
             const char* dev_name;
-            Source::ConnectConfiguration source;
         };
         enum io_method {
             IO_METHOD_READ,
@@ -47,7 +45,7 @@ class UvcCamera: public Source {
         unsigned int n_buffers;
         enum io_method io = IO_METHOD_MMAP;
         int force_format = 1;
-        Configuration uvcConfig;
+        OpenConfiguration uvcConfig;
     private:
         int xioctl(int fh, int request, void *arg);        
         void init_read(unsigned int buffer_size);
@@ -57,11 +55,11 @@ class UvcCamera: public Source {
     public:
         UvcCamera();
         virtual ~UvcCamera();
-        virtual void open(const UvcCamera::Configuration & config);
+        virtual void open(const UvcCamera::OpenConfiguration & config);
         void close() override;
-        void startCapturing(const Source::CaptureConfiguration &config) override;
-        void stopCapturing() override;
-        Frame readFrame() override;
+        void startProducing(const Source::ProducingConfiguration &config) override;
+        void stopProducing() override;
+        auvc::Frame readFrame() override;
         bool waitNextFrame() override;
-        std::vector<Source::FrameFormat> getSupportedFrameFormats() override;
+        std::vector<auvc::FrameFormat> getSupportedFrameFormats() const override;
     };

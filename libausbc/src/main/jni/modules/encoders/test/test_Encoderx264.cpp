@@ -5,6 +5,7 @@
 #include "u8x8.h"
 #include <fstream>
 #include "TestFileSource.h"
+#include <atomic>
 
 TEST_CASE("testEncode", "[Encoderx264]") {
     uint32_t testWidth = 640;
@@ -14,11 +15,12 @@ TEST_CASE("testEncode", "[Encoderx264]") {
     uint32_t testFrameSizeU = (testWidth / 2) * (testHeight / 2);
     TestSourceYUV420 source(u8x8_font_amstrad_cpc_extended_f);
     source.open({}); // Open the source
-    source.startCapturing({
+    source.startProducing({
         .width = testWidth,
         .height = testHeight,
         .fps = testFps
     });
+
 
     X264Encoder encoder;
     X264EncConfiguration config;
@@ -33,12 +35,19 @@ TEST_CASE("testEncode", "[Encoderx264]") {
     config.intra_refresh = true; // Use IDR refresh
     config.crf = 23.0f;          // CRF value
 
-    encoder.open(config);
-    encoder.start();
-    x264_picture_t *pic_in = encoder.getPicIn();
-    
-    uint8_t singleBuffer[testFrameSizeY + 2 * testFrameSizeU];
+
     TestFileWriter framesWriter("framesFile.h264", testWidth, testHeight, "video/h264", testFps);
+    std::atomic<int> callbackCalled{0};
+    config.frameCallback = [&framesWriter, &callbackCalled](const auvc::Frame &frame) {
+        framesWriter.consume(frame);
+        callbackCalled++;
+        REQUIRE(frame.getSize() > 0);
+        REQUIRE(frame.getData() != nullptr);
+    };
+
+    encoder.open(config);
+    encoder.startProducing({});  
+
 
     for (uint32_t i = 0; i < 60; ++i) {
         auvc::Frame frame = source.readFrame(); // Read a new frame for each iteration
@@ -49,30 +58,10 @@ TEST_CASE("testEncode", "[Encoderx264]") {
     
         size_t requiredSize = testFrameSizeY + 2 * testFrameSizeU;
         REQUIRE(frame.getSize() >= requiredSize); // Ensure frame.data is large enough
-
-        memcpy(pic_in->img.plane[0], frame.getData(), testFrameSizeY);
-        memcpy(pic_in->img.plane[1], frame.getData() + testFrameSizeY, testFrameSizeU);
-        memcpy(pic_in->img.plane[2], frame.getData() + testFrameSizeY + testFrameSizeU, testFrameSizeU);
-        pic_in->i_pts = i; // Presentation timestamp for the frame
-        EncoderMultiBuffer encoded = encoder.encodeFrame();
-
-        uint32_t bufferPosition = 0;
-        for (const auto& buf : encoded.buffers) {
-            memcpy(singleBuffer + bufferPosition, buf.data, buf.size);
-            bufferPosition += buf.size;
-        }
-        auvc::Frame singleBufferFrame(
-            testWidth, 
-            testHeight, 
-            auvc::FrameFormat::ENCODED,
-            singleBuffer,
-            bufferPosition,
-            std::chrono::high_resolution_clock::now()
-        );
-        framesWriter.consume(singleBufferFrame);
-
-        REQUIRE(encoded.totalSize > 0);
-        REQUIRE(encoded.buffers.size() > 0);
+        frame.setTimestamp(std::chrono::high_resolution_clock::now()); // Presentation timestamp for the frame
+        encoder.consume(frame);
     }
+    REQUIRE(callbackCalled.load() == 60);
+    REQUIRE(framesWriter.getFramesCount() == 60);
     framesWriter.stopConsuming();
 }

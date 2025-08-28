@@ -29,7 +29,7 @@ int main(void)
     {
         uvcCamera.open(deviceConfig);
 
-        Source::CaptureConfiguration captureConfig = {
+        Source::ProducingConfiguration captureConfig = {
             .width = 640,
             .height = 480,
             .fps = 30.0f};
@@ -43,7 +43,7 @@ int main(void)
                                                  captureConfig.width, captureConfig.height);
 
         int frame_number = 0;
-        camera.startCapturing(captureConfig);
+        camera.startProducing(captureConfig);
         ConvertYUYVtoRGBAUseCase convertUseCase;
         ConvertBitmapUseCase::Buffer dst = {
             .buffer = new uint8_t[captureConfig.width * captureConfig.height * 4],
@@ -88,7 +88,7 @@ int main(void)
         });
         loop.loop();
         delete[] dst.buffer;
-        camera.stopCapturing();
+        camera.stopProducing();
         camera.close();
     }
     catch (UvcException &e)

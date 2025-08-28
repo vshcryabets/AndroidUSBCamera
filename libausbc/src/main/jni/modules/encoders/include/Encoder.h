@@ -3,6 +3,8 @@
 #include <vector>
 #include <exception>
 #include <string>
+#include "Consumer.h"
+#include "PushSource.h"
 
 class EncoderException : public std::exception
 {
@@ -44,18 +46,7 @@ struct EncoderMultiBuffer
     size_t totalSize{0};
 };
 
-class Encoder
-{
-public:
-    Encoder() = default;
-    virtual ~Encoder() {};
-    virtual void start() = 0;
-    virtual void stop() = 0;
-    virtual EncoderMultiBuffer encodeFrame() = 0;
-    virtual EncoderMultiBuffer flush() = 0;
-};
-
-struct EncoderBaseConfiguration
+struct EncoderBaseConfiguration: public auvc::PushSource::OpenConfiguration
 {
     uint32_t width;
     uint32_t height;
@@ -63,21 +54,30 @@ struct EncoderBaseConfiguration
     uint16_t fps_den;
 };
 
+class Encoder: public auvc::Consumer, public auvc::PushSource
+{
+public:
+    Encoder() = default;
+    virtual ~Encoder() {}
+    // virtual EncoderMultiBuffer encodeFrame() = 0;
+    // virtual EncoderMultiBuffer flush() = 0;
+};
+
 template <typename T>
 class EncoderWithConfiguration
 {
-private:
-    T config;
+protected:
+    T encoderConfig;
 
 public:
     EncoderWithConfiguration() = default;
     virtual void open(const T &config)
     {
-        this->config = config;
+        this->encoderConfig = config;
     }
-    virtual const T &getConfiguration() const
+    virtual const T &getEncoderConfiguration() const
     {
-        return config;
+        return encoderConfig;
     }
     virtual void close() = 0;
     virtual ~EncoderWithConfiguration() {}

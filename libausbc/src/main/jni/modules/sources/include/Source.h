@@ -1,6 +1,5 @@
 #pragma once
 #include "DataTypes.h"
-#include <functional>
 #include <vector>
 #include <string>
 #include <map>
@@ -28,7 +27,7 @@ public:
     struct OpenConfiguration {
 
     };
-    struct CaptureConfiguration {
+    struct ProducingConfiguration {
         uint32_t width {0};
         uint32_t height {0};
         float fps {0.0f};
@@ -36,32 +35,33 @@ public:
     
 protected:
     OpenConfiguration sourceConfig;
-    CaptureConfiguration captureConfiguration;
+    ProducingConfiguration captureConfiguration;
 protected:
     uint32_t frameCounter {0};
 public:
     Source() {
         sourceConfig = OpenConfiguration();
-        captureConfiguration = CaptureConfiguration();
+        captureConfiguration = ProducingConfiguration();
     };
     virtual ~Source() = default;
+    // open-close
     virtual void open(const OpenConfiguration &config) {
         this->sourceConfig = config;
     }
-    const OpenConfiguration getOpenConfiguration() const;
-    const CaptureConfiguration getCaptureConfiguration() const;
-
-
-    virtual void startCapturing(const CaptureConfiguration &config) {
+    [[nodiscard]] const OpenConfiguration getOpenConfiguration() const;
+    virtual void close() = 0;
+    // producing
+    [[nodiscard]] const ProducingConfiguration getProducingConfiguration() const;
+    virtual void startProducing(const ProducingConfiguration &config) {
         this->captureConfiguration = config;
     }
-    virtual bool isReadyForCapture() const;
-    virtual void stopCapturing() = 0;
-    virtual void close() = 0;
-    virtual std::map<uint16_t, std::vector<Resolution>> getSupportedResolutions() const = 0;
-    virtual std::vector<auvc::FrameFormat> getSupportedFrameFormats() const = 0;
-    virtual bool isPullSource() const = 0;
-    virtual bool isPushSource() const = 0;
+    virtual void stopProducing() = 0;
+    [[nodiscard]] virtual bool isReadyForProducing() const;
+
+    [[nodiscard]] virtual std::map<uint16_t, std::vector<Resolution>> getSupportedResolutions() const = 0;
+    [[nodiscard]] virtual std::vector<auvc::FrameFormat> getSupportedFrameFormats() const = 0;
+    [[nodiscard]] virtual bool isPullSource() const = 0;
+    [[nodiscard]] virtual bool isPushSource() const = 0;
 };
 
 class PullSource : public Source {
@@ -75,33 +75,5 @@ public:
     }
     [[nodiscard]] bool isPushSource() const override {
         return false;
-    }
-};
-
-class PushSource : public Source {
-public:
-    using FrameCallback = std::function<void(const auvc::Frame &frame)>;
-    struct OpenConfiguration: public Source::OpenConfiguration {
-        FrameCallback frameCallback;
-    };
-protected:
-    FrameCallback frameCallback;
-public:
-    PushSource() : Source() {}
-    virtual ~PushSource() = default;
-    virtual void open(const OpenConfiguration &config) {
-        Source::open(config);
-        this->frameCallback = config.frameCallback;
-    }
-    virtual void pushFrame(const auvc::Frame &frame) {
-        if (frameCallback) {
-            frameCallback(frame);
-        }
-    }
-    [[nodiscard]] bool isPullSource() const override {;
-        return false;
-    }
-    [[nodiscard]] bool isPushSource() const override {
-        return true;
     }
 };

@@ -85,9 +85,9 @@ auvc::Frame TestSourceYUV420::readFrame()
         "Capture not started or invalid configuration");
 }
 
-void TestSourceYUV420::startCapturing(const Source::CaptureConfiguration &config)
+void TestSourceYUV420::startProducing(const Source::ProducingConfiguration &config)
 {
-    Source::startCapturing(config);
+    Source::startProducing(config);
     if (config.width == 0 ||
         config.height == 0 ||
         (config.width % testYUVColors.size() != 0))
@@ -108,7 +108,7 @@ void TestSourceYUV420::startCapturing(const Source::CaptureConfiguration &config
 
 void TestSourceYUV420::close()
 {
-    stopCapturing();
+    stopProducing();
 }
 
 std::vector<auvc::FrameFormat> TestSourceYUV420::getSupportedFrameFormats() const
@@ -116,7 +116,7 @@ std::vector<auvc::FrameFormat> TestSourceYUV420::getSupportedFrameFormats() cons
     return {auvc::FrameFormat::YUV420P};
 }
 
-void TestSourceYUV420::stopCapturing()
+void TestSourceYUV420::stopProducing()
 {
     if (testData)
     {

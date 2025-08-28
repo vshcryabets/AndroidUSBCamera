@@ -20,7 +20,7 @@ int main()
     config.crf = 23.0f;          // CRF value
 
     encoder.open(config);
-    encoder.start();
+    encoder.startProducing({});
 
     // --- 6. Encode Frames ---
     const int total_frames = 100; // Number of frames to encode

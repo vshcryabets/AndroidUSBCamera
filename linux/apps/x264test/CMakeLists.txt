@@ -10,6 +10,7 @@ if(BUILD_X264_TEST_APP)
 
         target_link_libraries(x264testApp PRIVATE
                 Encoders
+                Sources
                 )
 
         target_include_directories(x264testApp PUBLIC

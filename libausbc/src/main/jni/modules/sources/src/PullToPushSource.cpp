@@ -18,7 +18,7 @@ void PullToPushSource::open(const OpenConfiguration &config) {
 
 void PullToPushSource::close()
 {
-    stopCapturing();
+    stopProducing();
     pullSource = nullptr;
 }
 
@@ -34,13 +34,13 @@ PullToPushSource::getSupportedFrameFormats() const
     return {};
 }
 
-void PullToPushSource::startCapturing(const Source::CaptureConfiguration &config) 
+void PullToPushSource::startProducing(const Source::ProducingConfiguration &config) 
 {
     // start worker thread that pulls frames from pullSource and pushes them via pushFrame
     if (!pullSource) {
         throw SourceError(SourceError::SOURCE_ERROR_WRONG_CONFIG, "Pull source not set");
     }
-    if (!pullSource->isReadyForCapture()) {
+    if (!pullSource->isReadyForProducing()) {
         throw SourceError(SourceError::SOURCE_ERROR_CAPTURE_NOT_STARTED, "Pull source not started");
     }
     running = true;
@@ -60,7 +60,7 @@ void PullToPushSource::startCapturing(const Source::CaptureConfiguration &config
     });
 }
 
-void PullToPushSource::stopCapturing()
+void PullToPushSource::stopProducing()
 {
     // stop worker thread
     running = false;

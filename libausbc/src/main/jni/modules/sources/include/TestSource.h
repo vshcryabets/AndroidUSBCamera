@@ -18,10 +18,10 @@ class TestSource: public PullSource {
         TestSource(const uint8_t *customFont);
         virtual ~TestSource();
         virtual auvc::Frame readFrame() override;
-        void startCapturing(const CaptureConfiguration &config) override;
+        void startProducing(const ProducingConfiguration &config) override;
         void close() override;
         std::map<uint16_t, std::vector<Resolution>> getSupportedResolutions() const override;
         std::vector<auvc::FrameFormat> getSupportedFrameFormats() const override;
-        void stopCapturing() override;
+        void stopProducing() override;
         bool waitNextFrame() override;
 };

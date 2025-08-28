@@ -40,7 +40,7 @@ std::vector<auvc::FrameFormat> UVCCamera2::getSupportedFrameFormats() const
     };
 }
 
-void UVCCamera2::stopCapturing()
+void UVCCamera2::stopProducing()
 {
 }
 
