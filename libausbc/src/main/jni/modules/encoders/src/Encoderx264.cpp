@@ -98,8 +98,7 @@ void X264Encoder::consume(const auvc::Frame &frame) {
         );
         if (encoderConfig.frameCallback) {
             encoderConfig.frameCallback(encFrame);
-        }
-        if (encoderConfig.consumer) {
+        } else if (encoderConfig.consumer) {
             encoderConfig.consumer->consume(encFrame);
         }
     }

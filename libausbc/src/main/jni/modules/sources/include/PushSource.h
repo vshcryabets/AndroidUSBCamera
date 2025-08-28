@@ -23,8 +23,7 @@ namespace auvc {
             this->consumer = config.consumer;
             this->frameCallback = config.frameCallback;
         }
-        virtual void close() override {
-            Source::close();
+        void close() override {
             consumer = nullptr;
             frameCallback = nullptr;
         }

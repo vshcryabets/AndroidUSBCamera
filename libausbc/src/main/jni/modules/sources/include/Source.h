@@ -48,20 +48,20 @@ public:
     virtual void open(const OpenConfiguration &config) {
         this->sourceConfig = config;
     }
-    const OpenConfiguration getOpenConfiguration() const;
-    virtual void close() {};
+    [[nodiscard]] const OpenConfiguration getOpenConfiguration() const;
+    virtual void close() = 0;
     // producing
-    const ProducingConfiguration getProducingConfiguration() const;
+    [[nodiscard]] const ProducingConfiguration getProducingConfiguration() const;
     virtual void startProducing(const ProducingConfiguration &config) {
         this->captureConfiguration = config;
     }
     virtual void stopProducing() = 0;
-    virtual bool isReadyForProducing() const;
+    [[nodiscard]] virtual bool isReadyForProducing() const;
 
-    virtual std::map<uint16_t, std::vector<Resolution>> getSupportedResolutions() const = 0;
-    virtual std::vector<auvc::FrameFormat> getSupportedFrameFormats() const = 0;
-    virtual bool isPullSource() const = 0;
-    virtual bool isPushSource() const = 0;
+    [[nodiscard]] virtual std::map<uint16_t, std::vector<Resolution>> getSupportedResolutions() const = 0;
+    [[nodiscard]] virtual std::vector<auvc::FrameFormat> getSupportedFrameFormats() const = 0;
+    [[nodiscard]] virtual bool isPullSource() const = 0;
+    [[nodiscard]] virtual bool isPushSource() const = 0;
 };
 
 class PullSource : public Source {
