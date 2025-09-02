@@ -36,6 +36,7 @@ import com.vsh.source.Source;
 import com.vsh.uvc.UvcVsDeskSubtype;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -44,7 +45,7 @@ import java.util.Map;
 
 import timber.log.Timber;
 
-public class UVCCamera implements Source<UVCCamera.OpenConfiguration> {
+public class UVCCamera implements Source<UVCCamera.OpenConfiguration, Source.ProducingConfiguration> {
 
 	private OpenConfiguration openConfiguration;
 
@@ -59,13 +60,23 @@ public class UVCCamera implements Source<UVCCamera.OpenConfiguration> {
 	}
 
 	@Override
-	public long getNativeObject() {
-		return mNativePtr;
+	public @NotNull List<@NotNull FrameFormat> getSupportedFrameFormats() {
+		return List.of(Source.FrameFormat.YUV420P, Source.FrameFormat.ENCODED);
 	}
 
 	@Override
-	public @NotNull List<@NotNull FrameFormat> getSupportedFrameFormats() {
-		return List.of(Source.FrameFormat.YUV420P, Source.FrameFormat.ENCODED);
+	public void startProducing(@NotNull ProducingConfiguration configuration) {
+
+	}
+
+	@Override
+	public @Nullable Source.ProducingConfiguration getProducingConfiguration() {
+		return null;
+	}
+
+	@Override
+	public boolean isReadyForProducing() {
+		return false;
 	}
 
 	public static class OpenConfiguration extends Source.OpenConfiguration {
@@ -198,7 +209,7 @@ public class UVCCamera implements Source<UVCCamera.OpenConfiguration> {
      */
 	@Override
     public synchronized void close() {
-    	stopCapturing();
+    	stopProducing();
     	if (mNativePtr != 0) {
     		nativeRelease(mNativePtr);
 //    		mNativePtr = 0;	// nativeDestroyを呼ぶのでここでクリアしちゃダメ
@@ -373,7 +384,7 @@ public class UVCCamera implements Source<UVCCamera.OpenConfiguration> {
     }
 
 	@Override
-    public synchronized void stopCapturing() {
+    public synchronized void stopProducing() {
     	setFrameCallback(null, PixelFormat.PIXEL_FORMAT_RAW);
     	if (mCtrlBlock != null) {
     		nativeStopPreview(mNativePtr);

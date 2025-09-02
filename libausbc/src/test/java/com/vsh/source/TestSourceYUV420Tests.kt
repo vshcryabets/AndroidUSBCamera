@@ -6,7 +6,15 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 
-class TestYuvSourceTests {
+class TestSourceYUV420Tests {
+
+    @Test
+    fun testNotReadyBeforeCapture() {
+        val font = FontSrcImpl()
+        val source = TestSourceYUV420(font)
+        Assertions.assertFalse(source.isReadyForProducing())
+
+    }
 
     @Test
     fun testFormatsAndResolutions() {

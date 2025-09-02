@@ -5,13 +5,13 @@ import com.vsh.source.Source
 import com.vsh.source.TestSource
 
 interface GetTestSourceUseCase {
-    operator fun invoke(): Source<Source.OpenConfiguration>
+    operator fun invoke(): Source<Source.OpenConfiguration, Source.ProducingConfiguration>
 }
 
 class GetTestSourceUseCaseImpl(
     private val fontSrc: FontSrc
 ): GetTestSourceUseCase {
-    override operator fun invoke(): Source<Source.OpenConfiguration> {
+    override operator fun invoke(): Source<Source.OpenConfiguration, Source.ProducingConfiguration> {
         return TestSource(fontSrc)
     }
 }

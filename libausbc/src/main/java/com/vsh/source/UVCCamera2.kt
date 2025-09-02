@@ -26,7 +26,7 @@ package com.vsh.source
 import com.jiangdg.usb.UsbControlBlock
 import com.jiangdg.uvc.SourceResolution
 
-class UVCCamera2 : Source<UVCCamera2.OpenConfiguration> {
+class UVCCamera2 : Source<UVCCamera2.OpenConfiguration, Source.ProducingConfiguration> {
     public class OpenConfiguration(
         val usbControlBlock: UsbControlBlock,
         tag: String
@@ -52,10 +52,22 @@ class UVCCamera2 : Source<UVCCamera2.OpenConfiguration> {
         }
     }
 
-    override fun stopCapturing() {
+    override fun startProducing(configuration: Source.ProducingConfiguration) {
+        TODO("Not yet implemented")
+    }
+
+    override fun stopProducing() {
         if (nativePtr != 0L) {
             nativeStopCapturing(nativePtr)
         }
+    }
+
+    override fun getProducingConfiguration(): Source.ProducingConfiguration? {
+        TODO("Not yet implemented")
+    }
+
+    override fun isReadyForProducing(): Boolean {
+        TODO("Not yet implemented")
     }
 
     override fun getSupportedFrameFormats(): List<Source.FrameFormat> {
@@ -73,8 +85,6 @@ class UVCCamera2 : Source<UVCCamera2.OpenConfiguration> {
     override fun isPushSource(): Boolean {
         TODO("Not yet implemented")
     }
-
-    override fun getNativeObject(): Long = nativePtr
 
     private external fun nativeCreate(): Long
     private external fun nativeRelease(ptr: Long)

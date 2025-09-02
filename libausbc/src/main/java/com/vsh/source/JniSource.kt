@@ -2,14 +2,15 @@ package com.vsh.source
 
 import com.jiangdg.uvc.SourceResolution
 
-abstract class JniSource<OC : Source.OpenConfiguration>: Source<OC> {
-    protected var nativePtr : Long = 0L
+abstract class JniSource<OC : Source.OpenConfiguration, PC : Source.ProducingConfiguration> :
+    Source<OC, PC> {
+    protected var nativePtr: Long = 0L
 
     override fun open(configuration: OC) {
         nativePtr = initNative()
     }
 
-    override fun getNativeObject(): Long = nativePtr
+    fun getNativeObject(): Long = nativePtr
 
     protected abstract fun initNative(): Long
 
@@ -39,7 +40,6 @@ abstract class JniSource<OC : Source.OpenConfiguration>: Source<OC> {
             return emptyMap()
         }
     }
-
 
     abstract fun nativeRelease(nativePtr: Long)
     abstract fun nativeGetSupportedResolutions(nativePtr: Long): Map<Integer, List<SourceResolution>>

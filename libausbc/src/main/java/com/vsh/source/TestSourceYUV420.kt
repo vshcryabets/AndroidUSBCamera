@@ -20,7 +20,7 @@ import com.vsh.font.FontSrc
 
 class TestSourceYUV420(
     private val font: FontSrc
-) : JniSource<Source.OpenConfiguration>() {
+) : JniSource<Source.OpenConfiguration, Source.ProducingConfiguration>() {
     private var openConfiguration: Source.OpenConfiguration? = null
 
     override fun open(configuration: Source.OpenConfiguration) {
@@ -46,10 +46,22 @@ class TestSourceYUV420(
         }
     }
 
-    override fun stopCapturing() {
+    override fun startProducing(configuration: Source.ProducingConfiguration) {
+        TODO("Not yet implemented")
+    }
+
+    override fun stopProducing() {
         if (nativePtr != 0L) {
             nativeStopCapturing(nativePtr)
         }
+    }
+
+    override fun getProducingConfiguration(): Source.ProducingConfiguration? {
+        TODO("Not yet implemented")
+    }
+
+    override fun isReadyForProducing(): Boolean {
+        TODO("Not yet implemented")
     }
 
     override fun isPullSource(): Boolean {

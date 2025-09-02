@@ -45,7 +45,7 @@ data class TestSourceViewState(
 class TestSourceViewModel(
     private val getTestSourceUseCase: GetTestSourceUseCase
 ) : ViewModel() {
-    private val source: Source<*>
+    private val source: Source<*,*>
     private val _state = MutableStateFlow(TestSourceViewState())
     val state: StateFlow<TestSourceViewState> = _state
 

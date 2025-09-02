@@ -28,33 +28,60 @@ class PullToPushSourceTests {
     @Test
     fun pullToPushSourceAcceptsOnlyPullSource() {
         val pullSource = PullToPushSource.OpenConfiguration("pull",
-            object : Source<Source.OpenConfiguration> {
+            object : JniSource<Source.OpenConfiguration, Source.ProducingConfiguration>() {
             override fun open(configuration: Source.OpenConfiguration) {}
-            override fun getOpenConfiguration(): Source.OpenConfiguration =
-                Source.OpenConfiguration("pull")
-            override fun close() {}
-            override fun stopCapturing() {}
-            override fun getSupportedFrameFormats(): List<Source.FrameFormat> = emptyList()
-            override fun getSupportedResolutions(): Map<Int, List<SourceResolution>> = emptyMap()
-            override fun isPullSource(): Boolean = true
-            override fun isPushSource(): Boolean = false
-            override fun getNativeObject(): Long = 0L
+                override fun initNative(): Long = 0
+                override fun getOpenConfiguration(): Source.OpenConfiguration =
+                    Source.OpenConfiguration("pull")
+                override fun close() {}
+                override fun startProducing(configuration: Source.ProducingConfiguration) {
+                    TODO("Not yet implemented")
+                }
+                override fun stopProducing() {}
+                override fun getProducingConfiguration(): Source.ProducingConfiguration? {
+                    TODO("Not yet implemented")
+                }
+                override fun isReadyForProducing(): Boolean = false
+                override fun getSupportedFrameFormats(): List<Source.FrameFormat> = emptyList()
+                override fun getSupportedResolutions(): Map<Int, List<SourceResolution>> = emptyMap()
+                override fun nativeRelease(nativePtr: Long) {}
+                override fun nativeGetSupportedResolutions(nativePtr: Long): Map<Integer, List<SourceResolution>> {
+                    return emptyMap()
+                }
+                override fun nativeGetSupportedFrameFormats(nativePtr: Long): List<Integer> {
+                    return emptyList()
+                }
+                override fun isPullSource(): Boolean = true
+                override fun isPushSource(): Boolean = false
         })
 
         PullToPushSource().open(pullSource)
 
         val pushSource = PullToPushSource.OpenConfiguration("push",
-            object : Source<Source.OpenConfiguration> {
-            override fun open(configuration: Source.OpenConfiguration) {}
-            override fun getOpenConfiguration(): Source.OpenConfiguration =
-                Source.OpenConfiguration("pull")
-            override fun close() {}
-            override fun stopCapturing() {}
-            override fun getSupportedResolutions(): Map<Int, List<SourceResolution>> = emptyMap()
-            override fun isPullSource(): Boolean = false
-            override fun isPushSource(): Boolean = true
-            override fun getNativeObject(): Long = 0L
-            override fun getSupportedFrameFormats(): List<Source.FrameFormat> = emptyList()
+            object : JniSource<Source.OpenConfiguration, Source.ProducingConfiguration>() {
+                override fun initNative(): Long = 0
+                override fun getOpenConfiguration(): Source.OpenConfiguration =
+                    Source.OpenConfiguration("pull")
+                override fun close() {}
+                override fun startProducing(configuration: Source.ProducingConfiguration) {
+                    TODO("Not yet implemented")
+                }
+                override fun stopProducing() {}
+                override fun getProducingConfiguration(): Source.ProducingConfiguration? {
+                    TODO("Not yet implemented")
+                }
+                override fun isReadyForProducing(): Boolean = false
+                override fun getSupportedFrameFormats(): List<Source.FrameFormat> = emptyList()
+                override fun getSupportedResolutions(): Map<Int, List<SourceResolution>> = emptyMap()
+                override fun nativeRelease(nativePtr: Long) {}
+                override fun nativeGetSupportedResolutions(nativePtr: Long): Map<Integer, List<SourceResolution>> {
+                    return emptyMap()
+                }
+                override fun nativeGetSupportedFrameFormats(nativePtr: Long): List<Integer> {
+                    return emptyList()
+                }
+                override fun isPullSource(): Boolean = false
+                override fun isPushSource(): Boolean = true
             })
 
         try {
