@@ -25,7 +25,10 @@ jobject prepareJniFrame(const auvc::Frame &frame, JNIEnv *env) {
         jmethodID constructor = env->GetMethodID(cls, "<init>",
                                                  "(IIIJLjava/nio/ByteBuffer;)V");
         if (constructor != nullptr) {
-            jobject jPixelBuffer = env->NewDirectByteBuffer(frame.getData(), frame.getSize());
+            jobject jPixelBuffer = nullptr;
+            if (frame.getData() != nullptr && frame.getSize() > 0)
+                jPixelBuffer = env->NewDirectByteBuffer(frame.getData(),
+                                                        frame.getSize());
             result = env->NewObject(cls, constructor,
                                             frame.getWidth(),
                                             frame.getHeight(),

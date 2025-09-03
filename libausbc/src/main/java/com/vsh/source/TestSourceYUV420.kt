@@ -75,12 +75,14 @@ class TestSourceYUV420(
         if (nativePtr != 0L) {
             result = nativeReadFrame(nativePtr)
         }
-        return result ?: object: Frame {
-            override fun getWidth(): Int = 0
-            override fun getHeight(): Int = 0
-            override fun getFormat(): Int = Source.FrameFormat.NONE.ordinal
-            override fun getTimestamp(): Long = 0
-        }
+        if (result == null)
+            result = object: Frame {
+                override fun getWidth(): Int = 0
+                override fun getHeight(): Int = 0
+                override fun getFormat(): Int = Source.FrameFormat.NONE.ordinal
+                override fun getTimestamp(): Long = 0
+            }
+        return result
     }
 
     override fun waitNextFrame(): Boolean {
