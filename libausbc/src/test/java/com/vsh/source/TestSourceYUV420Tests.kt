@@ -40,6 +40,33 @@ class TestSourceYUV420Tests {
         source.releaseNativeObject()
     }
 
+    @Test
+    fun testCapture() {
+        val font = FontSrcImpl()
+        val source = TestSourceYUV420(font)
+        source.open(Source.OpenConfiguration("test"))
+        source.startProducing(Source.ProducingConfiguration(
+            tag = "testProducing",
+            640,
+            480,
+            30.0f
+        ))
+        source.waitNextFrame()
+        val frame = source.readFrame()
+        Assertions.assertNotNull(frame)
+        Assertions.assertTrue(frame is BytePixelBufferFrame)
+        Assertions.assertEquals(640, frame.getWidth())
+        Assertions.assertEquals(480, frame.getHeight())
+        Assertions.assertEquals(Source.FrameFormat.YUV420P, frame.getFormat())
+        val buffer = (frame as BytePixelBufferFrame).getPixelBuffer()
+        Assertions.assertNotNull(buffer)
+        Assertions.assertEquals(640*480 * 3 / 2, buffer.limit())
+
+        source.stopProducing()
+        source.close()
+        source.releaseNativeObject()
+    }
+
     companion object {
         @JvmStatic
         @BeforeAll

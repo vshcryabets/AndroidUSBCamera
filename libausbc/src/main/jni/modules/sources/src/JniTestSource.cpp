@@ -107,6 +107,16 @@ extern "C"
         auto *source = reinterpret_cast<TestSourceYUV420 *>(itemPtr);
         delete source;
     }
+
+    JNIEXPORT jboolean JNICALL
+    Java_com_vsh_source_TestSourceYUV420_nativeIsReadyForProducing(
+            JNIEnv *env,
+            jobject thiz,
+            jlong itemPtr)
+    {
+        auto *source = reinterpret_cast<TestSourceYUV420 *>(itemPtr);
+        return source->isReadyForProducing();
+    }
 }
 
 void JniTestSource_register(JNIEnv *env)
@@ -135,6 +145,7 @@ void JniTestSource_register(JNIEnv *env)
             {"nativeGetSupportedResolutions", "(J)Ljava/util/Map;", (void *)&Java_com_vsh_source_TestSourceYUV420_nativeGetSupportedResolutions},
             {"nativeClose", "(J)V", (void *)&Java_com_vsh_source_TestSourceYUV420_nativeClose},
             {"nativeRelease", "(J)V", (void *)&Java_com_vsh_source_TestSourceYUV420_nativeRelease},
+            {"nativeIsReadyForProducing", "(J)Z", (void *)&Java_com_vsh_source_TestSourceYUV420_nativeIsReadyForProducing},
         };
         env->RegisterNatives(clazz, methods, sizeof(methods) / sizeof(methods[0]));
         env->DeleteLocalRef(clazz);

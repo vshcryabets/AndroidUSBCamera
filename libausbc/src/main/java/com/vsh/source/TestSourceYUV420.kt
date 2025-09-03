@@ -20,7 +20,8 @@ import com.vsh.font.FontSrc
 
 class TestSourceYUV420(
     private val font: FontSrc
-) : JniSource<Source.OpenConfiguration, Source.ProducingConfiguration>() {
+) : JniSource<Source.OpenConfiguration, Source.ProducingConfiguration>(),
+    PullSource<Source.OpenConfiguration, Source.ProducingConfiguration> {
     private var openConfiguration: Source.OpenConfiguration? = null
 
     override fun open(configuration: Source.OpenConfiguration) {
@@ -61,6 +62,17 @@ class TestSourceYUV420(
     }
 
     override fun isReadyForProducing(): Boolean {
+        if (nativePtr != 0L) {
+            return nativeIsReadyForProducing(nativePtr)
+        }
+        return false
+    }
+
+    override fun readFrame(): Frame {
+        TODO("Not yet implemented")
+    }
+
+    override fun waitNextFrame(): Boolean {
         TODO("Not yet implemented")
     }
 
@@ -76,6 +88,7 @@ class TestSourceYUV420(
     external override fun nativeRelease(nativePtr: Long)
     private external fun nativeStopCapturing(ptr: Long)
     private external fun nativeClose(ptr: Long)
+    private external fun nativeIsReadyForProducing(ptr: Long): Boolean
     external override fun nativeGetSupportedResolutions(nativePtr: Long): Map<Integer, List<SourceResolution>>
     external override fun nativeGetSupportedFrameFormats(nativePtr: Long): List<Integer>
     external fun nativeOpen(ptr: Long)
