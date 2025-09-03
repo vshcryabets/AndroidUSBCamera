@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
 class TestSourceViewModelTests {
-    val emptySource = object: Source<Source.OpenConfiguration> {
+    val emptySource = object: Source<Source.OpenConfiguration, Source.ProducingConfiguration> {
         var configuration: Source.OpenConfiguration? = null
 
         override fun open(configuration: Source.OpenConfiguration) {
@@ -34,7 +34,19 @@ class TestSourceViewModelTests {
         override fun close() {
         }
 
-        override fun stopCapturing() {
+        override fun startProducing(configuration: Source.ProducingConfiguration) {
+            TODO("Not yet implemented")
+        }
+
+        override fun stopProducing() {
+        }
+
+        override fun getProducingConfiguration(): Source.ProducingConfiguration? {
+            TODO("Not yet implemented")
+        }
+
+        override fun isReadyForProducing(): Boolean {
+            TODO("Not yet implemented")
         }
 
         override fun getSupportedFrameFormats(): List<Source.FrameFormat> = emptyList()
@@ -56,13 +68,10 @@ class TestSourceViewModelTests {
 
         override fun isPullSource(): Boolean = true
         override fun isPushSource(): Boolean = false
-        override fun getNativeObject(): Long {
-            TODO("Not yet implemented")
-        }
     }
 
     val getTestSourceUseCase = object : GetTestSourceUseCase {
-        override fun invoke(): Source<Source.OpenConfiguration> = emptySource
+        override fun invoke(): Source<Source.OpenConfiguration, Source.ProducingConfiguration> = emptySource
     }
 
     @Test

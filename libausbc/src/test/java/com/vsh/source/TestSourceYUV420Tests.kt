@@ -13,7 +13,6 @@ class TestSourceYUV420Tests {
         val font = FontSrcImpl()
         val source = TestSourceYUV420(font)
         Assertions.assertFalse(source.isReadyForProducing())
-
     }
 
     @Test
@@ -57,7 +56,7 @@ class TestSourceYUV420Tests {
         Assertions.assertTrue(frame is BytePixelBufferFrame)
         Assertions.assertEquals(640, frame.getWidth())
         Assertions.assertEquals(480, frame.getHeight())
-        Assertions.assertEquals(Source.FrameFormat.YUV420P, frame.getFormat())
+        Assertions.assertEquals(Source.FrameFormat.YUV420P.ordinal, frame.getFormat())
         val buffer = (frame as BytePixelBufferFrame).getPixelBuffer()
         Assertions.assertNotNull(buffer)
         Assertions.assertEquals(640*480 * 3 / 2, buffer.limit())

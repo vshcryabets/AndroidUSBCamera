@@ -18,142 +18,184 @@ Source::ProducingConfiguration parseProducingConfiguration(jobject object, JNIEn
     return config;
 }
 
+jobject prepareJniFrame(const auvc::Frame &frame, JNIEnv *env) {
+    jobject result = nullptr;
+    jclass cls = env->FindClass("com/vsh/source/BytePixelBufferFrame");
+    if (cls != nullptr) {
+        jmethodID constructor = env->GetMethodID(cls, "<init>",
+                                                 "(IIIJLjava/nio/ByteBuffer;)V");
+        if (constructor != nullptr) {
+            jobject jPixelBuffer = env->NewDirectByteBuffer(frame.getData(), frame.getSize());
+            result = env->NewObject(cls, constructor,
+                                            frame.getWidth(),
+                                            frame.getHeight(),
+                                            frame.getFormat(),
+                                            frame.getTimestamp().time_since_epoch().count(),
+                                            jPixelBuffer);
+        }
+    }
+
+    env->DeleteLocalRef(cls);
+    return result;
+}
+
 extern "C"
 {
 
-    JNIEXPORT jlong JNICALL
-    Java_com_vsh_source_TestSource_nativeCreate(JNIEnv *env, jobject thiz, jlong fontPtr)
-    {
-        auto *source = new TestSource((const uint8_t *)fontPtr);
-        return reinterpret_cast<jlong>(source);
-    }
+JNIEXPORT jlong JNICALL
+Java_com_vsh_source_TestSource_nativeCreate(JNIEnv *env, jobject thiz, jlong fontPtr)
+{
+    auto *source = new TestSource((const uint8_t *)fontPtr);
+    return reinterpret_cast<jlong>(source);
+}
 
-    JNIEXPORT void JNICALL
-    Java_com_vsh_source_TestSource_nativeRelease(JNIEnv *env, jobject thiz, jlong ptr)
-    {
-        auto *camera = (TestSource *)ptr;
-        delete camera;
-    }
+JNIEXPORT void JNICALL
+Java_com_vsh_source_TestSource_nativeRelease(JNIEnv *env, jobject thiz, jlong ptr)
+{
+    auto *camera = (TestSource *)ptr;
+    delete camera;
+}
 
-    JNIEXPORT void JNICALL
-    Java_com_vsh_source_TestSource_nativeStopCapturing(JNIEnv *env, jobject thiz, jlong ptr)
-    {
-        auto *camera = (TestSource *)ptr;
-        camera->stopProducing();
-    }
+JNIEXPORT void JNICALL
+Java_com_vsh_source_TestSource_nativeStopCapturing(JNIEnv *env, jobject thiz, jlong ptr)
+{
+    auto *camera = (TestSource *)ptr;
+    camera->stopProducing();
+}
 
-    JNIEXPORT void JNICALL
-    Java_com_vsh_source_TestSource_nativeClose(JNIEnv *env, jobject thiz, jlong ptr)
-    {
-        auto *camera = (TestSource *)ptr;
-        camera->close();
-    }
+JNIEXPORT void JNICALL
+Java_com_vsh_source_TestSource_nativeClose(JNIEnv *env, jobject thiz, jlong ptr)
+{
+    auto *camera = (TestSource *)ptr;
+    camera->close();
+}
 
-    JNIEXPORT jobject JNICALL
-    Java_com_vsh_source_TestSource_nativeGetSupportedResolutions(JNIEnv *env,
-                                                                 jobject thiz,
-                                                                 jlong ptr)
-    {
-        auto *camera = (TestSource *)ptr;
-        std::map<uint16_t, std::vector<Source::Resolution>> supportedSizes =
-            camera->getSupportedResolutions();
-        return resolutionMapToJObject(supportedSizes, env);
-    }
+JNIEXPORT jobject JNICALL
+Java_com_vsh_source_TestSource_nativeGetSupportedResolutions(JNIEnv *env,
+                                                             jobject thiz,
+                                                             jlong ptr)
+{
+    auto *camera = (TestSource *)ptr;
+    std::map<uint16_t, std::vector<Source::Resolution>> supportedSizes =
+        camera->getSupportedResolutions();
+    return resolutionMapToJObject(supportedSizes, env);
+}
 
 #pragma region TestSourceYUV420
 
-    JNIEXPORT jlong JNICALL
-    Java_com_vsh_source_TestSourceYUV420_nativeCreate(JNIEnv *env, jobject thiz, jlong fontPtr)
-    {
-        auto *source = new TestSourceYUV420((const uint8_t *)fontPtr);
-        return reinterpret_cast<jlong>(source);
-    }
+JNIEXPORT jlong JNICALL
+Java_com_vsh_source_TestSourceYUV420_nativeCreate(JNIEnv *env, jobject thiz, jlong fontPtr)
+{
+    auto *source = new TestSourceYUV420((const uint8_t *)fontPtr);
+    return reinterpret_cast<jlong>(source);
+}
 
-    JNIEXPORT jobject JNICALL
-    Java_com_vsh_source_TestSourceYUV420_nativeGetSupportedFrameFormats(
+JNIEXPORT jobject JNICALL
+Java_com_vsh_source_TestSourceYUV420_nativeGetSupportedFrameFormats(
+    JNIEnv *env,
+    jobject thiz,
+    jlong itemPtr)
+{
+    auto *source = reinterpret_cast<TestSourceYUV420 *>(itemPtr);
+    std::vector<auvc::FrameFormat> formats = source->getSupportedFrameFormats();
+    return frameFormatsToJList(formats, env);
+}
+
+JNIEXPORT void JNICALL
+Java_com_vsh_source_TestSourceYUV420_nativeOpen(
+    JNIEnv *env,
+    jobject thiz,
+    jlong itemPtr)
+{
+    auto *source = reinterpret_cast<TestSourceYUV420 *>(itemPtr);
+    source->open({
+
+    });
+}
+
+JNIEXPORT jobject JNICALL
+Java_com_vsh_source_TestSourceYUV420_nativeGetSupportedResolutions(JNIEnv *env,
+                                                                   jobject thiz,
+                                                                   jlong itemPtr)
+{
+    auto *camera = reinterpret_cast<TestSourceYUV420 *>(itemPtr);
+    std::map<uint16_t, std::vector<Source::Resolution>> supportedSizes =
+        camera->getSupportedResolutions();
+    return resolutionMapToJObject(supportedSizes, env);
+}
+
+JNIEXPORT void JNICALL
+Java_com_vsh_source_TestSourceYUV420_nativeStopProducing(
         JNIEnv *env,
         jobject thiz,
         jlong itemPtr)
-    {
-        auto *source = reinterpret_cast<TestSourceYUV420 *>(itemPtr);
-        std::vector<auvc::FrameFormat> formats = source->getSupportedFrameFormats();
-        return frameFormatsToJList(formats, env);
-    }
+{
+    auto *source = reinterpret_cast<TestSourceYUV420 *>(itemPtr);
+    source->stopProducing();
+}
 
-    JNIEXPORT void JNICALL
-    Java_com_vsh_source_TestSourceYUV420_nativeOpen(
+JNIEXPORT void JNICALL
+Java_com_vsh_source_TestSourceYUV420_nativeClose(
+    JNIEnv *env,
+    jobject thiz,
+    jlong itemPtr)
+{
+    auto *source = reinterpret_cast<TestSourceYUV420 *>(itemPtr);
+    source->close();
+}
+
+JNIEXPORT void JNICALL
+Java_com_vsh_source_TestSourceYUV420_nativeRelease(
+    JNIEnv *env,
+    jobject thiz,
+    jlong itemPtr)
+{
+    auto *source = reinterpret_cast<TestSourceYUV420 *>(itemPtr);
+    delete source;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_com_vsh_source_TestSourceYUV420_nativeIsReadyForProducing(
         JNIEnv *env,
         jobject thiz,
         jlong itemPtr)
-    {
-        auto *source = reinterpret_cast<TestSourceYUV420 *>(itemPtr);
-        source->open({
+{
+    auto *source = reinterpret_cast<TestSourceYUV420 *>(itemPtr);
+    return source->isReadyForProducing();
+}
 
-        });
-    }
-
-    JNIEXPORT jobject JNICALL
-    Java_com_vsh_source_TestSourceYUV420_nativeGetSupportedResolutions(JNIEnv *env,
-                                                                       jobject thiz,
-                                                                       jlong itemPtr)
-    {
-        auto *camera = reinterpret_cast<TestSourceYUV420 *>(itemPtr);
-        std::map<uint16_t, std::vector<Source::Resolution>> supportedSizes =
-            camera->getSupportedResolutions();
-        return resolutionMapToJObject(supportedSizes, env);
-    }
-
-    JNIEXPORT void JNICALL
-    Java_com_vsh_source_TestSourceYUV420_nativeClose(
+JNIEXPORT jboolean JNICALL
+Java_com_vsh_source_TestSourceYUV420_nativeWaitNextFrame(
         JNIEnv *env,
         jobject thiz,
         jlong itemPtr)
-    {
-        auto *source = reinterpret_cast<TestSourceYUV420 *>(itemPtr);
-        source->close();
-    }
+{
+    auto *source = reinterpret_cast<TestSourceYUV420 *>(itemPtr);
+    return source->waitNextFrame();
+}
 
-    JNIEXPORT void JNICALL
-    Java_com_vsh_source_TestSourceYUV420_nativeRelease(
+JNIEXPORT void JNICALL
+Java_com_vsh_source_TestSourceYUV420_nativeStartProducing(
+        JNIEnv *env,
+        jobject thiz,
+        jlong itemPtr,
+        jobject producingConfiguration)
+{
+    auto *source = reinterpret_cast<TestSourceYUV420 *>(itemPtr);
+    Source::ProducingConfiguration config = parseProducingConfiguration(producingConfiguration, env);
+    source->startProducing(config);
+}
+
+JNIEXPORT jobject JNICALL
+Java_com_vsh_source_TestSourceYUV420_nativeReadFrame(
         JNIEnv *env,
         jobject thiz,
         jlong itemPtr)
-    {
-        auto *source = reinterpret_cast<TestSourceYUV420 *>(itemPtr);
-        delete source;
-    }
-
-    JNIEXPORT jboolean JNICALL
-    Java_com_vsh_source_TestSourceYUV420_nativeIsReadyForProducing(
-            JNIEnv *env,
-            jobject thiz,
-            jlong itemPtr)
-    {
-        auto *source = reinterpret_cast<TestSourceYUV420 *>(itemPtr);
-        return source->isReadyForProducing();
-    }
-
-    JNIEXPORT jboolean JNICALL
-    Java_com_vsh_source_TestSourceYUV420_nativeWaitNextFrame(
-            JNIEnv *env,
-            jobject thiz,
-            jlong itemPtr)
-    {
-        auto *source = reinterpret_cast<TestSourceYUV420 *>(itemPtr);
-        return source->waitNextFrame();
-    }
-
-    JNIEXPORT void JNICALL
-    Java_com_vsh_source_TestSourceYUV420_nativeStartProducing(
-            JNIEnv *env,
-            jobject thiz,
-            jlong itemPtr,
-            jobject producingConfiguration)
-    {
-        auto *source = reinterpret_cast<TestSourceYUV420 *>(itemPtr);
-        Source::ProducingConfiguration config = parseProducingConfiguration(producingConfiguration, env);
-        source->startProducing(config);
-    }
+{
+    auto *source = reinterpret_cast<TestSourceYUV420 *>(itemPtr);
+    auto frame = source->readFrame();
+    return prepareJniFrame(frame, env);
+}
 }
 
 void JniTestSource_register(JNIEnv *env)
@@ -194,6 +236,10 @@ void JniTestSource_register(JNIEnv *env)
                 (void *)&Java_com_vsh_source_TestSourceYUV420_nativeStartProducing},
             {CONST_LITERAL("nativeWaitNextFrame"), CONST_LITERAL("(J)Z"), 
                 (void *)&Java_com_vsh_source_TestSourceYUV420_nativeWaitNextFrame},
+            {CONST_LITERAL("nativeReadFrame"), CONST_LITERAL("(J)Lcom/vsh/source/Frame;"),
+                (void *)&Java_com_vsh_source_TestSourceYUV420_nativeReadFrame},
+            {CONST_LITERAL("nativeStopProducing"), CONST_LITERAL("(J)V"),
+                (void *)&Java_com_vsh_source_TestSourceYUV420_nativeStopProducing},
         };
         env->RegisterNatives(clazz, methods, sizeof(methods) / sizeof(methods[0]));
         env->DeleteLocalRef(clazz);

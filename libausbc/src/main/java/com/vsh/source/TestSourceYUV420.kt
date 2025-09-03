@@ -71,7 +71,16 @@ class TestSourceYUV420(
     }
 
     override fun readFrame(): Frame {
-        TODO("Not yet implemented")
+        var result : Frame? = null
+        if (nativePtr != 0L) {
+            result = nativeReadFrame(nativePtr)
+        }
+        return result ?: object: Frame {
+            override fun getWidth(): Int = 0
+            override fun getHeight(): Int = 0
+            override fun getFormat(): Int = Source.FrameFormat.NONE.ordinal
+            override fun getTimestamp(): Long = 0
+        }
     }
 
     override fun waitNextFrame(): Boolean {
@@ -99,5 +108,6 @@ class TestSourceYUV420(
     external override fun nativeGetSupportedFrameFormats(nativePtr: Long): List<Integer>
     external fun nativeOpen(ptr: Long)
     external fun nativeStartProducing(ptr: Long, configuration: Source.ProducingConfiguration)
+    external fun nativeReadFrame(ptr: Long): Frame
 
 }
