@@ -48,12 +48,14 @@ class TestSourceYUV420(
     }
 
     override fun startProducing(configuration: Source.ProducingConfiguration) {
-        TODO("Not yet implemented")
+        if (nativePtr != 0L) {
+            nativeStartProducing(nativePtr, configuration)
+        }
     }
 
     override fun stopProducing() {
         if (nativePtr != 0L) {
-            nativeStopCapturing(nativePtr)
+            nativeStopProducing(nativePtr)
         }
     }
 
@@ -73,7 +75,10 @@ class TestSourceYUV420(
     }
 
     override fun waitNextFrame(): Boolean {
-        TODO("Not yet implemented")
+        if (nativePtr != 0L) {
+            return nativeWaitNextFrame(nativePtr)
+        }
+        return false
     }
 
     override fun isPullSource(): Boolean {
@@ -86,11 +91,13 @@ class TestSourceYUV420(
 
     private external fun nativeCreate(fontPtr: Long): Long
     external override fun nativeRelease(nativePtr: Long)
-    private external fun nativeStopCapturing(ptr: Long)
+    private external fun nativeStopProducing(ptr: Long)
     private external fun nativeClose(ptr: Long)
     private external fun nativeIsReadyForProducing(ptr: Long): Boolean
+    private external fun nativeWaitNextFrame(ptr: Long): Boolean
     external override fun nativeGetSupportedResolutions(nativePtr: Long): Map<Integer, List<SourceResolution>>
     external override fun nativeGetSupportedFrameFormats(nativePtr: Long): List<Integer>
     external fun nativeOpen(ptr: Long)
+    external fun nativeStartProducing(ptr: Long, configuration: Source.ProducingConfiguration)
 
 }

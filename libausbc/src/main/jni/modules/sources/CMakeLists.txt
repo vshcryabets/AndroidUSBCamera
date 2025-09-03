@@ -65,4 +65,3 @@ if (BUILD_CATCH2_TESTS)
             COMMENT "Copying resources to build directory..."
         )
 endif()              
-      
