@@ -23,15 +23,5 @@ void DecoderH264LibAVCodec::open(const X264DecoderConfig &config) {
     }
 }
 
-void DecoderH264LibAVCodec::start() {
-}
-
-void DecoderH264LibAVCodec::stop() {
-}
-
 void DecoderH264LibAVCodec::close() {
-}
-
-DecoderMultiBuffer DecoderH264LibAVCodec::decodeFrame(const DecoderBuffer &inputBuffer) {
-    return DecoderMultiBuffer();
 }
