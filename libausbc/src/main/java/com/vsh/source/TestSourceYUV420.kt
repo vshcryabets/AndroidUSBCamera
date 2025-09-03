@@ -20,7 +20,8 @@ import com.vsh.font.FontSrc
 
 class TestSourceYUV420(
     private val font: FontSrc
-) : JniSource<Source.OpenConfiguration>() {
+) : JniSource<Source.OpenConfiguration, Source.ProducingConfiguration>(),
+    PullSource<Source.OpenConfiguration, Source.ProducingConfiguration> {
     private var openConfiguration: Source.OpenConfiguration? = null
 
     override fun open(configuration: Source.OpenConfiguration) {
@@ -46,10 +47,49 @@ class TestSourceYUV420(
         }
     }
 
-    override fun stopCapturing() {
+    override fun startProducing(configuration: Source.ProducingConfiguration) {
         if (nativePtr != 0L) {
-            nativeStopCapturing(nativePtr)
+            nativeStartProducing(nativePtr, configuration)
         }
+    }
+
+    override fun stopProducing() {
+        if (nativePtr != 0L) {
+            nativeStopProducing(nativePtr)
+        }
+    }
+
+    override fun getProducingConfiguration(): Source.ProducingConfiguration? {
+        TODO("Not yet implemented")
+    }
+
+    override fun isReadyForProducing(): Boolean {
+        if (nativePtr != 0L) {
+            return nativeIsReadyForProducing(nativePtr)
+        }
+        return false
+    }
+
+    override fun readFrame(): Frame {
+        var result: Frame? = null
+        if (nativePtr != 0L) {
+            result = nativeReadFrame(nativePtr)
+        }
+        if (result == null)
+            result = object : Frame {
+                override fun getWidth(): Int = 0
+                override fun getHeight(): Int = 0
+                override fun getFormat(): Int = Source.FrameFormat.NONE.ordinal
+                override fun getTimestamp(): Long = 0
+            }
+        return result
+    }
+
+    override fun waitNextFrame(): Boolean {
+        if (nativePtr != 0L) {
+            return nativeWaitNextFrame(nativePtr)
+        }
+        return false
     }
 
     override fun isPullSource(): Boolean {
@@ -62,10 +102,14 @@ class TestSourceYUV420(
 
     private external fun nativeCreate(fontPtr: Long): Long
     external override fun nativeRelease(nativePtr: Long)
-    private external fun nativeStopCapturing(ptr: Long)
+    private external fun nativeStopProducing(ptr: Long)
     private external fun nativeClose(ptr: Long)
+    private external fun nativeIsReadyForProducing(ptr: Long): Boolean
+    private external fun nativeWaitNextFrame(ptr: Long): Boolean
     external override fun nativeGetSupportedResolutions(nativePtr: Long): Map<Integer, List<SourceResolution>>
     external override fun nativeGetSupportedFrameFormats(nativePtr: Long): List<Integer>
     external fun nativeOpen(ptr: Long)
+    external fun nativeStartProducing(ptr: Long, configuration: Source.ProducingConfiguration)
+    external fun nativeReadFrame(ptr: Long): Frame
 
 }

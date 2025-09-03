@@ -2,7 +2,7 @@ package com.vsh.source
 
 import com.jiangdg.uvc.SourceResolution
 
-interface Source<OC: Source.OpenConfiguration> {
+interface Source<OC: Source.OpenConfiguration, PC: Source.ProducingConfiguration> {
 
     enum class FrameFormat {
         YUYV,
@@ -19,17 +19,25 @@ interface Source<OC: Source.OpenConfiguration> {
     ) {
 
     }
+    open class ProducingConfiguration(
+        val tag: String,
+        val width: Int,
+        val height: Int,
+        val fps: Float,
+    ) {
+
+    }
 
     fun open(configuration: OC)
     fun getOpenConfiguration(): OC?
     fun close()
 
-    fun stopCapturing()
-
-    fun getSupportedFrameFormats(): List<FrameFormat>
+    fun startProducing(configuration: PC)
+    fun stopProducing()
+    fun getProducingConfiguration(): PC?
+    fun isReadyForProducing(): Boolean
     fun getSupportedResolutions(): Map<Int, List<SourceResolution>>
-
+    fun getSupportedFrameFormats(): List<FrameFormat>
     fun isPullSource() : Boolean
     fun isPushSource(): Boolean
-    fun getNativeObject(): Long
 }

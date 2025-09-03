@@ -5,6 +5,8 @@
 #include <vector>
 #include "Source.h"
 
+#define CONST_LITERAL(X) const_cast<char*>(X)
+
 jobject resolutionMapToJObject(
         const std::map<uint16_t, std::vector<Source::Resolution>> &map,
         JNIEnv *env);

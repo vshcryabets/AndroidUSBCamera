@@ -5,7 +5,7 @@ import com.vsh.source.Source
 
 interface DrawSourceToSurface {
     fun startDrawToSurface(
-        source: Source<*>,
+        source: Source<*,*>,
         surface: Surface,
         width: Int,
         height: Int,

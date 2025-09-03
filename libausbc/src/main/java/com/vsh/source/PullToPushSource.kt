@@ -2,21 +2,23 @@ package com.vsh.source
 
 import com.jiangdg.uvc.SourceResolution
 
-class PullToPushSource: JniSource<PullToPushSource.OpenConfiguration>() {
+class PullToPushSource :
+    JniSource<PullToPushSource.OpenConfiguration, Source.ProducingConfiguration>() {
     private var openConfig: OpenConfiguration? = null
 
     class OpenConfiguration(
         tag: String,
-        val pullSource: Source<*>
-    ): Source.OpenConfiguration(tag) {
+        val pullSource: JniSource<*, *>
+    ) : Source.OpenConfiguration(tag) {
     }
 
     override fun initNative(): Long = nativeCreate()
 
     override fun open(configuration: OpenConfiguration) {
         if (!configuration.pullSource.isPullSource())
-            throw IllegalArgumentException("Pull source expected, but got " +
-                    configuration.pullSource::class.java.simpleName
+            throw IllegalArgumentException(
+                "Pull source expected, but got " +
+                        configuration.pullSource::class.java.simpleName
             )
         val sourcePtr = configuration.pullSource.getNativeObject()
         this.openConfig = configuration
@@ -29,15 +31,24 @@ class PullToPushSource: JniSource<PullToPushSource.OpenConfiguration>() {
         TODO("Not yet implemented")
     }
 
-    override fun stopCapturing() {
+    override fun startProducing(configuration: Source.ProducingConfiguration) {
+        TODO("Not yet implemented")
+    }
+
+    override fun stopProducing() {
+        TODO("Not yet implemented")
+    }
+
+    override fun getProducingConfiguration(): Source.ProducingConfiguration? {
+        TODO("Not yet implemented")
+    }
+
+    override fun isReadyForProducing(): Boolean {
         TODO("Not yet implemented")
     }
 
     override fun isPullSource(): Boolean = false
     override fun isPushSource(): Boolean = true
-    override fun getNativeObject(): Long {
-        TODO("Not yet implemented")
-    }
 
     private external fun nativeCreate(): Long
     external override fun nativeRelease(ptr: Long)
