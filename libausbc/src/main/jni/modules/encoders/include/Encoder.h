@@ -59,8 +59,6 @@ class Encoder: public auvc::Consumer, public auvc::PushSource
 public:
     Encoder() = default;
     virtual ~Encoder() {}
-    // virtual EncoderMultiBuffer encodeFrame() = 0;
-    // virtual EncoderMultiBuffer flush() = 0;
 };
 
 template <typename T>
