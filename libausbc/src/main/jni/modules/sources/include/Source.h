@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <future>
 
 class SourceError : public std::exception {
     public:
@@ -49,13 +50,15 @@ public:
         this->sourceConfig = config;
     }
     [[nodiscard]] const OpenConfiguration getOpenConfiguration() const;
-    virtual void close() = 0;
+    virtual std::future<void> close() = 0;
     // producing
     [[nodiscard]] const ProducingConfiguration getProducingConfiguration() const;
-    virtual void startProducing(const ProducingConfiguration &config) {
-        this->captureConfiguration = config;
+    virtual std::future<void> startProducing(const ProducingConfiguration &config) {
+        return std::async(std::launch::deferred, [this, config]() {
+            this->captureConfiguration = config;
+        });        
     }
-    virtual void stopProducing() = 0;
+    virtual std::future<void> stopProducing() = 0;
     [[nodiscard]] virtual bool isReadyForProducing() const;
 
     [[nodiscard]] virtual std::map<uint16_t, std::vector<Resolution>> getSupportedResolutions() const = 0;

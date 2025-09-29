@@ -20,10 +20,10 @@ interface Source<OC: Source.OpenConfiguration, PC: Source.ProducingConfiguration
 
     }
     open class ProducingConfiguration(
-        val tag: String,
-        val width: Int,
-        val height: Int,
-        val fps: Float,
+        val tag: String = "",
+        val width: Int = 0,
+        val height: Int = 0,
+        val fps: Float = 0f,
     ) {
 
     }

@@ -25,10 +25,6 @@ if(BUILD_JNI_WRAPPERS)
         src/jni/JniSources.cpp
         src/jni/JniPullToPushSource.cpp
         )
-endif()
-
-
-if(BUILD_JNI_WRAPPERS)
     target_include_directories(
         Sources
         PUBLIC

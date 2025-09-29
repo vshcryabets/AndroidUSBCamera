@@ -248,3 +248,4 @@ void JniTestSource_register(JNIEnv *env)
         env->DeleteLocalRef(clazz);
     }
 }
+

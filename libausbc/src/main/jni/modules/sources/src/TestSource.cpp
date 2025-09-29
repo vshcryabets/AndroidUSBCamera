@@ -65,24 +65,29 @@ auvc::Frame TestSource::readFrame()
         "Capture not started or invalid configuration");
 }
 
-void TestSource::startProducing(const Source::ProducingConfiguration &config)
+std::future<void> TestSource::startProducing(const Source::ProducingConfiguration &config)
 {
-    Source::startProducing(config);
-    if (config.width == 0 ||
-        config.height == 0 ||
-        (config.width % testRGBAColors.size() != 0))
-    {
-        throw SourceError(SourceError::SOURCE_ERROR_WRONG_CONFIG, "Invalid capture configuration, width,height must be > 0 and width % " + std::to_string(testRGBAColors.size()) + " == 0");
-    }
-    testDataSize = config.width * config.height * 4;
-    testData = new uint8_t[testDataSize];
-    captureStartTime = std::chrono::steady_clock::now();
-    sourceName = "TestSource RGBA " + std::to_string(config.width) + "x" + std::to_string(config.height);
+    return std::async(std::launch::deferred, [this, config]() {
+        Source::startProducing(config).get(); // Call base implementation
+        // Validate configuration 
+        if (config.width == 0 ||
+            config.height == 0 ||
+            (config.width % testRGBAColors.size() != 0))
+        {
+            throw SourceError(SourceError::SOURCE_ERROR_WRONG_CONFIG, 
+                "Invalid capture configuration, width,height must be > 0 and width % " + 
+                std::to_string(testRGBAColors.size()) + " == 0");
+        }
+        testDataSize = config.width * config.height * 4;
+        testData = new uint8_t[testDataSize];
+        captureStartTime = std::chrono::steady_clock::now();
+        sourceName = "TestSource RGBA " + std::to_string(config.width) + "x" + std::to_string(config.height);
+    });
 }
 
-void TestSource::close()
+std::future<void> TestSource::close()
 {
-    stopProducing();
+    return stopProducing();
 }
 
 std::vector<auvc::FrameFormat> TestSource::getSupportedFrameFormats() const
@@ -90,13 +95,17 @@ std::vector<auvc::FrameFormat> TestSource::getSupportedFrameFormats() const
     return {auvc::FrameFormat::RGBA};
 }
 
-void TestSource::stopProducing()
+std::future<void> TestSource::stopProducing()
 {
-    if (testData)
-    {
-        delete[] testData;
-        testData = nullptr;
-    }
+    return std::async(std::launch::deferred, [this]() {
+        frameCounter = 0;
+        if (testData)
+        {
+            delete[] testData;
+            testData = nullptr;
+        }
+        testDataSize = 0;
+    });
 }
 
 bool TestSource::waitNextFrame()

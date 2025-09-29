@@ -34,7 +34,7 @@ PullToPushSource::getSupportedFrameFormats() const
     return {};
 }
 
-void PullToPushSource::startProducing(const Source::ProducingConfiguration &config) 
+std::future<void> PullToPushSource::startProducing(const Source::ProducingConfiguration &config) 
 {
     // start worker thread that pulls frames from pullSource and pushes them via pushFrame
     if (!pullSource) {
@@ -60,7 +60,7 @@ void PullToPushSource::startProducing(const Source::ProducingConfiguration &conf
     });
 }
 
-void PullToPushSource::stopProducing()
+std::future<void> PullToPushSource::stopProducing()
 {
     // stop worker thread
     running = false;

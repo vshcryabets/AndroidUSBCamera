@@ -1,9 +1,11 @@
 package com.vsh.source
 
 import com.jiangdg.uvc.SourceResolution
+import java.io.Closeable
 
 abstract class JniSource<OC : Source.OpenConfiguration, PC : Source.ProducingConfiguration> :
-    Source<OC, PC> {
+    Source<OC, PC>,
+    Closeable {
     protected var nativePtr: Long = 0L
 
     override fun open(configuration: OC) {
@@ -22,6 +24,10 @@ abstract class JniSource<OC : Source.OpenConfiguration, PC : Source.ProducingCon
         } else {
             return emptyList()
         }
+    }
+
+    override fun close() {
+        releaseNativeObject()
     }
 
     fun releaseNativeObject() {

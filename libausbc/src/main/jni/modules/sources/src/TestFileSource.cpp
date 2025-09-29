@@ -108,11 +108,13 @@ void TestFileSource::open(const ConnectConfiguration &config)
     supportedFormats.push_back(auvc::FrameFormat::ENCODED);
 }
 
-void TestFileSource::close()
+std::future<void> TestFileSource::close()
 {
-    if (dataFile.is_open()) {
-        dataFile.close();
-    }
+    return std::async(std::launch::deferred, [this]() {
+        if (dataFile.is_open()) {
+            dataFile.close();
+        }
+    });
 }
 
 std::map<uint16_t, std::vector<Source::Resolution>> TestFileSource::getSupportedResolutions() const
@@ -136,8 +138,11 @@ TestFileSource::~TestFileSource()
     close();
 }
 
-void TestFileSource::stopProducing()
+std::future<void> TestFileSource::stopProducing()
 {
+    std::promise<void> p;
+    p.set_value();
+    return p.get_future();
 }
 
 bool TestFileSource::waitNextFrame() 
@@ -171,9 +176,9 @@ auvc::Frame TestFileSource::readFrame()
     return auvc::Frame(0, 0, auvc::FrameFormat::NONE, nullptr, 0, std::chrono::high_resolution_clock::now());
 }
 
-void TestFileSource::startProducing(const ProducingConfiguration &config)
+std::future<void> TestFileSource::startProducing(const ProducingConfiguration &config)
 {
-
+    return Source::startProducing(config);
 }
 
 uint32_t TestFileSource::setCurrentFrame(uint32_t frameIndex)
