@@ -21,8 +21,9 @@ if(BUILD_JNI_WRAPPERS)
         find_package(JNI REQUIRED COMPONENTS JVM)
     endif()
     target_sources(Sources PRIVATE
-        src/JniTestSource.cpp
-        src/JniSources.cpp
+        src/jni/JniTestSource.cpp
+        src/jni/JniSources.cpp
+        src/jni/JniPullToPushSource.cpp
         )
 endif()
 

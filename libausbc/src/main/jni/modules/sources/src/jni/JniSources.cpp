@@ -1,5 +1,7 @@
+#include <jni.h>
 #include "JniSources.h"
 #include "JniTestSource.h"
+#include "JniPullToPushSource.h"
 
 jobject resolutionMapToJObject(const std::map<uint16_t, std::vector<Source::Resolution>> &map, JNIEnv *env)
 {
@@ -57,6 +59,7 @@ jobject resolutionMapToJObject(const std::map<uint16_t, std::vector<Source::Reso
 
 void JniSources_register(JNIEnv *env) {
     JniTestSource_register(env);
+    JniPullToPushSource_register(env);
 }
 
 jobject frameFormatsToJList(const std::vector<auvc::FrameFormat> &formats, JNIEnv *env) {

@@ -24,7 +24,6 @@ import org.junit.jupiter.api.Test
 
 class PullToPushSourceTests {
 
-    @Disabled
     @Test
     fun pullToPushSourceAcceptsOnlyPullSource() {
         val pullSource = PullToPushSource.OpenConfiguration("pull",
