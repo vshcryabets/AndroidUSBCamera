@@ -152,10 +152,10 @@ public:
 
     ~GtkPreviewApplication()
     {
-        this->pullToPush->stopProducing();
-        this->pullToPush->close();
-        this->testSource->stopProducing();
-        this->testSource->close();
+        this->pullToPush->stopProducing().get();
+        this->pullToPush->close().get();
+        this->testSource->stopProducing().get();
+        this->testSource->close().get();
 #ifdef USE_YUV420_SOURCE        
         if (rgbaBuffer) {
             delete[] rgbaBuffer->buffer;
@@ -214,3 +214,4 @@ int main(int argc, char *argv[])
     int status = app.run(argc, argv);
     return status;
 }
+

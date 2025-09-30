@@ -17,7 +17,7 @@ TestSourceYUV420::TestSourceYUV420(const uint8_t *customFont): customFont(custom
 }
 TestSourceYUV420::~TestSourceYUV420()
 {
-    close();
+    close().get();
 }
 
 auvc::Frame TestSourceYUV420::readFrame()
@@ -108,7 +108,7 @@ std::future<void> TestSourceYUV420::startProducing(const Source::ProducingConfig
     });
 }
 
-std::future<void> TestSourceYUV420::close()
+[[nodiscard]] std::future<void> TestSourceYUV420::close()
 {
     return stopProducing();
 }

@@ -50,7 +50,7 @@ public:
         this->sourceConfig = config;
     }
     [[nodiscard]] const OpenConfiguration getOpenConfiguration() const;
-    virtual std::future<void> close() = 0;
+    [[nodiscard]] virtual std::future<void> close() = 0;
     // producing
     [[nodiscard]] const ProducingConfiguration getProducingConfiguration() const;
     [[nodiscard]] virtual std::future<void> startProducing(const ProducingConfiguration &config) {
@@ -58,7 +58,7 @@ public:
             this->captureConfiguration = config;
         });        
     }
-    virtual std::future<void> stopProducing() = 0;
+    [[nodiscard]] virtual std::future<void> stopProducing() = 0;
     [[nodiscard]] virtual bool isReadyForProducing() const;
 
     [[nodiscard]] virtual std::map<uint16_t, std::vector<Resolution>> getSupportedResolutions() const = 0;
