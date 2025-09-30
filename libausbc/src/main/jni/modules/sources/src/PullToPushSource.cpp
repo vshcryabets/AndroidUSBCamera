@@ -16,10 +16,13 @@ void PullToPushSource::open(const OpenConfiguration &config) {
     this->pullSource = config.pullSource;
 }
 
-void PullToPushSource::close()
+std::future<void> PullToPushSource::close()
 {
-    stopProducing();
-    pullSource = nullptr;
+    return std::async(std::launch::async, [this]() {
+        PushSource::close().get();
+        stopProducing().get();
+        pullSource = nullptr;
+    });
 }
 
 std::map<uint16_t, std::vector<Source::Resolution>> 
@@ -43,28 +46,37 @@ std::future<void> PullToPushSource::startProducing(const Source::ProducingConfig
     if (!pullSource->isReadyForProducing()) {
         throw SourceError(SourceError::SOURCE_ERROR_CAPTURE_NOT_STARTED, "Pull source not started");
     }
-    running = true;
+
+    startPromise = std::make_unique<std::promise<void>>();
+    stopRequested.store(false);
     workerThread = std::thread([this]() {
-        while (running) {
+        running.store(true);
+        startPromise->set_value();
+        while (!stopRequested.load()) {
             if (pullSource->waitNextFrame()) {
-                if (!running) {
+                if (stopRequested.load()) {
                     break;
                 }
                 auto frame = pullSource->readFrame();
-                if (!running) {
+                if (stopRequested.load()) {
                     break;
                 }
                 this->pushFrame(frame);
             }
         }
+        running.store(false);
+        stopRequested.store(false);
     });
+    return startPromise->get_future();
 }
 
 std::future<void> PullToPushSource::stopProducing()
 {
     // stop worker thread
-    running = false;
-    if (workerThread.joinable()) {
-        workerThread.join();
-    }
+    stopRequested.store(true);
+    return std::async(std::launch::async, [this]() {
+        if (workerThread.joinable()) {
+            workerThread.join();
+       }
+    });
 }

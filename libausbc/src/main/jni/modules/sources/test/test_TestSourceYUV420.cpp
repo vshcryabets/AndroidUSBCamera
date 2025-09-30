@@ -28,7 +28,7 @@ TEST_CASE("testFormatsAndResolutions", "[TestSourceYUV420]") {
     REQUIRE(resolutions[0].fps.size() > 1);
     REQUIRE(resolutions[0].fps[0] == 30.00f);
 
-    source.close();
+    source.close().get();
 }
 
 TEST_CASE("testCapture", "[TestSourceYUV420]") {
@@ -38,7 +38,7 @@ TEST_CASE("testCapture", "[TestSourceYUV420]") {
         .width = 640, 
         .height = 480,
         .fps = 30.0f
-    });
+    }).get();
     source.waitNextFrame();
     auto frame = source.readFrame();
     REQUIRE(frame.getWidth() == 640);
@@ -47,8 +47,8 @@ TEST_CASE("testCapture", "[TestSourceYUV420]") {
     REQUIRE(frame.getData() != nullptr);
     REQUIRE(frame.getSize() == 640*480 * 3 / 2); // YUV420P has 1.5 bytes per pixel
 
-    source.stopProducing();
-    source.close();
+    source.stopProducing().get();
+    source.close().get();
 }
 
 TEST_CASE("Test that source gives frames with delay", "[TestSourceYUV420]") {
@@ -58,7 +58,7 @@ TEST_CASE("Test that source gives frames with delay", "[TestSourceYUV420]") {
         .width = 640, 
         .height = 480,
         .fps = 10.0f
-    });
+    }).get();
     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
     for (int i = 0; i < 10; i++) {
         source.waitNextFrame();
@@ -68,7 +68,7 @@ TEST_CASE("Test that source gives frames with delay", "[TestSourceYUV420]") {
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
     // 10 frames at 10 fps should take at least 900 ms (some margin for scheduling)
     REQUIRE(duration >= 900);
-
-    source.stopProducing();
-    source.close();
+    REQUIRE(duration < 1200); // but should not take too long
+    source.stopProducing().get();
+    source.close().get();
 }

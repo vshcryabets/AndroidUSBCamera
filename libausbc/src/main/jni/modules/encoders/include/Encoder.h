@@ -3,6 +3,7 @@
 #include <vector>
 #include <exception>
 #include <string>
+#include <future>
 #include "Consumer.h"
 #include "PushSource.h"
 
@@ -79,6 +80,6 @@ public:
     {
         return encoderConfig;
     }
-    virtual void close() = 0;
+    [[nodiscard]] virtual std::future<void> close() = 0;
     virtual ~EncoderWithConfiguration() {}
 };

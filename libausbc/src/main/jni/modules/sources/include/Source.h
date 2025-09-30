@@ -53,7 +53,7 @@ public:
     virtual std::future<void> close() = 0;
     // producing
     [[nodiscard]] const ProducingConfiguration getProducingConfiguration() const;
-    virtual std::future<void> startProducing(const ProducingConfiguration &config) {
+    [[nodiscard]] virtual std::future<void> startProducing(const ProducingConfiguration &config) {
         return std::async(std::launch::deferred, [this, config]() {
             this->captureConfiguration = config;
         });        

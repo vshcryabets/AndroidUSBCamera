@@ -61,4 +61,8 @@ if (BUILD_CATCH2_TESTS)
                 $<TARGET_FILE_DIR:Sources_tests>
             COMMENT "Copying resources to build directory..."
         )
+
+        catch_discover_tests(Sources_tests
+            PROPERTIES
+            TIMEOUT 10)
 endif()              

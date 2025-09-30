@@ -19,7 +19,7 @@ TEST_CASE("testEncode", "[Encoderx264]") {
         .width = testWidth,
         .height = testHeight,
         .fps = testFps
-    });
+    }).get();
 
 
     X264Encoder encoder;
@@ -46,7 +46,7 @@ TEST_CASE("testEncode", "[Encoderx264]") {
     };
 
     encoder.open(config);
-    encoder.startProducing({});  
+    encoder.startProducing({}).get();
 
 
     for (uint32_t i = 0; i < 60; ++i) {
@@ -64,4 +64,8 @@ TEST_CASE("testEncode", "[Encoderx264]") {
     REQUIRE(callbackCalled.load() == 60);
     REQUIRE(framesWriter.getFramesCount() == 60);
     framesWriter.stopConsuming();
+    source.stopProducing().get();
+    source.close().get();
+    encoder.stopProducing().get();
+    encoder.close().get();
 }

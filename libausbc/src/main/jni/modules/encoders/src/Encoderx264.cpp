@@ -36,30 +36,36 @@ void X264Encoder::open(const X264EncConfiguration &config)
     }
 }
 
-void X264Encoder::startProducing(const ProducingConfiguration &config)
+std::future<void> X264Encoder::startProducing(const ProducingConfiguration &config)
 {
-    PushSource::startProducing(config);
-    if (encoder == nullptr)
-    {
-        throw EncoderException(EncoderException::Type::NotInitialized, 
-            "Encoder not initialized. Call open() first.");
-    }
-    frameYSize = x264_param.i_width * x264_param.i_height;
-    x264_picture_alloc(&pic_in, x264_param.i_csp, x264_param.i_width, x264_param.i_height);
+    return std::async(std::launch::deferred, [this, config]() {
+        PushSource::startProducing(config).get();
+        if (encoder == nullptr)
+        {
+            throw EncoderException(EncoderException::Type::NotInitialized, 
+                "Encoder not initialized. Call open() first.");
+        }
+        frameYSize = x264_param.i_width * x264_param.i_height;
+        x264_picture_alloc(&pic_in, x264_param.i_csp, x264_param.i_width, x264_param.i_height);
+    });
 }
 
-void X264Encoder::stopProducing() {
-    x264_picture_clean(&pic_in);
-    // x264_picture_clean(&pic_out);
+std::future<void> X264Encoder::stopProducing() {
+    return std::async(std::launch::deferred, [this]() {
+        x264_picture_clean(&pic_in);
+        // x264_picture_clean(&pic_out);
+    });
 }
 
-void X264Encoder::close() {
-    if (encoder != nullptr)
-    {
-        x264_encoder_close(encoder);
-        encoder = nullptr;
-    }
-    PushSource::close();
+std::future<void> X264Encoder::close() {
+    return std::async(std::launch::deferred, [this]() {
+        if (encoder != nullptr)
+        {
+            x264_encoder_close(encoder);
+            encoder = nullptr;
+        }
+        PushSource::close().get();
+    });
 }
 
 void X264Encoder::stopConsuming() {

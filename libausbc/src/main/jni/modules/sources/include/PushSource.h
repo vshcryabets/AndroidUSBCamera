@@ -23,9 +23,11 @@ namespace auvc {
             this->consumer = config.consumer;
             this->frameCallback = config.frameCallback;
         }
-        void close() override {
-            consumer = nullptr;
-            frameCallback = nullptr;
+        std::future<void> close() override {
+            return std::async(std::launch::async, [this]() {
+                consumer = nullptr;
+                frameCallback = nullptr;
+            });
         }
         virtual void pushFrame(const auvc::Frame &frame) {
             if (frameCallback) {

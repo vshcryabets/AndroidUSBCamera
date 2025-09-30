@@ -13,6 +13,8 @@ protected:
     std::shared_ptr<PullSource> pullSource {nullptr};
     std::thread workerThread;
     std::atomic<bool> running {false};
+    std::atomic<bool> stopRequested {false};
+    std::unique_ptr<std::promise<void>> startPromise {nullptr};
 public:
     PullToPushSource();
     virtual ~PullToPushSource();
