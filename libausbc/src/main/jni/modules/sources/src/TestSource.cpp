@@ -67,7 +67,7 @@ auvc::Frame TestSource::readFrame()
 
 std::future<void> TestSource::startProducing(const Source::ProducingConfiguration &config)
 {
-    return std::async(std::launch::deferred, [this, config]() {
+    return std::async(std::launch::async, [this, config]() {
         Source::startProducing(config).get(); // Call base implementation
         // Validate configuration 
         if (config.width == 0 ||
@@ -97,7 +97,7 @@ std::vector<auvc::FrameFormat> TestSource::getSupportedFrameFormats() const
 
 std::future<void> TestSource::stopProducing()
 {
-    return std::async(std::launch::deferred, [this]() {
+    return std::async(std::launch::async, [this]() {
         frameCounter = 0;
         if (testData)
         {

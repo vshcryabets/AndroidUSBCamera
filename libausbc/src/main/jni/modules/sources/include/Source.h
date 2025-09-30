@@ -5,6 +5,10 @@
 #include <map>
 #include <future>
 
+namespace auvc {
+    std::future<void> completed();
+}
+
 class SourceError : public std::exception {
     public:
         static const uint16_t SOURCE_ERROR_WRONG_CONFIG = 0x0001;
@@ -54,9 +58,8 @@ public:
     // producing
     [[nodiscard]] const ProducingConfiguration getProducingConfiguration() const;
     [[nodiscard]] virtual std::future<void> startProducing(const ProducingConfiguration &config) {
-        return std::async(std::launch::deferred, [this, config]() {
-            this->captureConfiguration = config;
-        });        
+        this->captureConfiguration = config;
+        return auvc::completed();
     }
     [[nodiscard]] virtual std::future<void> stopProducing() = 0;
     [[nodiscard]] virtual bool isReadyForProducing() const;

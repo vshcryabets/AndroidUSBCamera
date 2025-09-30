@@ -4,7 +4,7 @@ interface PushSource<OC : PushSource.OpenConfiguration, PC : Source.ProducingCon
     Source<OC, PC> {
     open class OpenConfiguration(
         tag: String,
-        val consumer: Consumer
+        val consumer: JniConsumer
     ): Source.OpenConfiguration(tag) {
 
     }

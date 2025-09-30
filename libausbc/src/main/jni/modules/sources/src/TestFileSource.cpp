@@ -110,7 +110,7 @@ void TestFileSource::open(const ConnectConfiguration &config)
 
 std::future<void> TestFileSource::close()
 {
-    return std::async(std::launch::deferred, [this]() {
+    return std::async(std::launch::async, [this]() {
         if (dataFile.is_open()) {
             dataFile.close();
         }

@@ -18,4 +18,9 @@ if(BUILD_JNI_WRAPPERS)
         U8x8Font
         JNI::JNI
         )
+    # Force linker to report undefined symbols as errors during shared library creation
+    target_link_options(JniWrapper PRIVATE 
+        -Wl,--no-undefined
+        -Wl,--no-allow-shlib-undefined
+        )
 endif()

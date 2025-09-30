@@ -30,7 +30,7 @@ abstract class JniSource<OC : Source.OpenConfiguration, PC : Source.ProducingCon
         releaseNativeObject()
     }
 
-    fun releaseNativeObject() {
+    protected fun releaseNativeObject() {
         if (nativePtr != 0L) {
             nativeRelease(nativePtr)
             nativePtr = 0L
@@ -47,7 +47,7 @@ abstract class JniSource<OC : Source.OpenConfiguration, PC : Source.ProducingCon
         }
     }
 
-    abstract fun nativeRelease(nativePtr: Long)
-    abstract fun nativeGetSupportedResolutions(nativePtr: Long): Map<Integer, List<SourceResolution>>
-    abstract fun nativeGetSupportedFrameFormats(nativePtr: Long): List<Integer>
+    protected abstract fun nativeRelease(nativePtr: Long)
+    protected abstract fun nativeGetSupportedResolutions(nativePtr: Long): Map<Integer, List<SourceResolution>>
+    protected abstract fun nativeGetSupportedFrameFormats(nativePtr: Long): List<Integer>
 }

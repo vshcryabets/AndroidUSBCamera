@@ -1,7 +1,7 @@
 #include <jni.h>
 #include "TestSource.h"
 #include "TestSourceYUV420.h"
-#include "JniSources.h"
+#include "jni/JniSources.h"
 
 Source::ProducingConfiguration parseProducingConfiguration(jobject object, JNIEnv* env) {
     Source::ProducingConfiguration config;

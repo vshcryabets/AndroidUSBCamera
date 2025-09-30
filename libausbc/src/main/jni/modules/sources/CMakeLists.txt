@@ -24,6 +24,7 @@ if(BUILD_JNI_WRAPPERS)
         src/jni/JniTestSource.cpp
         src/jni/JniSources.cpp
         src/jni/JniPullToPushSource.cpp
+        src/jni/JniCountConsumer.cpp
         )
     target_include_directories(
         Sources

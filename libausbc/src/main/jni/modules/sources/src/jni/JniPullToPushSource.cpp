@@ -1,5 +1,5 @@
-#include "JniPullToPushSource.h"
-#include "JniSources.h"
+#include "jni/JniPullToPushSource.h"
+#include "jni/JniSources.h"
 #include "PullToPushSource.h"
 
 extern "C"

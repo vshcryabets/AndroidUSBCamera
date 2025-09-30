@@ -87,7 +87,7 @@ auvc::Frame TestSourceYUV420::readFrame()
 
 std::future<void> TestSourceYUV420::startProducing(const Source::ProducingConfiguration &config)
 {
-    return std::async(std::launch::deferred, [this, config]() {
+    return std::async(std::launch::async, [this, config]() {
         Source::startProducing(config).get();
         if (config.width == 0 ||
             config.height == 0 ||
@@ -120,7 +120,7 @@ std::vector<auvc::FrameFormat> TestSourceYUV420::getSupportedFrameFormats() cons
 
 std::future<void> TestSourceYUV420::stopProducing()
 {
-    return std::async(std::launch::deferred, [this]() {
+    return std::async(std::launch::async, [this]() {
         if (testData)
         {
             delete[] testData;

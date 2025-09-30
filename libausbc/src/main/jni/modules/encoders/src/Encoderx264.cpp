@@ -38,7 +38,7 @@ void X264Encoder::open(const X264EncConfiguration &config)
 
 std::future<void> X264Encoder::startProducing(const ProducingConfiguration &config)
 {
-    return std::async(std::launch::deferred, [this, config]() {
+    return std::async(std::launch::async, [this, config]() {
         PushSource::startProducing(config).get();
         if (encoder == nullptr)
         {
@@ -51,14 +51,14 @@ std::future<void> X264Encoder::startProducing(const ProducingConfiguration &conf
 }
 
 std::future<void> X264Encoder::stopProducing() {
-    return std::async(std::launch::deferred, [this]() {
+    return std::async(std::launch::async, [this]() {
         x264_picture_clean(&pic_in);
         // x264_picture_clean(&pic_out);
     });
 }
 
 std::future<void> X264Encoder::close() {
-    return std::async(std::launch::deferred, [this]() {
+    return std::async(std::launch::async, [this]() {
         if (encoder != nullptr)
         {
             x264_encoder_close(encoder);
