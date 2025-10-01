@@ -8,8 +8,14 @@ Java_com_vsh_source_PullToPushSource_nativeOpen(
         JNIEnv *env,
         jobject thiz,
         jlong source_ptr,
-        jstring tag) {
-    // TODO: implement nativeOpen()
+        jstring tag,
+        jlong pull_source_ptr) {
+    auto *source = reinterpret_cast<PullToPushSource*>(source_ptr);
+    const char *native_tag = env->GetStringUTFChars(tag, nullptr);
+    auto openConfig = PullToPushSource::OpenConfiguration();
+    openConfig.pullSource = std::shared_ptr<PullSource>(reinterpret_cast<PullSource*>(pull_source_ptr));
+    source->open(openConfig);
+    env->ReleaseStringUTFChars(tag, native_tag);
 }
 
 extern "C"

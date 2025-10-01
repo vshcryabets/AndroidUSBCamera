@@ -1,5 +1,6 @@
 #include "jni/JniCountConsumer.h"
 #include "jni/JniSources.h"
+#include "jni/JniSourcesRepo.h"
 #include "Consumer.h"
 
 
@@ -8,7 +9,7 @@ JNIEXPORT void JNICALL
 Java_com_vsh_source_CountConsumer_nativeOpen(
         JNIEnv *env,
         jobject thiz,
-        jlong source_ptr,
+        jlong source_id,
         jstring tag) {
     // TODO: implement nativeOpen()
 }
@@ -18,22 +19,19 @@ JNIEXPORT jlong JNICALL
 Java_com_vsh_source_CountConsumer_nativeCreate(
         JNIEnv *env,
         jobject thiz) {
-    JniCountConsumer *source = new JniCountConsumer();
-    return reinterpret_cast<jlong>(source);
+    return JniSourcesRepo::getInstance()->addConsumer(std::make_shared<JniCountConsumer>());
 }
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_vsh_source_CountConsumer_nativeRelease(JNIEnv *env, jobject thiz, jlong ptr) {
-    auto *source = reinterpret_cast<JniCountConsumer*>(ptr);
-    delete source;
+Java_com_vsh_source_CountConsumer_nativeRelease(JNIEnv *env, jobject thiz, jint sourceId) {
+    JniSourcesRepo::getInstance()->removeConsumer(sourceId);
 }
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_vsh_source_CountConsumer_nativeStopConsuming(JNIEnv *env, jobject thiz, jlong ptr) {
-    auto *source = reinterpret_cast<JniCountConsumer*>(ptr);
-    source->stopConsuming();
+Java_com_vsh_source_CountConsumer_nativeStopConsuming(JNIEnv *env, jobject thiz, jint sourceId) {
+    JniSourcesRepo::getInstance()->getConsumer(sourceId)->stopConsuming();
 }
 
 void JniCountConsumer_register(JNIEnv *env) {
@@ -55,3 +53,12 @@ void JniCountConsumer_register(JNIEnv *env) {
     }
 }
 
+void JniCountConsumer::consume(const auvc::Frame &frame) {
+    if (consuming) {
+        frameCount++;
+    }
+}
+
+void JniCountConsumer::stopConsuming() {
+    consuming = false;
+}
