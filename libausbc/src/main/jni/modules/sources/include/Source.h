@@ -4,31 +4,38 @@
 #include <string>
 #include <map>
 #include <future>
+#include <expected>
 
 namespace auvc {
     std::future<void> completed();
+
+    class SourceError : public std::exception {
+        public:
+            static const uint16_t SOURCE_ERROR_WRONG_CONFIG = 0x0001;
+            static const uint16_t SOURCE_ERROR_CAPTURE_NOT_STARTED = 0x0002;
+            static const uint16_t SOURCE_ERROR_NOT_OPENED = 0x0003;
+        private:
+            uint16_t code;
+            std::string message;
+        public:
+            SourceError(uint16_t code, const std::string &message) : code(code), message(message) {}
+            const char* what() const noexcept override;
+    };
+
+    struct Resolution {
+        uint8_t id;
+        uint16_t width;
+        uint16_t height;
+        std::vector<float> fps;
+    };
+
+    typedef std::expected<std::map<uint16_t, std::vector<Resolution>>, SourceError> ExpectedResolutions;
 }
 
-class SourceError : public std::exception {
-    public:
-        static const uint16_t SOURCE_ERROR_WRONG_CONFIG = 0x0001;
-        static const uint16_t SOURCE_ERROR_CAPTURE_NOT_STARTED = 0x0002;
-    private:
-        uint16_t code;
-        std::string message;
-    public:
-        SourceError(uint16_t code, const std::string &message) : code(code), message(message) {}
-        const char* what() const noexcept override;
-};
+
 
 class Source {
 public:
-    struct Resolution {
-        const uint8_t id;
-        const uint16_t width;
-        const uint16_t height;
-        std::vector<float> fps;
-    };
     struct OpenConfiguration {
 
     };
@@ -61,10 +68,13 @@ public:
         this->captureConfiguration = config;
         return auvc::completed();
     }
-    [[nodiscard]] virtual std::future<void> stopProducing() = 0;
+    [[nodiscard]] virtual std::future<void> stopProducing() {
+        this->captureConfiguration = ProducingConfiguration();
+        return auvc::completed();
+    };
     [[nodiscard]] virtual bool isReadyForProducing() const;
 
-    [[nodiscard]] virtual std::map<uint16_t, std::vector<Resolution>> getSupportedResolutions() const = 0;
+    [[nodiscard]] virtual auvc::ExpectedResolutions getSupportedResolutions() const = 0;
     [[nodiscard]] virtual std::vector<auvc::FrameFormat> getSupportedFrameFormats() const = 0;
     [[nodiscard]] virtual bool isPullSource() const = 0;
     [[nodiscard]] virtual bool isPushSource() const = 0;

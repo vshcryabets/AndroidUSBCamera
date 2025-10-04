@@ -75,7 +75,7 @@ Java_com_vsh_source_TestSource_nativeGetSupportedResolutions(JNIEnv *env,
                                                              jobject thiz,
                                                              jint sourceId)
 {    
-    std::map<uint16_t, std::vector<Source::Resolution>> supportedSizes =
+    auvc::ExpectedResolutions supportedSizes =
         JniSourcesRepo::getInstance()->getSource(sourceId)->getSupportedResolutions();
     return resolutionMapToJObject(supportedSizes, env);
 }
@@ -117,8 +117,7 @@ Java_com_vsh_source_TestSourceYUV420_nativeGetSupportedResolutions(JNIEnv *env,
                                                                    jint sourceId)
 {
     auto source = JniSourcesRepo::getInstance()->getSource(sourceId);
-    std::map<uint16_t, std::vector<Source::Resolution>> supportedSizes =
-        source->getSupportedResolutions();
+    auvc::ExpectedResolutions supportedSizes = source->getSupportedResolutions();
     return resolutionMapToJObject(supportedSizes, env);
 }
 

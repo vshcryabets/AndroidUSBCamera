@@ -25,8 +25,7 @@ std::future<void> PullToPushSource::close()
     });
 }
 
-std::map<uint16_t, std::vector<Source::Resolution>> 
-PullToPushSource::getSupportedResolutions() const
+auvc::ExpectedResolutions PullToPushSource::getSupportedResolutions() const
 {
     return {};
 }
@@ -41,10 +40,10 @@ std::future<void> PullToPushSource::startProducing(const Source::ProducingConfig
 {
     // start worker thread that pulls frames from pullSource and pushes them via pushFrame
     if (!pullSource) {
-        throw SourceError(SourceError::SOURCE_ERROR_WRONG_CONFIG, "Pull source not set");
+        throw auvc::SourceError(auvc::SourceError::SOURCE_ERROR_WRONG_CONFIG, "Pull source not set");
     }
     if (!pullSource->isReadyForProducing()) {
-        throw SourceError(SourceError::SOURCE_ERROR_CAPTURE_NOT_STARTED, "Pull source not started");
+        throw auvc::SourceError(auvc::SourceError::SOURCE_ERROR_CAPTURE_NOT_STARTED, "Pull source not started");
     }
 
     startPromise = std::make_unique<std::promise<void>>();

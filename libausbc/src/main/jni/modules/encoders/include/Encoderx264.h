@@ -33,5 +33,5 @@ public:
     std::future<void> startProducing(const ProducingConfiguration &config) override;
     std::future<void> stopProducing() override;
     std::vector<auvc::FrameFormat> getSupportedFrameFormats() const override;
-    std::map<uint16_t, std::vector<Source::Resolution>> getSupportedResolutions() const override;
+    auvc::ExpectedResolutions getSupportedResolutions() const override;
 };

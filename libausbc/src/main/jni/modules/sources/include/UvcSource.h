@@ -23,10 +23,10 @@ class UvcException : public std::exception {
     const char* what() const noexcept override;
 };
 
-class UvcCamera: public PullSource {
+class UvcSource: public PullSource {
     public:
         struct OpenConfiguration: public Source::OpenConfiguration  {
-            const char* dev_name;
+            std::string dev_name;
         };
         enum io_method {
             IO_METHOD_READ,
@@ -40,7 +40,7 @@ class UvcCamera: public PullSource {
         };
     
     protected:
-        int fd = -1;
+        int deviceFd = -1;
         struct buffer *buffers;
         unsigned int n_buffers;
         enum io_method io = IO_METHOD_MMAP;
@@ -53,13 +53,14 @@ class UvcCamera: public PullSource {
         void init_userp(unsigned int buffer_size);
         void init_device();
     public:
-        UvcCamera();
-        virtual ~UvcCamera();
-        virtual void open(const UvcCamera::OpenConfiguration & config);
-        void close() override;
-        void startProducing(const Source::ProducingConfiguration &config) override;
-        void stopProducing() override;
+        UvcSource();
+        virtual ~UvcSource();
+        virtual void open(const UvcSource::OpenConfiguration & config);
+        std::future<void> close() override;
+        std::future<void> startProducing(const Source::ProducingConfiguration &config) override;
+        std::future<void> stopProducing() override;
         auvc::Frame readFrame() override;
         bool waitNextFrame() override;
         std::vector<auvc::FrameFormat> getSupportedFrameFormats() const override;
-    };
+        [[nodiscard]] virtual auvc::ExpectedResolutions getSupportedResolutions() const override;
+};

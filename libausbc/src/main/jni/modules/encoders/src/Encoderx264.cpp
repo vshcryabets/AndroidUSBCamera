@@ -114,6 +114,6 @@ std::vector<auvc::FrameFormat> X264Encoder::getSupportedFrameFormats() const {
     return {};
 }
 
-std::map<uint16_t, std::vector<Source::Resolution>> X264Encoder::getSupportedResolutions() const {
+auvc::ExpectedResolutions X264Encoder::getSupportedResolutions() const {
     return {};
 }
