@@ -57,7 +57,7 @@ class PullToPushSource :
 
     private external fun nativeCreate(): Int
     external override fun nativeRelease(srcId: Int)
-    private external fun nativeOpen(srcId: Int, tag: String, pullSrcId: Int)
+    private external fun nativeOpen(srcId: Int, tag: String, pullSrcId: Int, consumerId: Int)
     external override fun nativeGetSupportedResolutions(srcId: Int): Map<Integer, List<SourceResolution>>
     external override fun nativeGetSupportedFrameFormats(srcId: Int): List<Integer>
 }

@@ -10,13 +10,16 @@ JNIEXPORT void JNICALL
 Java_com_vsh_source_PullToPushSource_nativeOpen(
         JNIEnv *env,
         jobject thiz,
-        jlong source_ptr,
+        jint sourceId,
         jstring tag,
-        jlong pull_source_ptr) {
-    auto *source = reinterpret_cast<PullToPushSource*>(source_ptr);
+        jint pullSourceId,
+        jint consumerId) {
+    auto source = std::dynamic_pointer_cast<PullToPushSource>(JniSourcesRepo::getInstance()->getSource(sourceId));
     const char *native_tag = env->GetStringUTFChars(tag, nullptr);
     auto openConfig = PullToPushSource::OpenConfiguration();
-    openConfig.pullSource = std::shared_ptr<PullSource>(reinterpret_cast<PullSource*>(pull_source_ptr));
+    openConfig.pullSource = std::dynamic_pointer_cast<PullSource>(
+            JniSourcesRepo::getInstance()->getSource(pullSourceId));
+    openConfig.consumer = JniSourcesRepo::getInstance()->getConsumer(consumerId);
     source->open(openConfig);
     env->ReleaseStringUTFChars(tag, native_tag);
 }
