@@ -9,16 +9,21 @@
 namespace auvc {
     std::future<void> completed();
 
+    enum class SourceErrorCode : uint16_t {
+        SOURCE_ERROR_WRONG_CONFIG,
+        SOURCE_ERROR_CAPTURE_NOT_STARTED,
+        SOURCE_ERROR_NOT_OPENED,
+        SOURCE_ERROR_READ_AGAIN,
+        SOURCE_FRAME_NOT_AVAILABLE,
+    };
+
     class SourceError : public std::exception {
         public:
-            static const uint16_t SOURCE_ERROR_WRONG_CONFIG = 0x0001;
-            static const uint16_t SOURCE_ERROR_CAPTURE_NOT_STARTED = 0x0002;
-            static const uint16_t SOURCE_ERROR_NOT_OPENED = 0x0003;
         private:
-            uint16_t code;
+            SourceErrorCode code;
             std::string message;
         public:
-            SourceError(uint16_t code, const std::string &message) : code(code), message(message) {}
+            SourceError(SourceErrorCode code, const std::string &message) : code(code), message(message) {}
             const char* what() const noexcept override;
     };
 
@@ -29,7 +34,8 @@ namespace auvc {
         std::vector<float> fps;
     };
 
-    typedef std::expected<std::map<uint16_t, std::vector<Resolution>>, SourceError> ExpectedResolutions;
+    using ExpectedResolutions = std::expected<std::map<uint16_t, std::vector<Resolution>>, SourceError>;
+    using ExpectedFrame = std::expected<auvc::Frame, auvc::SourceError>;
 }
 
 
@@ -84,9 +90,9 @@ class PullSource : public Source {
 public:
     PullSource() : Source() {}
     virtual ~PullSource() = default;
-    virtual auvc::Frame readFrame() = 0;
+    virtual auvc::ExpectedFrame readFrame() = 0;
     virtual bool waitNextFrame() = 0;
-    [[nodiscard]] bool isPullSource() const override {;
+    [[nodiscard]] bool isPullSource() const override {
         return true;
     }
     [[nodiscard]] bool isPushSource() const override {

@@ -51,7 +51,9 @@ TEST_CASE("testFramesReading", "[TestFileSource]") {
 
     REQUIRE(source.setCurrentFrame(10) == 10);
     for (size_t i = 0; i < 10 ; i++) {
-        REQUIRE(source.readFrame().getData() != nullptr);
+        auto frame = source.readFrame();
+        REQUIRE(frame.has_value());
+        REQUIRE(frame.value().getData() != nullptr);
     }
     REQUIRE(source.getCurrentFrame() == 20);
 }

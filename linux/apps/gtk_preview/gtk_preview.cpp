@@ -42,7 +42,7 @@ private:
     Source::ProducingConfiguration captureConfig = {
         .width = 640,
         .height = 480,
-        .fps = 30.0f};
+        .fps = 10.0f};
 
 private:
 
@@ -104,13 +104,11 @@ private:
         window = gtk_application_window_new(app);
         gtk_window_set_title(GTK_WINDOW(window), "GTK4 C++ Sample");
         gtk_window_set_default_size(GTK_WINDOW(window), 640, 480);
-        // g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
 
         GtkWidget *vbox;
 
         vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 6);
         gtk_window_set_child(GTK_WINDOW(window), vbox);
-        // g_signal_connect(G_OBJECT(draw_area_), "draw", G_CALLBACK(&::Draw), this);
 
         button = gtk_button_new_with_label("Click Me!");
 
@@ -136,9 +134,18 @@ private:
 
         gtk_window_present(GTK_WINDOW(window));
 
-        // g_timeout_add(33, this->staticTimeout, this);
-        testSource->startProducing(captureConfig);
-        pullToPush->startProducing({});
+        std::cout << "Starting test source" << std::endl;
+        testSource->startProducing(captureConfig).get();
+        for (int i = 0 ; i< 100; i++) {
+            usleep(33000);
+            auto frame = testSource->readFrame();
+            if (!frame.has_value()) {
+                std::cout << "No frame available" << std::endl;
+                continue;
+            }
+            std::cout << "Frame " << i << ": " << frame.value().getWidth() << " " << frame.value().getSize() << std::endl;
+        }
+        pullToPush->startProducing({}).get();
     }
 
 public:
@@ -173,8 +180,12 @@ public:
                 testSource = std::make_shared<TestSourceYUV420>(u8x8_font_amstrad_cpc_extended_f);
                 convertYuv420pToRgba = true;
             } else if (strcmp(argv[i], "--uvcSource") == 0) {
-                UvcSource* camera = new UvcSource();
-                //testSource = std::make_shared<UvcCamera>();
+                auto uvcSource = std::make_shared<UvcSource>();
+                std::cout << "Opening /dev/video0" << std::endl;
+                uvcSource->open(UvcSource::OpenConfiguration{
+                    .dev_name = "/dev/video0"
+                });
+                testSource = uvcSource;
                 convertYuv420pToRgba = true;
             } else if (strcmp(argv[i], "--testSourceRGB") == 0) {
                 testSource = std::make_shared<TestSource>(u8x8_font_amstrad_cpc_extended_f);
@@ -216,7 +227,9 @@ public:
         char *gtk_argv[argc];
         gtk_argv[0] = argv[0];
         for (int i = 1; i < argc; ++i) {
-            if (strcmp(argv[i], "--testSourceYUV420") != 0 && strcmp(argv[i], "--testSourceRGB") != 0) {
+            if (strcmp(argv[i], "--testSourceYUV420") != 0 && 
+                strcmp(argv[i], "--testSourceRGB") != 0 &&
+                strcmp(argv[i], "--uvcSource") != 0) {
             gtk_argv[gtk_argc++] = argv[i];
             }
         }

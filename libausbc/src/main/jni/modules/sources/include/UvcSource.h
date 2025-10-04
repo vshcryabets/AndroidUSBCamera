@@ -14,12 +14,14 @@ class UvcException : public std::exception {
         IoCtlError,
         MmapError,
         ReadError,
-        FrameTimeout
+        FrameTimeout,
+        DeviceNotOpened
     };
     private:
         Type errorType;
+        std::string errorMessage;
     public:
-    UvcException(Type type) : errorType(type) {}
+    UvcException(Type type, const std::string& message);
     const char* what() const noexcept override;
 };
 
@@ -41,9 +43,9 @@ class UvcSource: public PullSource {
     
     protected:
         int deviceFd = -1;
-        struct buffer *buffers;
-        unsigned int n_buffers;
-        enum io_method io = IO_METHOD_MMAP;
+        buffer *buffers;
+        size_t n_buffers;
+        io_method io = IO_METHOD_MMAP;
         int force_format = 1;
         OpenConfiguration uvcConfig;
     private:
@@ -59,7 +61,7 @@ class UvcSource: public PullSource {
         std::future<void> close() override;
         std::future<void> startProducing(const Source::ProducingConfiguration &config) override;
         std::future<void> stopProducing() override;
-        auvc::Frame readFrame() override;
+        auvc::ExpectedFrame readFrame() override;
         bool waitNextFrame() override;
         std::vector<auvc::FrameFormat> getSupportedFrameFormats() const override;
         [[nodiscard]] virtual auvc::ExpectedResolutions getSupportedResolutions() const override;

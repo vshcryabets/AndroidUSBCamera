@@ -150,7 +150,7 @@ bool TestFileSource::waitNextFrame()
     return false;
 }
 
-auvc::Frame TestFileSource::readFrame()
+auvc::ExpectedFrame TestFileSource::readFrame()
 {
     if (currentFrame < framesCount) {
         dataFile.seekg(framesTocItems[currentFrame], std::ios::beg);

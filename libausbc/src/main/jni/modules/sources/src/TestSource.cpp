@@ -19,7 +19,7 @@ TestSource::~TestSource()
     close();
 }
 
-auvc::Frame TestSource::readFrame()
+auvc::ExpectedFrame TestSource::readFrame()
 {
     frameCounter++;
     if (testData)
@@ -61,7 +61,7 @@ auvc::Frame TestSource::readFrame()
             std::chrono::high_resolution_clock::now()
         );
     }
-    throw auvc::SourceError(auvc::SourceError::SOURCE_ERROR_CAPTURE_NOT_STARTED, 
+    throw auvc::SourceError(auvc::SourceErrorCode::SOURCE_ERROR_CAPTURE_NOT_STARTED, 
         "Capture not started or invalid configuration");
 }
 
@@ -74,7 +74,7 @@ std::future<void> TestSource::startProducing(const Source::ProducingConfiguratio
             config.height == 0 ||
             (config.width % testRGBAColors.size() != 0))
         {
-            throw auvc::SourceError(auvc::SourceError::SOURCE_ERROR_WRONG_CONFIG, 
+            throw auvc::SourceError(auvc::SourceErrorCode::SOURCE_ERROR_WRONG_CONFIG, 
                 "Invalid capture configuration, width,height must be > 0 and width % " + 
                 std::to_string(testRGBAColors.size()) + " == 0");
         }

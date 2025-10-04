@@ -19,7 +19,12 @@ Source::ProducingConfiguration parseProducingConfiguration(jobject object, JNIEn
     return config;
 }
 
-jobject prepareJniFrame(const auvc::Frame &frame, JNIEnv *env) {
+jobject prepareJniFrame(const auvc::ExpectedFrame &expectedFrame, JNIEnv *env) {
+    if (!expectedFrame.has_value()) {
+        // In case of error, return null
+        return nullptr;
+    }
+    const auvc::Frame &frame = expectedFrame.value();
     jobject result = nullptr;
     jclass cls = env->FindClass("com/vsh/source/BytePixelBufferFrame");
     if (cls != nullptr) {

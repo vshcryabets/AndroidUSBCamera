@@ -50,11 +50,12 @@ TEST_CASE("testEncode", "[Encoderx264]") {
 
 
     for (uint32_t i = 0; i < 60; ++i) {
-        auvc::Frame frame = source.readFrame(); // Read a new frame for each iteration
-        if (frame.getData() == nullptr) {
+        auvc::ExpectedFrame expframe = source.readFrame(); // Read a new frame for each iteration
+        if (!expframe.has_value()) {
             std::cerr << "Failed to read frame from source." << std::endl;
             break;
         }
+        auvc::Frame frame = expframe.value();
     
         size_t requiredSize = testFrameSizeY + 2 * testFrameSizeU;
         REQUIRE(frame.getSize() >= requiredSize); // Ensure frame.data is large enough

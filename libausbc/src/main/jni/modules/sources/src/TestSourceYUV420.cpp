@@ -20,7 +20,7 @@ TestSourceYUV420::~TestSourceYUV420()
     close().get();
 }
 
-auvc::Frame TestSourceYUV420::readFrame()
+auvc::ExpectedFrame TestSourceYUV420::readFrame()
 {
     frameCounter++;
     nextFrameTime = std::chrono::steady_clock::now() + frameInterval;
@@ -81,7 +81,7 @@ auvc::Frame TestSourceYUV420::readFrame()
             std::chrono::high_resolution_clock::now()
         );
     }
-    throw auvc::SourceError(auvc::SourceError::SOURCE_ERROR_CAPTURE_NOT_STARTED, 
+    throw auvc::SourceError(auvc::SourceErrorCode::SOURCE_ERROR_CAPTURE_NOT_STARTED, 
         "Capture not started or invalid configuration");
 }
 
@@ -93,7 +93,7 @@ std::future<void> TestSourceYUV420::startProducing(const Source::ProducingConfig
             config.height == 0 ||
             (config.width % testYUVColors.size() != 0))
         {
-            throw auvc::SourceError(auvc::SourceError::SOURCE_ERROR_WRONG_CONFIG, 
+            throw auvc::SourceError(auvc::SourceErrorCode::SOURCE_ERROR_WRONG_CONFIG,
                 "Invalid capture configuration, width,height must be > 0 and width % " +
                 std::to_string(testYUVColors.size()) + " == 0");
         }

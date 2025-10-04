@@ -25,7 +25,7 @@ class TestSourceYUV420: public PullSource {
     public:
         TestSourceYUV420(const uint8_t *customFont);
         virtual ~TestSourceYUV420();
-        virtual auvc::Frame readFrame() override;
+        virtual auvc::ExpectedFrame readFrame() override;
         [[nodiscard]] std::future<void> startProducing(const ProducingConfiguration &config) override;
         [[nodiscard]] std::future<void> close() override;
         std::vector<auvc::FrameFormat> getSupportedFrameFormats() const override;

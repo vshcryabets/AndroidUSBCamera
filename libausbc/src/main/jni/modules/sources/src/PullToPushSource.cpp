@@ -40,10 +40,10 @@ std::future<void> PullToPushSource::startProducing(const Source::ProducingConfig
 {
     // start worker thread that pulls frames from pullSource and pushes them via pushFrame
     if (!pullSource) {
-        throw auvc::SourceError(auvc::SourceError::SOURCE_ERROR_WRONG_CONFIG, "Pull source not set");
+        throw auvc::SourceError(auvc::SourceErrorCode::SOURCE_ERROR_WRONG_CONFIG, "Pull source not set");
     }
     if (!pullSource->isReadyForProducing()) {
-        throw auvc::SourceError(auvc::SourceError::SOURCE_ERROR_CAPTURE_NOT_STARTED, "Pull source not started");
+        throw auvc::SourceError(auvc::SourceErrorCode::SOURCE_ERROR_CAPTURE_NOT_STARTED, "Pull source not started");
     }
 
     startPromise = std::make_unique<std::promise<void>>();
@@ -60,7 +60,9 @@ std::future<void> PullToPushSource::startProducing(const Source::ProducingConfig
                 if (stopRequested.load()) {
                     break;
                 }
-                this->pushFrame(frame);
+                if (frame.has_value()) {
+                    this->pushFrame(frame.value());
+                }
             }
         }
         running.store(false);
