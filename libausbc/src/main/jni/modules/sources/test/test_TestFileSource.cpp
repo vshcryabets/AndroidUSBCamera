@@ -13,15 +13,15 @@ TEST_CASE("testReadHeaders", "[TestFileSource]") {
     });
     auto supportedFormats = source.getSupportedFrameFormats();
     auto supportedResolutions = source.getSupportedResolutions();
-
-    REQUIRE(supportedResolutions.size() == 1);
+    REQUIRE(supportedResolutions.has_value());
+    REQUIRE((*supportedResolutions).size() == 1);
     REQUIRE(supportedFormats.size() == 1);
     REQUIRE(supportedFormats[0] == auvc::FrameFormat::ENCODED);
     
-    auto firstResolution = supportedResolutions.begin();
-    REQUIRE(firstResolution != supportedResolutions.end());
+    auto firstResolution = supportedResolutions.value().begin();
+    REQUIRE(firstResolution != supportedResolutions.value().end());
     uint16_t type = firstResolution->first;
-    std::vector<Source::Resolution> resolutions = firstResolution->second;
+    auto resolutions = firstResolution->second;
     REQUIRE(resolutions.size() == 1);
     REQUIRE(resolutions[0].width == 640);
     REQUIRE(resolutions[0].height == 480);
@@ -38,10 +38,11 @@ TEST_CASE("testFramesReading", "[TestFileSource]") {
 
     REQUIRE(source.getFramesCount() == 60);
     auto supportedResolutions = source.getSupportedResolutions();
-    auto firstResolution = supportedResolutions.begin();
-    REQUIRE(firstResolution != supportedResolutions.end());
+    REQUIRE(supportedResolutions.has_value());
+    auto firstResolution = (*supportedResolutions).begin();
+    REQUIRE(firstResolution != (*supportedResolutions).end());
     uint16_t type = firstResolution->first;
-    std::vector<Source::Resolution> resolutions = firstResolution->second;
+    auto resolutions = firstResolution->second;
     REQUIRE(resolutions.size() == 1);
     REQUIRE(resolutions[0].width == 640);
     REQUIRE(resolutions[0].height == 480);
@@ -50,7 +51,9 @@ TEST_CASE("testFramesReading", "[TestFileSource]") {
 
     REQUIRE(source.setCurrentFrame(10) == 10);
     for (size_t i = 0; i < 10 ; i++) {
-        REQUIRE(source.readFrame().getData() != nullptr);
+        auto frame = source.readFrame();
+        REQUIRE(frame.has_value());
+        REQUIRE(frame.value().getData() != nullptr);
     }
     REQUIRE(source.getCurrentFrame() == 20);
 }

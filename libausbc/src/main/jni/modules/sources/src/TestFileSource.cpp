@@ -117,7 +117,7 @@ std::future<void> TestFileSource::close()
     });
 }
 
-std::map<uint16_t, std::vector<Source::Resolution>> TestFileSource::getSupportedResolutions() const
+auvc::ExpectedResolutions TestFileSource::getSupportedResolutions() const
 {
     return supportedResolutions;
 }
@@ -150,7 +150,7 @@ bool TestFileSource::waitNextFrame()
     return false;
 }
 
-auvc::Frame TestFileSource::readFrame()
+auvc::ExpectedFrame TestFileSource::readFrame()
 {
     if (currentFrame < framesCount) {
         dataFile.seekg(framesTocItems[currentFrame], std::ios::beg);

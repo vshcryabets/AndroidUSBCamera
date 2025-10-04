@@ -20,11 +20,11 @@ int main(void)
 {
     const char *videodevice = "/dev/video0";
 
-    UvcCamera::Configuration deviceConfig = {
+    UvcSource::Configuration deviceConfig = {
         .dev_name = videodevice,
     };
 
-    UvcCamera uvcCamera;
+    UvcSource uvcCamera;
     try
     {
         uvcCamera.open(deviceConfig);

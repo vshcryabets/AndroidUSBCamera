@@ -7,13 +7,12 @@
 #include "TestSourceYUV420.h"
 #include "ImageUseCases.h"
 #include "PullToPushSource.h"
+#include "UvcSource.h"
 
 #include <gtk/gtk.h>
 #include <cairo.h>
 #include <iostream>
 #include "u8x8.h"
-
-#define USE_YUV420_SOURCE
 
 // Callback for GtkGestureClick on the drawing area
 static void on_drawing_area_clicked(GtkGestureClick *gesture, int n_press, double x, double y, gpointer user_data)
@@ -28,6 +27,7 @@ private:
     GtkWidget *draw_area;
     GtkWidget *button;
 
+    bool convertToRgba = false;
     int width_;
     int height_;
     GtkApplication *app;
@@ -37,14 +37,12 @@ private:
     std::shared_ptr<PullToPushSource> pullToPush;
     std::shared_ptr<PullSource> testSource;
 
-    ConvertYUV420ptoRGBAUseCase convertUseCase;
-#ifdef USE_YUV420_SOURCE   
-    ConvertBitmapUseCase::Buffer *rgbaBuffer;
-#endif
+    std::shared_ptr<ConvertBitmapUseCase> convertUseCase;
+    ConvertBitmapUseCase::Buffer *rgbaBuffer = nullptr;
     Source::ProducingConfiguration captureConfig = {
         .width = 640,
         .height = 480,
-        .fps = 30.0f};
+        .fps = 10.0f};
 
 private:
 
@@ -71,25 +69,25 @@ private:
             cairo_fill(cr);
             return;
         }
-#ifdef USE_YUV420_SOURCE
-        convertUseCase.convert(*rgbaBuffer,
-            {
-                .buffer = lastFrame->getData(),
-                .capacity = lastFrame->getSize(),
-                .size = lastFrame->getSize(),
-                .width = captureConfig.width,
-                .height = captureConfig.height
-            }
-        );
-#endif
+        if (convertToRgba) {
+            convertUseCase->convert(*rgbaBuffer,
+                {
+                    .buffer = lastFrame->getData(),
+                    .capacity = lastFrame->getSize(),
+                    .size = lastFrame->getSize(),
+                    .width = captureConfig.width,
+                    .height = captureConfig.height
+                }
+            );
+        }
 
         cairo_format_t format = CAIRO_FORMAT_ARGB32;
+        auto* buffer = lastFrame->getData();
+        if (convertToRgba) {
+            buffer = rgbaBuffer->buffer;
+        }
         cairo_surface_t* surface = cairo_image_surface_create_for_data(
-#ifdef USE_YUV420_SOURCE            
-            rgbaBuffer->buffer,
-#else
-            frame.data,
-#endif
+            buffer,
             format, 
             captureConfig.width,
             captureConfig.height, 
@@ -106,13 +104,11 @@ private:
         window = gtk_application_window_new(app);
         gtk_window_set_title(GTK_WINDOW(window), "GTK4 C++ Sample");
         gtk_window_set_default_size(GTK_WINDOW(window), 640, 480);
-        // g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
 
         GtkWidget *vbox;
 
         vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 6);
         gtk_window_set_child(GTK_WINDOW(window), vbox);
-        // g_signal_connect(G_OBJECT(draw_area_), "draw", G_CALLBACK(&::Draw), this);
 
         button = gtk_button_new_with_label("Click Me!");
 
@@ -137,10 +133,8 @@ private:
         gtk_widget_set_hexpand(draw_area, TRUE); // Horizontal expand (to fill width too)
 
         gtk_window_present(GTK_WINDOW(window));
-
-        // g_timeout_add(33, this->staticTimeout, this);
-        testSource->startProducing(captureConfig);
-        pullToPush->startProducing({});
+        testSource->startProducing(captureConfig).get();
+        pullToPush->startProducing({}).get();
     }
 
 public:
@@ -156,13 +150,11 @@ public:
         this->pullToPush->close().get();
         this->testSource->stopProducing().get();
         this->testSource->close().get();
-#ifdef USE_YUV420_SOURCE        
         if (rgbaBuffer) {
             delete[] rgbaBuffer->buffer;
             delete rgbaBuffer;
             rgbaBuffer = nullptr;
         }
-#endif        
         if (app)
         {
             g_object_unref(app);
@@ -171,20 +163,38 @@ public:
 
     int run(int argc, char *argv[])
     {
-
-#ifdef USE_YUV420_SOURCE
-        testSource = std::make_shared<TestSourceYUV420>(u8x8_font_amstrad_cpc_extended_f);
-        size_t rgbaBufferSize = captureConfig.width * captureConfig.height * 4;
-        rgbaBuffer = new ConvertBitmapUseCase::Buffer{
-            .buffer = new uint8_t[rgbaBufferSize],
-            .capacity = rgbaBufferSize,
-            .size = 0,
-            .width = 640,
-            .height = 480};
-#else
-        testSource = std::make_shared<TestSource>(u8x8_font_amstrad_cpc_extended_f);            
-#endif            
-
+        // Parse command line arguments for --testSourceYUV420
+        for (int i = 1; i < argc; ++i) {
+            if (strcmp(argv[i], "--testSourceYUV420") == 0) {
+                testSource = std::make_shared<TestSourceYUV420>(u8x8_font_amstrad_cpc_extended_f);
+                convertUseCase = std::make_shared<ConvertYUV420ptoRGBAUseCase>();
+                convertToRgba = true;
+            } else if (strcmp(argv[i], "--uvcSource") == 0) {
+                auto uvcSource = std::make_shared<UvcSource>();
+                std::cout << "Opening /dev/video0" << std::endl;
+                uvcSource->open(UvcSource::OpenConfiguration{
+                    .dev_name = "/dev/video0"
+                });
+                testSource = uvcSource;
+                convertUseCase = std::make_shared<ConvertYUYVtoRGBAUseCase>();
+                convertToRgba = true;
+            } else if (strcmp(argv[i], "--testSourceRGB") == 0) {
+                testSource = std::make_shared<TestSource>(u8x8_font_amstrad_cpc_extended_f);
+            }
+        }
+        if (convertToRgba) {
+            size_t rgbaBufferSize = captureConfig.width * captureConfig.height * 4;
+            rgbaBuffer = new ConvertBitmapUseCase::Buffer{
+                .buffer = new uint8_t[rgbaBufferSize],
+                .capacity = rgbaBufferSize,
+                .size = 0,
+                .width = 640,
+                .height = 480};
+        }
+        if (testSource == nullptr) {
+            std::cerr << "No test source specified. Use --testSourceYUV420 or --testSourceRGB" << std::endl;
+            testSource = std::make_shared<TestSource>(u8x8_font_amstrad_cpc_extended_f);
+        }
 
         pullToPush = std::make_shared<PullToPushSource>();
         PullToPushSource::OpenConfiguration config;
@@ -203,7 +213,18 @@ public:
         };
         pullToPush->open(config);
 
-        status = g_application_run(G_APPLICATION(app), argc, argv);
+        // Filter out our custom options before passing to GTK
+        int gtk_argc = 1;
+        char *gtk_argv[argc];
+        gtk_argv[0] = argv[0];
+        for (int i = 1; i < argc; ++i) {
+            if (strcmp(argv[i], "--testSourceYUV420") != 0 && 
+                strcmp(argv[i], "--testSourceRGB") != 0 &&
+                strcmp(argv[i], "--uvcSource") != 0) {
+            gtk_argv[gtk_argc++] = argv[i];
+            }
+        }
+        status = g_application_run(G_APPLICATION(app), gtk_argc, gtk_argv);
         return status;
     }
 };

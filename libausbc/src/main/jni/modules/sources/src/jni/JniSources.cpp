@@ -4,8 +4,15 @@
 #include "jni/JniPullToPushSource.h"
 #include "jni/JniCountConsumer.h"
 
-jobject resolutionMapToJObject(const std::map<uint16_t, std::vector<Source::Resolution>> &map, JNIEnv *env)
+jobject resolutionMapToJObject(const auvc::ExpectedResolutions &map, JNIEnv *env)
 {
+    if (!map) {
+        jclass exceptionClass = env->FindClass("java/lang/Exception");
+        env->ThrowNew(exceptionClass, map.error().what());
+        env->DeleteLocalRef(exceptionClass);
+        return nullptr;
+    }
+
     jclass hashMapCls = env->FindClass("java/util/HashMap");
     jclass arrayListCls = env->FindClass("java/util/ArrayList");
     jclass integerClass = env->FindClass("java/lang/Integer");
@@ -20,7 +27,7 @@ jobject resolutionMapToJObject(const std::map<uint16_t, std::vector<Source::Reso
     jmethodID sourceResolutionInit = env->GetMethodID(sourceResolutionCls, "<init>", "(IIILjava/util/List;)V");
     jobject result = env->NewObject(hashMapCls, hashMapInit);
 
-    for (const auto &[type, resolutions]: map) {
+    for (const auto &[type, resolutions]: map.value()) {
         jobject key = env->NewObject(integerClass, initInteger, (jint)type);
         jobject resolutionsList = env->NewObject(arrayListCls, arrayListInit);
         for (const auto &it: resolutions) {
