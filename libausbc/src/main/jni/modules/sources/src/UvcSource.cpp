@@ -64,22 +64,9 @@ int UvcSource::xioctl(int fh, int request, void *arg) {
     return r;
 }
 
-void UvcSource::init_read(unsigned int buffer_size)
+void UvcSource::init_read(size_t buffer_size)
 {
-    buffers = (buffer*)calloc(1, sizeof(*buffers));
-
-    if (!buffers) {
-        fprintf(stderr, "Out of memory\n");
-        exit(EXIT_FAILURE);
-    }
-
-    buffers[0].length = buffer_size;
-    buffers[0].start = malloc(buffer_size);
-
-    if (!buffers[0].start) {
-        fprintf(stderr, "Out of memory\n");
-        exit(EXIT_FAILURE);
-    }
+    buffers.push_back(buffer{.buffer = std::vector<uint8_t>(buffer_size)});
 }
 
 void UvcSource::init_mmap()
@@ -92,11 +79,9 @@ void UvcSource::init_mmap()
     req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     req.memory = V4L2_MEMORY_MMAP;
 
-    if (-1 == xioctl(deviceFd, VIDIOC_REQBUFS, &req)) {
+    if (xioctl(deviceFd, VIDIOC_REQBUFS, &req) == -1) {
         if (EINVAL == errno) {
-            fprintf(stderr, "%s does not support "
-                            "memory mapping\n", this->uvcConfig.dev_name);
-            exit(EXIT_FAILURE);
+            throw UvcException(UvcException::Type::IoCtlError, this->uvcConfig.dev_name + " does not support memory mapping");
         } else {
             throw UvcException(UvcException::Type::IoCtlError, "VIDIOC_REQBUFS");
         }
@@ -108,39 +93,32 @@ void UvcSource::init_mmap()
         exit(EXIT_FAILURE);
     }
 
-    buffers = (buffer*)calloc(req.count, sizeof(*buffers));
-
-    if (!buffers) {
-        fprintf(stderr, "Out of memory\n");
-        exit(EXIT_FAILURE);
-    }
-
-    for (n_buffers = 0; n_buffers < req.count; ++n_buffers) {
-        struct v4l2_buffer buf;
-
+    for (int i = 0; i < req.count; ++i) {
+        v4l2_buffer buf;
         CLEAR(buf);
-
-        buf.type        = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-        buf.memory      = V4L2_MEMORY_MMAP;
-        buf.index       = n_buffers;
+        buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        buf.memory = V4L2_MEMORY_MMAP;
+        buf.index = i;
 
         if (-1 == xioctl(deviceFd, VIDIOC_QUERYBUF, &buf))
             throw UvcException(UvcException::Type::IoCtlError, "VIDIOC_QUERYBUF");
 
-        buffers[n_buffers].length = buf.length;
-        buffers[n_buffers].start =
-                mmap(NULL /* start anywhere */,
+        buffer current = {
+            .mmapBuffer = (uint8_t*)mmap(0 /* start anywhere */,
                     buf.length,
                     PROT_READ | PROT_WRITE /* required */,
                     MAP_SHARED /* recommended */,
-                    deviceFd, buf.m.offset);
-
-        if (MAP_FAILED == buffers[n_buffers].start)
+                    deviceFd, 
+                    buf.m.offset),
+            .mmapSize = buf.length
+        };
+        if (current.mmapBuffer == MAP_FAILED)
             throw UvcException(UvcException::Type::MmapError, "mmap failed");
+        buffers.push_back(current);
     }
 }
 
-void UvcSource::init_userp(unsigned int buffer_size)
+void UvcSource::init_userp(size_t buffer_size)
 {
     struct v4l2_requestbuffers req;
 
@@ -160,21 +138,10 @@ void UvcSource::init_userp(unsigned int buffer_size)
         }
     }
 
-    buffers = (buffer*)calloc(4, sizeof(*buffers));
-
-    if (!buffers) {
-        fprintf(stderr, "Out of memory\n");
-        exit(EXIT_FAILURE);
-    }
-
-    for (n_buffers = 0; n_buffers < 4; ++n_buffers) {
-        buffers[n_buffers].length = buffer_size;
-        buffers[n_buffers].start = malloc(buffer_size);
-
-        if (!buffers[n_buffers].start) {
-            fprintf(stderr, "Out of memory\n");
-            exit(EXIT_FAILURE);
-        }
+    for (size_t n_buffers = 0; n_buffers < 4; ++n_buffers) {
+        buffers.push_back(buffer{
+            .buffer = std::vector<uint8_t>(buffer_size),
+        });
     }
 }
 
@@ -186,12 +153,10 @@ UvcSource::~UvcSource() {
 }
 
 void UvcSource::open(const UvcSource::OpenConfiguration & config) {
-    std::cout << "Opening UVC device: " << config.dev_name << std::endl;
     PullSource::open(config);
     this->uvcConfig = config;
     struct stat st;
     const char* dev_name = uvcConfig.dev_name.c_str();
-    std::cout << "Opening 20" << std::endl;
 
     if (-1 == stat(dev_name, &st)) {
         throw UvcException(UvcException::Type::WrongDevice, "Cannot identify device");
@@ -200,13 +165,10 @@ void UvcSource::open(const UvcSource::OpenConfiguration & config) {
     if (!S_ISCHR(st.st_mode)) {
         throw UvcException(UvcException::Type::WrongDevice, "Not a character device");
     }
-    std::cout << "Opening 30" << std::endl;
 
     deviceFd = ::open(dev_name, O_RDWR /* required */ | O_NONBLOCK, 0);
-    std::cout << "Opened device " << dev_name << " with fd " << deviceFd << std::endl;
     if (-1 == deviceFd) {
-        std::cerr << "Cannot open '" << dev_name << "': " << errno << ", " << strerror(errno) << std::endl;
-        throw UvcException(UvcException::Type::CantOpenDevice, "Can't open device");
+        throw UvcException(UvcException::Type::CantOpenDevice, "Can't open device " + config.dev_name);
     }
 }
 
@@ -214,26 +176,23 @@ std::future<void> UvcSource::close() {
     return std::async(std::launch::async, [this]() {
         unsigned int i;
         switch (io) {
-            case IO_METHOD_READ:
-                free(buffers[0].start);
-                break;
             case IO_METHOD_MMAP:
-                for (i = 0; i < n_buffers; ++i)
-                    if (-1 == munmap(buffers[i].start, buffers[i].length))
-                        throw UvcException(UvcException::Type::MmapError, "munmap");
+                for (i = 0; i < buffers.size(); ++i)
+                    if (-1 == munmap(buffers[i].mmapBuffer, buffers[i].mmapSize))
+                        throw UvcException(UvcException::Type::MmapError, "munmap() failed");
                 break;
 
+            case IO_METHOD_READ:
             case IO_METHOD_USERPTR:
-                for (i = 0; i < n_buffers; ++i)
-                    free(buffers[i].start);
                 break;
         }
 
-        free(buffers);
+        buffers.clear();
 
-        if (-1 == ::close(deviceFd))
-            throw UvcException(UvcException::Type::CantCloseDevice, "close");
-        deviceFd = -1;
+        if (deviceFd > 0) {
+            ::close(deviceFd);
+            deviceFd = -1;
+        }
     });
 }
 
@@ -244,7 +203,6 @@ void UvcSource::init_device() {
     struct v4l2_format fmt;
     unsigned int min;
 
-    std::cout << "Starting 20 " << deviceFd <<std::endl;
     if (deviceFd < 0) {
         throw UvcException(UvcException::Type::DeviceNotOpened, "Call open() before startProducing()");
     }
@@ -254,7 +212,6 @@ void UvcSource::init_device() {
             fprintf(stderr, "%s is no V4L2 device\n", this->uvcConfig.dev_name);
             exit(EXIT_FAILURE);
         } else {
-            std::cout << "Starting 21" << errno << " " << strerror(errno) << std::endl;
             throw UvcException(UvcException::Type::IoCtlError, "VIDIOC_QUERYCAP");
         }
     }
@@ -264,7 +221,6 @@ void UvcSource::init_device() {
             this->uvcConfig.dev_name);
         exit(EXIT_FAILURE);
     }
-    std::cout << "Starting 30" << std::endl;
     switch (io) {
         case IO_METHOD_READ:
             if (!(cap.capabilities & V4L2_CAP_READWRITE)) {
@@ -356,9 +312,7 @@ std::future<void> UvcSource::startProducing(const Source::ProducingConfiguration
 {    
     return std::async(std::launch::async, [this,&config]() {
         PullSource::startProducing(config).get();
-        std::cout << "Starting UVC with " << config.width << "x" << config.height << "@" << config.fps << std::endl;
         init_device();
-        std::cout << "Starting 10" << std::endl;
 
         unsigned int i;
         enum v4l2_buf_type type;
@@ -369,7 +323,7 @@ std::future<void> UvcSource::startProducing(const Source::ProducingConfiguration
                 break;
 
             case IO_METHOD_MMAP:
-                for (i = 0; i < n_buffers; ++i) {
+                for (i = 0; i < buffers.size(); ++i) {
                     struct v4l2_buffer buf;
 
                     CLEAR(buf);
@@ -386,15 +340,15 @@ std::future<void> UvcSource::startProducing(const Source::ProducingConfiguration
                 break;
 
             case IO_METHOD_USERPTR:
-                for (i = 0; i < n_buffers; ++i) {
+                for (i = 0; i < buffers.size(); ++i) {
                     struct v4l2_buffer buf;
 
                     CLEAR(buf);
                     buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
                     buf.memory = V4L2_MEMORY_USERPTR;
                     buf.index = i;
-                    buf.m.userptr = (unsigned long)buffers[i].start;
-                    buf.length = buffers[i].length;
+                    buf.m.userptr = (unsigned long)buffers[i].buffer.data();
+                    buf.length = buffers[i].buffer.size();
 
                     if (-1 == xioctl(deviceFd, VIDIOC_QBUF, &buf))
                         throw UvcException(UvcException::Type::IoCtlError, "VIDIOC_QBUF");
@@ -435,7 +389,7 @@ auvc::ExpectedFrame UvcSource::readFrame(){
 
     switch (io) {
         case IO_METHOD_READ:
-            if (-1 == read(deviceFd, buffers[0].start, buffers[0].length)) {
+            if (-1 == read(deviceFd, buffers[0].buffer.data(), buffers[0].buffer.size())) {
                 switch (errno) {
                     case EAGAIN:
                         return std::unexpected(auvc::SourceError(auvc::SourceErrorCode::SOURCE_ERROR_READ_AGAIN, "read again"));
@@ -451,8 +405,8 @@ auvc::ExpectedFrame UvcSource::readFrame(){
                 getProducingConfiguration().width,
                 getProducingConfiguration().height,
                 auvc::FrameFormat::YUYV,
-                (uint8_t*)buffers[0].start,
-                buffers[0].length,
+                (uint8_t*)buffers[0].buffer.data(),
+                buffers[0].buffer.size(),
                 std::chrono::high_resolution_clock::now()
             );
             break;
@@ -471,16 +425,17 @@ auvc::ExpectedFrame UvcSource::readFrame(){
                         /* Could ignore EIO, see spec. */
                         /* fall through */
                     default:
-                        throw UvcException(UvcException::Type::IoCtlError, "VIDIOC_DQBUF");
+                        throw UvcException(UvcException::Type::IoCtlError, "readFrame IO_METHOD_MMAP VIDIOC_DQBUF " + 
+                            std::to_string(errno) + " " + 
+                            std::string(strerror(errno)));
                 }
             }
 
-            std::cout << "Frame " << frameCounter << ": " << buf.bytesused << " bytes" << std::endl;
             result = auvc::Frame(
                 getProducingConfiguration().width,
                 getProducingConfiguration().height,
                 auvc::FrameFormat::YUYV,
-                (uint8_t*)buffers[buf.index].start,
+                (uint8_t*)buffers[buf.index].mmapBuffer,
                 buf.bytesused,
                 std::chrono::high_resolution_clock::now()
             );
@@ -498,15 +453,7 @@ auvc::ExpectedFrame UvcSource::readFrame(){
             if (-1 == xioctl(deviceFd, VIDIOC_DQBUF, &buf)) {
                 switch (errno) {
                     case EAGAIN:
-                        return auvc::Frame(
-                            0,
-                            0,
-                            auvc::FrameFormat::NONE,
-                            nullptr,
-                            0,
-                            std::chrono::high_resolution_clock::now()
-                        );
-
+                        return std::unexpected(auvc::SourceError(auvc::SourceErrorCode::SOURCE_ERROR_READ_AGAIN, "read again"));
                     case EIO:
                         /* Could ignore EIO, see spec. */
 
@@ -517,9 +464,9 @@ auvc::ExpectedFrame UvcSource::readFrame(){
                 }
             }
 
-            for (i = 0; i < n_buffers; ++i)
-                if (buf.m.userptr == (unsigned long)buffers[i].start
-                    && buf.length == buffers[i].length)
+            for (i = 0; i < buffers.size(); ++i)
+                if (buf.m.userptr == (unsigned long)buffers[i].buffer.data()
+                    && buf.length == buffers[i].buffer.size())
                     break;
 
             result = auvc::Frame(

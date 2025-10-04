@@ -27,7 +27,7 @@ private:
     GtkWidget *draw_area;
     GtkWidget *button;
 
-    bool convertYuv420pToRgba = false;
+    bool convertToRgba = false;
     int width_;
     int height_;
     GtkApplication *app;
@@ -37,7 +37,7 @@ private:
     std::shared_ptr<PullToPushSource> pullToPush;
     std::shared_ptr<PullSource> testSource;
 
-    ConvertYUV420ptoRGBAUseCase convertUseCase;
+    std::shared_ptr<ConvertBitmapUseCase> convertUseCase;
     ConvertBitmapUseCase::Buffer *rgbaBuffer = nullptr;
     Source::ProducingConfiguration captureConfig = {
         .width = 640,
@@ -69,8 +69,8 @@ private:
             cairo_fill(cr);
             return;
         }
-        if (convertYuv420pToRgba) {
-            convertUseCase.convert(*rgbaBuffer,
+        if (convertToRgba) {
+            convertUseCase->convert(*rgbaBuffer,
                 {
                     .buffer = lastFrame->getData(),
                     .capacity = lastFrame->getSize(),
@@ -83,7 +83,7 @@ private:
 
         cairo_format_t format = CAIRO_FORMAT_ARGB32;
         auto* buffer = lastFrame->getData();
-        if (convertYuv420pToRgba) {
+        if (convertToRgba) {
             buffer = rgbaBuffer->buffer;
         }
         cairo_surface_t* surface = cairo_image_surface_create_for_data(
@@ -133,18 +133,7 @@ private:
         gtk_widget_set_hexpand(draw_area, TRUE); // Horizontal expand (to fill width too)
 
         gtk_window_present(GTK_WINDOW(window));
-
-        std::cout << "Starting test source" << std::endl;
         testSource->startProducing(captureConfig).get();
-        for (int i = 0 ; i< 100; i++) {
-            usleep(33000);
-            auto frame = testSource->readFrame();
-            if (!frame.has_value()) {
-                std::cout << "No frame available" << std::endl;
-                continue;
-            }
-            std::cout << "Frame " << i << ": " << frame.value().getWidth() << " " << frame.value().getSize() << std::endl;
-        }
         pullToPush->startProducing({}).get();
     }
 
@@ -178,7 +167,8 @@ public:
         for (int i = 1; i < argc; ++i) {
             if (strcmp(argv[i], "--testSourceYUV420") == 0) {
                 testSource = std::make_shared<TestSourceYUV420>(u8x8_font_amstrad_cpc_extended_f);
-                convertYuv420pToRgba = true;
+                convertUseCase = std::make_shared<ConvertYUV420ptoRGBAUseCase>();
+                convertToRgba = true;
             } else if (strcmp(argv[i], "--uvcSource") == 0) {
                 auto uvcSource = std::make_shared<UvcSource>();
                 std::cout << "Opening /dev/video0" << std::endl;
@@ -186,12 +176,13 @@ public:
                     .dev_name = "/dev/video0"
                 });
                 testSource = uvcSource;
-                convertYuv420pToRgba = true;
+                convertUseCase = std::make_shared<ConvertYUYVtoRGBAUseCase>();
+                convertToRgba = true;
             } else if (strcmp(argv[i], "--testSourceRGB") == 0) {
                 testSource = std::make_shared<TestSource>(u8x8_font_amstrad_cpc_extended_f);
             }
         }
-        if (convertYuv420pToRgba) {
+        if (convertToRgba) {
             size_t rgbaBufferSize = captureConfig.width * captureConfig.height * 4;
             rgbaBuffer = new ConvertBitmapUseCase::Buffer{
                 .buffer = new uint8_t[rgbaBufferSize],
