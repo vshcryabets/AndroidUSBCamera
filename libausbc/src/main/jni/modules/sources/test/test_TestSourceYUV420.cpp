@@ -17,11 +17,11 @@ TEST_CASE("testFormatsAndResolutions", "[TestSourceYUV420]") {
     REQUIRE(supportedFormats.size() == 1);
     REQUIRE(supportedFormats[0] == auvc::FrameFormat::YUV420P);
 
-    REQUIRE(supportedResolutions.size() == 1);
-    auto firstResolution = supportedResolutions.begin();
-    REQUIRE(firstResolution != supportedResolutions.end());
+    REQUIRE(supportedResolutions.value().size() == 1);
+    auto firstResolution = supportedResolutions.value().begin();
+    REQUIRE(firstResolution != supportedResolutions.value().end());
     uint16_t type = firstResolution->first;
-    std::vector<Source::Resolution> resolutions = firstResolution->second;
+    std::vector<auvc::Resolution> resolutions = firstResolution->second;
     REQUIRE(resolutions.size() > 1);
     REQUIRE(resolutions[0].width == 640);
     REQUIRE(resolutions[0].height == 480);

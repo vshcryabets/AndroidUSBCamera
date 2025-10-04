@@ -25,14 +25,14 @@ private:
     std::ifstream dataFile;
     std::vector<uint32_t> framesTocItems;
     std::vector<auvc::FrameFormat> supportedFormats;
-    std::map<uint16_t, std::vector<Resolution>> supportedResolutions;
+    std::map<uint16_t, std::vector<auvc::Resolution>> supportedResolutions;
 public:
     TestFileSource();
     virtual ~TestFileSource();
     auvc::Frame readFrame() override;
     std::future<void> startProducing(const ProducingConfiguration &config) override;
     std::future<void> close() override;
-    std::map<uint16_t, std::vector<Resolution>> getSupportedResolutions() const override;
+    auvc::ExpectedResolutions getSupportedResolutions() const override;
     std::vector<auvc::FrameFormat> getSupportedFrameFormats() const override;
     std::future<void> stopProducing() override;
     bool waitNextFrame() override;

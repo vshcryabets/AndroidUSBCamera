@@ -81,7 +81,7 @@ auvc::Frame TestSourceYUV420::readFrame()
             std::chrono::high_resolution_clock::now()
         );
     }
-    throw SourceError(SourceError::SOURCE_ERROR_CAPTURE_NOT_STARTED, 
+    throw auvc::SourceError(auvc::SourceError::SOURCE_ERROR_CAPTURE_NOT_STARTED, 
         "Capture not started or invalid configuration");
 }
 
@@ -93,7 +93,7 @@ std::future<void> TestSourceYUV420::startProducing(const Source::ProducingConfig
             config.height == 0 ||
             (config.width % testYUVColors.size() != 0))
         {
-            throw SourceError(SourceError::SOURCE_ERROR_WRONG_CONFIG, 
+            throw auvc::SourceError(auvc::SourceError::SOURCE_ERROR_WRONG_CONFIG, 
                 "Invalid capture configuration, width,height must be > 0 and width % " +
                 std::to_string(testYUVColors.size()) + " == 0");
         }
@@ -192,15 +192,14 @@ void TestSourceYUV420::drawString(std::string str, uint16_t x, uint16_t y, uint8
     }
 }
 
-std::map<uint16_t, std::vector<Source::Resolution>> TestSourceYUV420::getSupportedResolutions() const
+auvc::ExpectedResolutions TestSourceYUV420::getSupportedResolutions() const
 {
-    std::map<uint16_t, std::vector<Source::Resolution>> result;
-    std::vector<Source::Resolution> resoltions {
+    std::map<uint16_t, std::vector<auvc::Resolution>> result;
+    result[0] = {
         {1, 640, 480, {30.0f, 60.0f}},
         {1, 1280, 720, {30.0f, 60.0f}},
         {1, 1920, 1080, {30.0f, 60.0f}},
         {1, 3840, 2160, {30.0f}}
     };
-    result[0] = std::move(resoltions);
     return result;
 }

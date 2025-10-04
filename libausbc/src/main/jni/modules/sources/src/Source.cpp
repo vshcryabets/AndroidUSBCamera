@@ -18,7 +18,7 @@ const Source::ProducingConfiguration Source::getProducingConfiguration() const
     return this->captureConfiguration;
 }
 
-const char* SourceError::what() const noexcept {
+const char* auvc::SourceError::what() const noexcept {
     return message.c_str();
 }
 

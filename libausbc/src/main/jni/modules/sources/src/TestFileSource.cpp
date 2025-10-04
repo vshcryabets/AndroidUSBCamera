@@ -117,7 +117,7 @@ std::future<void> TestFileSource::close()
     });
 }
 
-std::map<uint16_t, std::vector<Source::Resolution>> TestFileSource::getSupportedResolutions() const
+auvc::ExpectedResolutions TestFileSource::getSupportedResolutions() const
 {
     return supportedResolutions;
 }
