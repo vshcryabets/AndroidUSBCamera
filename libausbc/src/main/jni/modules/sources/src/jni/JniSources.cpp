@@ -1,4 +1,6 @@
 #include <jni.h>
+#include <iostream>
+
 #include "jni/JniSources.h"
 #include "jni/JniTestSource.h"
 #include "jni/JniPullToPushSource.h"

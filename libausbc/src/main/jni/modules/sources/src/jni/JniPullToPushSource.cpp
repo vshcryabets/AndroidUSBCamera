@@ -1,6 +1,9 @@
+#include <iostream>
+
 #include "jni/JniPullToPushSource.h"
 #include "jni/JniSources.h"
 #include "PullToPushSource.h"
+#include "jni/JniSourcesRepo.h"
 
 extern "C"
 JNIEXPORT void JNICALL
@@ -19,31 +22,35 @@ Java_com_vsh_source_PullToPushSource_nativeOpen(
 }
 
 extern "C"
-JNIEXPORT jlong JNICALL
+JNIEXPORT jint JNICALL
 Java_com_vsh_source_PullToPushSource_nativeCreate(
         JNIEnv *env,
         jobject thiz) {
-    auto *source = new PullToPushSource();
-    return reinterpret_cast<jlong>(source);
+    return JniSourcesRepo::getInstance()->
+            addSource(std::make_shared<PullToPushSource>());
 }
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_vsh_source_PullToPushSource_nativeRelease(JNIEnv *env, jobject thiz, jlong ptr) {
-    auto *source = reinterpret_cast<PullToPushSource*>(ptr);
-    delete source;
+Java_com_vsh_source_PullToPushSource_nativeRelease(JNIEnv *env, jobject thiz, jint srcId) {
+    JniSourcesRepo::getInstance()->removeSource(srcId);
 }
 
 void JniPullToPushSource_register(JNIEnv *env) {
-    jclass clazz = env->FindClass("com/vsh/source/PullToPushSource");
-    if (clazz != nullptr) {
-        static const JNINativeMethod methods[] = {
-                {CONST_LITERAL("nativeCreate"), CONST_LITERAL("()J"),
-                 (void *) &Java_com_vsh_source_PullToPushSource_nativeCreate},
-                {CONST_LITERAL("nativeRelease"), CONST_LITERAL("(J)V"),
-                    (void *) &Java_com_vsh_source_PullToPushSource_nativeRelease},
-        };
-        env->RegisterNatives(clazz, methods, sizeof(methods) / sizeof(methods[0]));
-        env->DeleteLocalRef(clazz);
-    }
+//    jclass clazz = env->FindClass("com/vsh/source/PullToPushSource");
+//    if (clazz != nullptr) {
+//        static const JNINativeMethod methods[] = {
+//                {CONST_LITERAL("nativeCreate"), CONST_LITERAL("()I"),
+//                 (void *) &Java_com_vsh_source_PullToPushSource_nativeCreate},
+//                {CONST_LITERAL("nativeRelease"), CONST_LITERAL("(I)V"),
+//                    (void *) &Java_com_vsh_source_PullToPushSource_nativeRelease},
+//        };
+//        int res = env->RegisterNatives(clazz, methods, sizeof(methods) / sizeof(methods[0]));
+//        if (res < 0) {
+//            std::cerr << "Failed to register native methods for TestSourceYUV420" << std::endl;
+//            env->ThrowNew(env->FindClass("java/lang/RuntimeException"),
+//                          "Failed to register native methods for TestSourceYUV420");
+//        }
+//        env->DeleteLocalRef(clazz);
+//    }
 }

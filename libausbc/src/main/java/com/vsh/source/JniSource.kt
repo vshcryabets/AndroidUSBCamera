@@ -2,27 +2,28 @@ package com.vsh.source
 
 import com.jiangdg.uvc.SourceResolution
 import java.io.Closeable
+import java.util.Optional
 
 abstract class JniSource<OC : Source.OpenConfiguration, PC : Source.ProducingConfiguration> :
     Source<OC, PC>,
     Closeable {
-    protected var nativePtr: Long = 0L
+    protected var _srcId: Optional<Int> = Optional.empty()
 
     override fun open(configuration: OC) {
-        nativePtr = initNative()
+        _srcId = Optional.of(initNative())
     }
 
-    fun getNativeObject(): Long = nativePtr
+    fun getSrcId(): Optional<Int> = _srcId
 
-    protected abstract fun initNative(): Long
+    protected abstract fun initNative(): Int
 
     override fun getSupportedFrameFormats(): List<Source.FrameFormat> {
-        if (nativePtr != 0L) {
-            return nativeGetSupportedFrameFormats(nativePtr).map {
+        return _srcId.map { id ->
+            nativeGetSupportedFrameFormats(id).map {
                 Source.FrameFormat.entries[it.toInt()]
             }
-        } else {
-            return emptyList()
+        }.orElseGet {
+            emptyList()
         }
     }
 
@@ -31,23 +32,23 @@ abstract class JniSource<OC : Source.OpenConfiguration, PC : Source.ProducingCon
     }
 
     protected fun releaseNativeObject() {
-        if (nativePtr != 0L) {
-            nativeRelease(nativePtr)
-            nativePtr = 0L
+        if (_srcId.isPresent) {
+            nativeRelease(_srcId.get())
+            _srcId = Optional.empty()
         }
     }
 
     override fun getSupportedResolutions(): Map<Int, List<SourceResolution>> {
-        if (nativePtr != 0L) {
-            return nativeGetSupportedResolutions(nativePtr).mapKeys {
+        return _srcId.map { id ->
+            nativeGetSupportedResolutions(id).mapKeys {
                 it.key.toInt()
             }
-        } else {
-            return emptyMap()
+        }.orElseGet {
+            emptyMap()
         }
     }
 
-    protected abstract fun nativeRelease(nativePtr: Long)
-    protected abstract fun nativeGetSupportedResolutions(nativePtr: Long): Map<Integer, List<SourceResolution>>
-    protected abstract fun nativeGetSupportedFrameFormats(nativePtr: Long): List<Integer>
+    protected abstract fun nativeRelease(srcId: Int)
+    protected abstract fun nativeGetSupportedResolutions(srcId: Int): Map<Integer, List<SourceResolution>>
+    protected abstract fun nativeGetSupportedFrameFormats(srcId: Int): List<Integer>
 }

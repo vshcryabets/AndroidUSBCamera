@@ -10,10 +10,10 @@ class PullToPushSource :
     class OpenConfiguration(
         tag: String,
         val pullSource: JniSource<*, *>,
-        consumer: Consumer
+        consumer: JniConsumer
     ) : PushSource.OpenConfiguration(tag, consumer)
 
-    override fun initNative(): Long = nativeCreate()
+    override fun initNative(): Int = nativeCreate()
 
     override fun open(configuration: OpenConfiguration) {
         if (!configuration.pullSource.isPullSource())
@@ -22,9 +22,16 @@ class PullToPushSource :
                         configuration.pullSource::class.java.simpleName
             )
         super.open(configuration)
-        val sourcePtr = configuration.pullSource.getNativeObject()
+        if (_srcId.isEmpty) {
+            throw IllegalStateException("Source is not initialized")
+        }
+
         this.openConfig = configuration
-        nativeOpen(sourcePtr, configuration.tag)
+        nativeOpen(
+            srcId = _srcId.get(),
+            tag = configuration.tag,
+            pullSrcId = configuration.pullSource.getSrcId().orElseThrow()
+        )
     }
 
     override fun getOpenConfiguration(): OpenConfiguration? = openConfig
@@ -48,9 +55,9 @@ class PullToPushSource :
     override fun isPullSource(): Boolean = false
     override fun isPushSource(): Boolean = true
 
-    private external fun nativeCreate(): Long
-    external override fun nativeRelease(ptr: Long)
-    private external fun nativeOpen(sourcePtr: Long, tag: String)
-    external override fun nativeGetSupportedResolutions(ptr: Long): Map<Integer, List<SourceResolution>>
-    external override fun nativeGetSupportedFrameFormats(ptr: Long): List<Integer>
+    private external fun nativeCreate(): Int
+    external override fun nativeRelease(srcId: Int)
+    private external fun nativeOpen(srcId: Int, tag: String, pullSrcId: Int)
+    external override fun nativeGetSupportedResolutions(srcId: Int): Map<Integer, List<SourceResolution>>
+    external override fun nativeGetSupportedFrameFormats(srcId: Int): List<Integer>
 }

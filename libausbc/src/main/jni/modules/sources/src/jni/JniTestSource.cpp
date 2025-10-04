@@ -1,3 +1,4 @@
+#include <iostream>
 #include <jni.h>
 #include "TestSource.h"
 #include "TestSourceYUV420.h"
@@ -61,13 +62,13 @@ Java_com_vsh_source_TestSource_nativeRelease(JNIEnv *env, jobject thiz, jint sou
 JNIEXPORT void JNICALL
 Java_com_vsh_source_TestSource_nativeStopCapturing(JNIEnv *env, jobject thiz, jint sourceId)
 {
-    JniSourcesRepo::getInstance()->getSource(sourceId)->stopProducing();
+    JniSourcesRepo::getInstance()->getSource(sourceId)->stopProducing().get();
 }
 
 JNIEXPORT void JNICALL
 Java_com_vsh_source_TestSource_nativeClose(JNIEnv *env, jobject thiz, jint sourceId)
 {
-    JniSourcesRepo::getInstance()->getSource(sourceId)->close();
+    JniSourcesRepo::getInstance()->getSource(sourceId)->close().get();
 }
 
 JNIEXPORT jobject JNICALL
@@ -83,9 +84,13 @@ Java_com_vsh_source_TestSource_nativeGetSupportedResolutions(JNIEnv *env,
 #pragma region TestSourceYUV420
 
 JNIEXPORT jint JNICALL
-Java_com_vsh_source_TestSourceYUV420_nativeCreate(JNIEnv *env, jobject thiz, jlong fontPtr)
+Java_com_vsh_source_TestSourceYUV420_nativeCreate(
+    JNIEnv *env,
+    jobject thiz,
+    jlong fontPtr)
 {
-    return JniSourcesRepo::getInstance()->addSource(std::make_shared<TestSourceYUV420>((const uint8_t *)fontPtr));
+    return JniSourcesRepo::getInstance()->
+        addSource(std::make_shared<TestSourceYUV420>((const uint8_t *)fontPtr));
 }
 
 JNIEXPORT jobject JNICALL
@@ -129,7 +134,7 @@ Java_com_vsh_source_TestSourceYUV420_nativeStopProducing(
         jint sourceId)
 {
     auto source = JniSourcesRepo::getInstance()->getSource(sourceId);
-    source->stopProducing();
+    source->stopProducing().get();
 }
 
 JNIEXPORT void JNICALL
@@ -139,7 +144,7 @@ Java_com_vsh_source_TestSourceYUV420_nativeClose(
     jint sourceId)
 {
     auto source = JniSourcesRepo::getInstance()->getSource(sourceId);
-    source->close();
+    source->close().get();
 }
 
 JNIEXPORT void JNICALL
@@ -179,8 +184,9 @@ Java_com_vsh_source_TestSourceYUV420_nativeStartProducing(
         jobject producingConfiguration)
 {
     auto source = JniSourcesRepo::getInstance()->getSource(sourceId);
-    Source::ProducingConfiguration config = parseProducingConfiguration(producingConfiguration, env);
-    source->startProducing(config);
+    Source::ProducingConfiguration config = parseProducingConfiguration(
+            producingConfiguration, env);
+    source->startProducing(config).get();
 }
 
 JNIEXPORT jobject JNICALL
@@ -189,7 +195,8 @@ Java_com_vsh_source_TestSourceYUV420_nativeReadFrame(
         jobject thiz,
         jint sourceId)
 {
-    auto source = std::dynamic_pointer_cast<TestSourceYUV420>(JniSourcesRepo::getInstance()->getSource(sourceId));
+    auto source = std::dynamic_pointer_cast<TestSourceYUV420>(
+            JniSourcesRepo::getInstance()->getSource(sourceId));
     auto frame = source->readFrame();
     return prepareJniFrame(frame, env);
 }
@@ -197,49 +204,54 @@ Java_com_vsh_source_TestSourceYUV420_nativeReadFrame(
 
 void JniTestSource_register(JNIEnv *env)
 {
-    jclass clazz = env->FindClass("com/vsh/source/TestSource");
-    if (clazz != nullptr)
-    {
-        static const JNINativeMethod methods[] = {
-            {"nativeCreate", "(J)I", (void *)&Java_com_vsh_source_TestSource_nativeCreate},
-            {"nativeRelease", "(I)V", (void *)&Java_com_vsh_source_TestSource_nativeRelease},
-            {"nativeStopCapturing", "(I)V", (void *)&Java_com_vsh_source_TestSource_nativeStopCapturing},
-            {"nativeClose", "(I)V", (void *)&Java_com_vsh_source_TestSource_nativeClose},
-            {"nativeGetSupportedResolutions", "(I)Ljava/util/Map;", (void *)&Java_com_vsh_source_TestSource_nativeGetSupportedResolutions},
-        };
-        env->RegisterNatives(clazz, methods, sizeof(methods) / sizeof(methods[0]));
-        env->DeleteLocalRef(clazz);
-    }
-
-    clazz = env->FindClass("com/vsh/source/TestSourceYUV420");
-    if (clazz != nullptr)
-    {
-        static const JNINativeMethod methods[] = {
-            {CONST_LITERAL("nativeCreate"), CONST_LITERAL("(J)I"),
-                 (void *)&Java_com_vsh_source_TestSourceYUV420_nativeCreate},
-            {CONST_LITERAL("nativeGetSupportedFrameFormats"), CONST_LITERAL("(I)Ljava/util/List;"),
-                 (void *)&Java_com_vsh_source_TestSourceYUV420_nativeGetSupportedFrameFormats},
-            {CONST_LITERAL("nativeOpen"), CONST_LITERAL("(I)V"),
-                 (void *)&Java_com_vsh_source_TestSourceYUV420_nativeOpen},
-            {CONST_LITERAL("nativeGetSupportedResolutions"), CONST_LITERAL("(I)Ljava/util/Map;"),
-                 (void *)&Java_com_vsh_source_TestSourceYUV420_nativeGetSupportedResolutions},
-            {CONST_LITERAL("nativeClose"), CONST_LITERAL("(I)V"),
-                (void *)&Java_com_vsh_source_TestSourceYUV420_nativeClose},
-            {CONST_LITERAL("nativeRelease"), CONST_LITERAL("(I)V"),
-                (void *)&Java_com_vsh_source_TestSourceYUV420_nativeRelease},
-            {CONST_LITERAL("nativeIsReadyForProducing"), CONST_LITERAL("(I)Z"),
-                (void *)&Java_com_vsh_source_TestSourceYUV420_nativeIsReadyForProducing},
-            {CONST_LITERAL("nativeStartProducing"), CONST_LITERAL("(ILcom/vsh/source/Source$ProducingConfiguration;)V"),
-                (void *)&Java_com_vsh_source_TestSourceYUV420_nativeStartProducing},
-            {CONST_LITERAL("nativeWaitNextFrame"), CONST_LITERAL("(I)Z"),
-                (void *)&Java_com_vsh_source_TestSourceYUV420_nativeWaitNextFrame},
-            {CONST_LITERAL("nativeReadFrame"), CONST_LITERAL("(I)Lcom/vsh/source/Frame;"),
-                (void *)&Java_com_vsh_source_TestSourceYUV420_nativeReadFrame},
-            {CONST_LITERAL("nativeStopProducing"), CONST_LITERAL("(I)V"),
-                (void *)&Java_com_vsh_source_TestSourceYUV420_nativeStopProducing},
-        };
-        env->RegisterNatives(clazz, methods, sizeof(methods) / sizeof(methods[0]));
-        env->DeleteLocalRef(clazz);
-    }
+//    jclass clazz = env->FindClass("com/vsh/source/TestSource");
+//    if (clazz != nullptr)
+//    {
+//        static const JNINativeMethod methods[] = {
+//            {"nativeCreate", "(J)I", (void *)&Java_com_vsh_source_TestSource_nativeCreate},
+//            {"nativeRelease", "(I)V", (void *)&Java_com_vsh_source_TestSource_nativeRelease},
+//            {"nativeStopCapturing", "(I)V", (void *)&Java_com_vsh_source_TestSource_nativeStopCapturing},
+//            {"nativeClose", "(I)V", (void *)&Java_com_vsh_source_TestSource_nativeClose},
+//            {"nativeGetSupportedResolutions", "(I)Ljava/util/Map;", (void *)&Java_com_vsh_source_TestSource_nativeGetSupportedResolutions},
+//        };
+//        env->RegisterNatives(clazz, methods, sizeof(methods) / sizeof(methods[0]));
+//        env->DeleteLocalRef(clazz);
+//    }
+//
+//    clazz = env->FindClass("com/vsh/source/TestSourceYUV420");
+//    if (clazz != nullptr)
+//    {
+//        static const JNINativeMethod methods[] = {
+//            {CONST_LITERAL("nativeCreate"), CONST_LITERAL("(J)I"),
+//                 (void *)&Java_com_vsh_source_TestSourceYUV420_nativeCreate},
+//            {CONST_LITERAL("nativeGetSupportedFrameFormats"), CONST_LITERAL("(I)Ljava/util/List;"),
+//                 (void *)&Java_com_vsh_source_TestSourceYUV420_nativeGetSupportedFrameFormats},
+//            {CONST_LITERAL("nativeOpen"), CONST_LITERAL("(I)V"),
+//                 (void *)&Java_com_vsh_source_TestSourceYUV420_nativeOpen},
+//            {CONST_LITERAL("nativeGetSupportedResolutions"), CONST_LITERAL("(I)Ljava/util/Map;"),
+//                 (void *)&Java_com_vsh_source_TestSourceYUV420_nativeGetSupportedResolutions},
+//            {CONST_LITERAL("nativeClose"), CONST_LITERAL("(I)V"),
+//                (void *)&Java_com_vsh_source_TestSourceYUV420_nativeClose},
+//            {CONST_LITERAL("nativeRelease"), CONST_LITERAL("(I)V"),
+//                (void *)&Java_com_vsh_source_TestSourceYUV420_nativeRelease},
+//            {CONST_LITERAL("nativeIsReadyForProducing"), CONST_LITERAL("(I)Z"),
+//                (void *)&Java_com_vsh_source_TestSourceYUV420_nativeIsReadyForProducing},
+//            {CONST_LITERAL("nativeStartProducing"), CONST_LITERAL("(ILcom/vsh/source/Source$ProducingConfiguration;)V"),
+//                (void *)&Java_com_vsh_source_TestSourceYUV420_nativeStartProducing},
+//            {CONST_LITERAL("nativeWaitNextFrame"), CONST_LITERAL("(I)Z"),
+//                (void *)&Java_com_vsh_source_TestSourceYUV420_nativeWaitNextFrame},
+//            {CONST_LITERAL("nativeReadFrame"), CONST_LITERAL("(I)Lcom/vsh/source/Frame;"),
+//                (void *)&Java_com_vsh_source_TestSourceYUV420_nativeReadFrame},
+//            {CONST_LITERAL("nativeStopProducing"), CONST_LITERAL("(I)V"),
+//                (void *)&Java_com_vsh_source_TestSourceYUV420_nativeStopProducing},
+//        };
+//        int res = env->RegisterNatives(clazz, methods, sizeof(methods) / sizeof(methods[0]));
+//        if (res < 0) {
+//            std::cerr << "Failed to register native methods for TestSourceYUV420" << std::endl;
+//            env->ThrowNew(env->FindClass("java/lang/RuntimeException"),
+//                          "Failed to register native methods for TestSourceYUV420");
+//        }
+//        env->DeleteLocalRef(clazz);
+//    }
 }
 

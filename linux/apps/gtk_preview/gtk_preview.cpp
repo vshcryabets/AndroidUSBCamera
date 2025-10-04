@@ -139,8 +139,8 @@ private:
         gtk_window_present(GTK_WINDOW(window));
 
         // g_timeout_add(33, this->staticTimeout, this);
-        testSource->startProducing(captureConfig);
-        pullToPush->startProducing({});
+        testSource->startProducing(captureConfig).get();
+        pullToPush->startProducing({}).get();
     }
 
 public:

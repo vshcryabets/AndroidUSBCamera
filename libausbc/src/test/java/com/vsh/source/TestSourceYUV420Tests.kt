@@ -36,7 +36,6 @@ class TestSourceYUV420Tests {
         Assertions.assertEquals(30.0f, resolutions[0].fps[0])
 
         source.close()
-        source.releaseNativeObject()
     }
 
     @Test
@@ -63,7 +62,6 @@ class TestSourceYUV420Tests {
 
         source.stopProducing()
         source.close()
-        source.releaseNativeObject()
     }
 
     companion object {
