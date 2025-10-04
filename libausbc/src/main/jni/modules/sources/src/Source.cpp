@@ -1,5 +1,13 @@
 #include "Source.h"
 
+namespace auvc {
+    std::future<void> completed() {
+        std::promise<void> promise;
+        promise.set_value();
+        return promise.get_future();
+    }
+}
+
 const Source::OpenConfiguration Source::getOpenConfiguration() const
 {
     return this->sourceConfig;

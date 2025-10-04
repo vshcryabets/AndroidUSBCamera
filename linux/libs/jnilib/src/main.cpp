@@ -1,6 +1,6 @@
 #include <jni.h>
 #include "FontWrapper.h"
-#include "JniSources.h"
+#include "jni/JniSources.h"
 #include <iostream>
 
 jint JNI_OnLoad(JavaVM *vm, void *reserved) {

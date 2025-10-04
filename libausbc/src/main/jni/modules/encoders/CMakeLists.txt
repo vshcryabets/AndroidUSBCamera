@@ -38,4 +38,8 @@ if (BUILD_CATCH2_TESTS)
             Sources
             U8x8Font
             )
+
+        catch_discover_tests(Encoders_tests
+            PROPERTIES
+            TIMEOUT 10)
 endif()

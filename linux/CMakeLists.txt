@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.28)
 
 project(LinuxUvcTests LANGUAGES CXX C)
 
+enable_testing()
+include(CTest)
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_C_STANDARD 99)
@@ -28,6 +31,19 @@ FetchContent_Declare(
     GIT_TAG        v3.5.3
 )
 FetchContent_MakeAvailable(Catch2)
+include(Catch)
+
+## Prevent empty return in non-void function
+# For GCC and Clang compilers
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    add_compile_options(-Werror=return-type -Werror=unused-result )
+
+# For the Microsoft MSVC compiler
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    add_compile_options(/we4716)
+endif()
+
+
 
 if(BUILD_IMAGES_MODULE)
     add_subdirectory(../libausbc/src/main/jni/modules/images modules/images)

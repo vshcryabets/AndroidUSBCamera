@@ -3,6 +3,11 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <future>
+
+namespace auvc {
+    std::future<void> completed();
+}
 
 class SourceError : public std::exception {
     public:
@@ -49,13 +54,14 @@ public:
         this->sourceConfig = config;
     }
     [[nodiscard]] const OpenConfiguration getOpenConfiguration() const;
-    virtual void close() = 0;
+    [[nodiscard]] virtual std::future<void> close() = 0;
     // producing
     [[nodiscard]] const ProducingConfiguration getProducingConfiguration() const;
-    virtual void startProducing(const ProducingConfiguration &config) {
+    [[nodiscard]] virtual std::future<void> startProducing(const ProducingConfiguration &config) {
         this->captureConfiguration = config;
+        return auvc::completed();
     }
-    virtual void stopProducing() = 0;
+    [[nodiscard]] virtual std::future<void> stopProducing() = 0;
     [[nodiscard]] virtual bool isReadyForProducing() const;
 
     [[nodiscard]] virtual std::map<uint16_t, std::vector<Resolution>> getSupportedResolutions() const = 0;

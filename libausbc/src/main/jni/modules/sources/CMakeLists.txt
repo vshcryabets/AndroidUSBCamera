@@ -21,13 +21,12 @@ if(BUILD_JNI_WRAPPERS)
         find_package(JNI REQUIRED COMPONENTS JVM)
     endif()
     target_sources(Sources PRIVATE
-        src/JniTestSource.cpp
-        src/JniSources.cpp
+        src/jni/JniTestSource.cpp
+        src/jni/JniSources.cpp
+        src/jni/JniPullToPushSource.cpp
+        src/jni/JniCountConsumer.cpp
+        src/jni/JniSourcesRepo.cpp
         )
-endif()
-
-
-if(BUILD_JNI_WRAPPERS)
     target_include_directories(
         Sources
         PUBLIC
@@ -50,6 +49,12 @@ if (BUILD_CATCH2_TESTS)
                 test/test_PullToPushSource.cpp
                 test/test_Frame.cpp
                 )
+        if(BUILD_JNI_WRAPPERS)
+            target_link_libraries(Sources_tests PRIVATE ${JNI_LIBRARIES})
+            target_sources(Sources_tests PRIVATE
+                test/test_JniSourcesRepo.cpp
+                )
+        endif()
         target_compile_options(Sources_tests PRIVATE -g)
         target_include_directories(Sources_tests PRIVATE ./include/)
         target_link_libraries(Sources_tests PRIVATE Catch2::Catch2WithMain Sources U8x8Font)
@@ -64,4 +69,8 @@ if (BUILD_CATCH2_TESTS)
                 $<TARGET_FILE_DIR:Sources_tests>
             COMMENT "Copying resources to build directory..."
         )
+
+        catch_discover_tests(Sources_tests
+            PROPERTIES
+            TIMEOUT 10)
 endif()              

@@ -26,13 +26,13 @@ class TestSourceYUV420(
 
     override fun open(configuration: Source.OpenConfiguration) {
         super.open(configuration)
-        if (nativePtr == 0L) {
+        if (_srcId.isEmpty) {
             throw IllegalStateException("Source is not initialized")
         }
-        nativeOpen(nativePtr)
+        nativeOpen(_srcId.get() )
     }
 
-    override fun initNative(): Long = nativeCreate(font.getFontPtr())
+    override fun initNative(): Int = nativeCreate(font.getFontPtr())
 
     override fun getOpenConfiguration(): Source.OpenConfiguration {
         if (openConfiguration != null)
@@ -42,21 +42,16 @@ class TestSourceYUV420(
     }
 
     override fun close() {
-        if (nativePtr != 0L) {
-            nativeClose(nativePtr)
-        }
+        _srcId.ifPresent { nativeClose(it) }
+        super.close()
     }
 
     override fun startProducing(configuration: Source.ProducingConfiguration) {
-        if (nativePtr != 0L) {
-            nativeStartProducing(nativePtr, configuration)
-        }
+        _srcId.ifPresent { nativeStartProducing(it, configuration) }
     }
 
     override fun stopProducing() {
-        if (nativePtr != 0L) {
-            nativeStopProducing(nativePtr)
-        }
+        _srcId.ifPresent { nativeStopProducing(it) }
     }
 
     override fun getProducingConfiguration(): Source.ProducingConfiguration? {
@@ -64,16 +59,15 @@ class TestSourceYUV420(
     }
 
     override fun isReadyForProducing(): Boolean {
-        if (nativePtr != 0L) {
-            return nativeIsReadyForProducing(nativePtr)
-        }
-        return false
+        return _srcId.map {
+            nativeIsReadyForProducing(it)
+        }.orElseGet { false }
     }
 
     override fun readFrame(): Frame {
         var result: Frame? = null
-        if (nativePtr != 0L) {
-            result = nativeReadFrame(nativePtr)
+        if (_srcId.isPresent) {
+            result = nativeReadFrame(_srcId.get())
         }
         if (result == null)
             result = object : Frame {
@@ -86,10 +80,9 @@ class TestSourceYUV420(
     }
 
     override fun waitNextFrame(): Boolean {
-        if (nativePtr != 0L) {
-            return nativeWaitNextFrame(nativePtr)
-        }
-        return false
+        return _srcId.map {
+            nativeWaitNextFrame(it)
+        }.orElseGet { false }
     }
 
     override fun isPullSource(): Boolean {
@@ -100,16 +93,16 @@ class TestSourceYUV420(
         TODO("Not yet implemented")
     }
 
-    private external fun nativeCreate(fontPtr: Long): Long
-    external override fun nativeRelease(nativePtr: Long)
-    private external fun nativeStopProducing(ptr: Long)
-    private external fun nativeClose(ptr: Long)
-    private external fun nativeIsReadyForProducing(ptr: Long): Boolean
-    private external fun nativeWaitNextFrame(ptr: Long): Boolean
-    external override fun nativeGetSupportedResolutions(nativePtr: Long): Map<Integer, List<SourceResolution>>
-    external override fun nativeGetSupportedFrameFormats(nativePtr: Long): List<Integer>
-    external fun nativeOpen(ptr: Long)
-    external fun nativeStartProducing(ptr: Long, configuration: Source.ProducingConfiguration)
-    external fun nativeReadFrame(ptr: Long): Frame
+    private external fun nativeCreate(fontPtr: Long): Int
+    external override fun nativeRelease(srcId: Int)
+    private external fun nativeStopProducing(srcId: Int)
+    private external fun nativeClose(srcId: Int)
+    private external fun nativeIsReadyForProducing(srcId: Int): Boolean
+    private external fun nativeWaitNextFrame(srcId: Int): Boolean
+    external override fun nativeGetSupportedResolutions(srcId: Int): Map<Integer, List<SourceResolution>>
+    external override fun nativeGetSupportedFrameFormats(srcId: Int): List<Integer>
+    external fun nativeOpen(srcId: Int)
+    external fun nativeStartProducing(srcId: Int, configuration: Source.ProducingConfiguration)
+    external fun nativeReadFrame(srcId: Int): Frame
 
 }

@@ -27,11 +27,11 @@ public:
     X264Encoder();
     virtual ~X264Encoder();
     virtual void open(const X264EncConfiguration &config) override;
-    void close() override;
+    [[nodiscard]] std::future<void> close() override;
     void consume(const auvc::Frame& frame) override;
     void stopConsuming() override;
-    void startProducing(const ProducingConfiguration &config) override;
-    void stopProducing() override;
+    std::future<void> startProducing(const ProducingConfiguration &config) override;
+    std::future<void> stopProducing() override;
     std::vector<auvc::FrameFormat> getSupportedFrameFormats() const override;
     std::map<uint16_t, std::vector<Source::Resolution>> getSupportedResolutions() const override;
 };

@@ -40,13 +40,14 @@ std::vector<auvc::FrameFormat> UVCCamera2::getSupportedFrameFormats() const
     };
 }
 
-void UVCCamera2::stopProducing()
+std::future<void> UVCCamera2::stopProducing()
 {
+    return auvc::completed();
 }
 
-void UVCCamera2::close()
+std::future<void> UVCCamera2::close()
 {
-
+    return auvc::completed();
 }
 
 std::map<uint16_t, std::vector<Source::Resolution>> UVCCamera2::getSupportedResolutions() const

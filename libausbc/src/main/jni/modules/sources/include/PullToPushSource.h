@@ -13,13 +13,15 @@ protected:
     std::shared_ptr<PullSource> pullSource {nullptr};
     std::thread workerThread;
     std::atomic<bool> running {false};
+    std::atomic<bool> stopRequested {false};
+    std::unique_ptr<std::promise<void>> startPromise {nullptr};
 public:
     PullToPushSource();
     virtual ~PullToPushSource();
     virtual void open(const OpenConfiguration &config);
-    void startProducing(const ProducingConfiguration &config) override;
-    void stopProducing() override;
-    void close() override;
+    std::future<void> startProducing(const ProducingConfiguration &config) override;
+    std::future<void> stopProducing() override;
+    std::future<void> close() override;
     std::map<uint16_t, std::vector<Resolution>> getSupportedResolutions() const override;
     std::vector<auvc::FrameFormat> getSupportedFrameFormats() const override;
 };

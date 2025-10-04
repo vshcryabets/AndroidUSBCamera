@@ -1,5 +1,10 @@
-#include "JniSources.h"
-#include "JniTestSource.h"
+#include <jni.h>
+#include <iostream>
+
+#include "jni/JniSources.h"
+#include "jni/JniTestSource.h"
+#include "jni/JniPullToPushSource.h"
+#include "jni/JniCountConsumer.h"
 
 jobject resolutionMapToJObject(const std::map<uint16_t, std::vector<Source::Resolution>> &map, JNIEnv *env)
 {
@@ -57,6 +62,8 @@ jobject resolutionMapToJObject(const std::map<uint16_t, std::vector<Source::Reso
 
 void JniSources_register(JNIEnv *env) {
     JniTestSource_register(env);
+    JniPullToPushSource_register(env);
+    JniCountConsumer_register(env);
 }
 
 jobject frameFormatsToJList(const std::vector<auvc::FrameFormat> &formats, JNIEnv *env) {

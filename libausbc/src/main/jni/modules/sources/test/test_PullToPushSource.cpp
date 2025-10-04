@@ -42,12 +42,12 @@ TEST_CASE("testFormatsAndResolutions", "[PullToPushSource]") {
     pullToPushSource.open(config);
 
     // pullToPush capture configuration doesn't matter, it uses the pull source's configuration
-    source->startProducing(realConfig);
+    source->startProducing(realConfig).get();
     pullToPushSource.startProducing({
         .width = 0,
         .height = 0,
         .fps = 0.0f
-    });
+    }).get();
 
     // Wait for callback (timeout after 2 seconds)
     {
@@ -55,8 +55,8 @@ TEST_CASE("testFormatsAndResolutions", "[PullToPushSource]") {
         cv.wait_for(lock, std::chrono::seconds(2), [&] { return callbackCalled.load(); });
     }
     REQUIRE(callbackCalled);
-    pullToPushSource.stopProducing();
-    source->stopProducing();
-    pullToPushSource.close();
-    source->close();
+    pullToPushSource.stopProducing().get();
+    source->stopProducing().get();
+    pullToPushSource.close().get();
+    source->close().get();
 }

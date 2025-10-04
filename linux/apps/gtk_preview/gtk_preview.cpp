@@ -139,8 +139,8 @@ private:
         gtk_window_present(GTK_WINDOW(window));
 
         // g_timeout_add(33, this->staticTimeout, this);
-        testSource->startProducing(captureConfig);
-        pullToPush->startProducing({});
+        testSource->startProducing(captureConfig).get();
+        pullToPush->startProducing({}).get();
     }
 
 public:
@@ -152,10 +152,10 @@ public:
 
     ~GtkPreviewApplication()
     {
-        this->pullToPush->stopProducing();
-        this->pullToPush->close();
-        this->testSource->stopProducing();
-        this->testSource->close();
+        this->pullToPush->stopProducing().get();
+        this->pullToPush->close().get();
+        this->testSource->stopProducing().get();
+        this->testSource->close().get();
 #ifdef USE_YUV420_SOURCE        
         if (rgbaBuffer) {
             delete[] rgbaBuffer->buffer;
@@ -208,9 +208,12 @@ public:
     }
 };
 
+
+
 int main(int argc, char *argv[])
 {
     GtkPreviewApplication app;
     int status = app.run(argc, argv);
     return status;
 }
+

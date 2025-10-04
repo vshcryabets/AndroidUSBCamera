@@ -26,7 +26,7 @@
 #include "utilbase.h"
 #include "LoadJpegImageFromAssetsUseCase.h"
 #include "FontWrapper.h"
-#include "JniSources.h"
+#include "jni/JniSources.h"
 
 #ifndef ABI
     #define ABI 0

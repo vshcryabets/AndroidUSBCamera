@@ -17,6 +17,7 @@ package com.vsh.source
 
 import com.jiangdg.uvc.SourceResolution
 import com.vsh.font.FontSrc
+import java.util.Optional
 
 class TestSource(
     private val font: FontSrc
@@ -24,10 +25,10 @@ class TestSource(
     private var openConfiguration: Source.OpenConfiguration? = null
 
     init {
-        nativePtr = nativeCreate(font.getFontPtr())
+        _srcId = Optional.of(nativeCreate(font.getFontPtr()))
     }
 
-    override fun initNative(): Long = nativeCreate(font.getFontPtr())
+    override fun initNative(): Int = nativeCreate(font.getFontPtr())
 
     override fun open(configuration: Source.OpenConfiguration) {
     }
@@ -40,9 +41,8 @@ class TestSource(
     }
 
     override fun close() {
-        if (nativePtr != 0L) {
-            nativeClose(nativePtr)
-        }
+        _srcId.ifPresent { nativeClose(it) }
+        _srcId = Optional.empty()
     }
 
     override fun startProducing(configuration: Source.ProducingConfiguration) {
@@ -58,9 +58,7 @@ class TestSource(
     }
 
     override fun stopProducing() {
-        if (nativePtr != 0L) {
-            nativeStopCapturing(nativePtr)
-        }
+        _srcId.ifPresent { nativeStopCapturing(it) }
     }
 
     override fun isPullSource(): Boolean {
@@ -71,11 +69,11 @@ class TestSource(
         TODO("Not yet implemented")
     }
 
-    private external fun nativeCreate(fontPtr: Long): Long
-    external override fun nativeRelease(ptr: Long)
-    private external fun nativeStopCapturing(ptr: Long)
-    private external fun nativeClose(ptr: Long)
-    external override fun nativeGetSupportedResolutions(ptr: Long): Map<Integer, List<SourceResolution>>
-    override external fun nativeGetSupportedFrameFormats(nativePtr: Long): List<Integer>
+    private external fun nativeCreate(fontPtr: Long): Int
+    external override fun nativeRelease(srcId: Int)
+    private external fun nativeStopCapturing(srcId: Int)
+    private external fun nativeClose(srcId: Int)
+    external override fun nativeGetSupportedResolutions(srcId: Int): Map<Integer, List<SourceResolution>>
+    override external fun nativeGetSupportedFrameFormats(srcId: Int): List<Integer>
 
 }
