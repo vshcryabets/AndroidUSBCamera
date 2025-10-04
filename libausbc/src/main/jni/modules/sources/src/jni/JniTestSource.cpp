@@ -38,9 +38,8 @@ jobject prepareJniFrame(const auvc::Frame &frame, JNIEnv *env) {
                                             frame.getTimestamp().time_since_epoch().count(),
                                             jPixelBuffer);
         }
+        env->DeleteLocalRef(cls);
     }
-
-    env->DeleteLocalRef(cls);
     return result;
 }
 
