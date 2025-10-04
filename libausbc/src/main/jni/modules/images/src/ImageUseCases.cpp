@@ -46,6 +46,9 @@ ConvertBitmapUseCase::Buffer ConvertRGBtoRGBAUseCase::convertToNew(const Buffer 
 
 ConvertBitmapUseCase::Buffer ConvertYUYVtoRGBAUseCase::convert(Buffer &dst, const Buffer &src) {
     size_t pixelsCount = src.width * src.height;
+    if (src.size < pixelsCount * 2) {
+        throw ConvertBitmapUseCase::Exception("ConvertYUYVtoRGBAUseCase: Source buffer is too small for YUYV format");
+    }
     size_t rgbaSize = pixelsCount * 4;
     if (dst.capacity < rgbaSize) {
         throw ConvertBitmapUseCase::Exception("Destination buffer is too small");

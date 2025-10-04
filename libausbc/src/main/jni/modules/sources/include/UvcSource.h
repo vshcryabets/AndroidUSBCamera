@@ -35,24 +35,24 @@ class UvcSource: public PullSource {
             IO_METHOD_MMAP,
             IO_METHOD_USERPTR,
         };
-    
+
         struct buffer {
-            void   *start;
-            size_t  length;
+            uint8_t* mmapBuffer {nullptr};
+            size_t mmapSize {0};
+            std::vector<uint8_t> buffer;
         };
-    
+        
     protected:
         int deviceFd = -1;
-        buffer *buffers;
-        size_t n_buffers;
+        std::vector<buffer> buffers;
         io_method io = IO_METHOD_MMAP;
         int force_format = 1;
         OpenConfiguration uvcConfig;
     private:
         int xioctl(int fh, int request, void *arg);        
-        void init_read(unsigned int buffer_size);
+        void init_read(size_t buffer_size);
         void init_mmap();
-        void init_userp(unsigned int buffer_size);
+        void init_userp(size_t buffer_size);
         void init_device();
     public:
         UvcSource();

@@ -43,7 +43,7 @@ namespace auvc {
 class Source {
 public:
     struct OpenConfiguration {
-
+        std::string tag;
     };
     struct ProducingConfiguration {
         uint32_t width {0};
