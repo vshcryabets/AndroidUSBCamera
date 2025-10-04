@@ -17,7 +17,7 @@ class TestSource: public PullSource {
     public:
         TestSource(const uint8_t *customFont);
         virtual ~TestSource();
-        virtual auvc::Frame readFrame() override;
+        virtual auvc::ExpectedFrame readFrame() override;
         std::future<void> startProducing(const ProducingConfiguration &config) override;
         std::future<void> close() override;
         auvc::ExpectedResolutions getSupportedResolutions() const override;

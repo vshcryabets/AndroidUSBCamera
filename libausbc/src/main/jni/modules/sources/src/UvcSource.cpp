@@ -1,4 +1,5 @@
 #include <iostream>
+#include <optional>
 
 #include "UvcSource.h"
 #include <string.h> //memset
@@ -15,27 +16,42 @@
 
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
 
-const char* UvcException::what() const noexcept {
+
+UvcException::UvcException(Type type, const std::string& message) : errorType(type) {
+    std::string base;
     switch (errorType) {
         case Other:
-            return "Other error";
+            base = "Other error";
+            break;
         case WrongDevice:
-            return "Wrong device";
+            base = "Wrong device";
+            break;
         case CantOpenDevice:
-            return "Can't open device";
+            base = "Can't open device";
+            break;
         case CantCloseDevice:
-            return "Can't close device";
+            base = "Can't close device";
+            break;
         case IoCtlError:
-            return "Ioctl error";
+            base = "Ioctl error";
+            break;
         case MmapError:
-            return "Mmap error";
+            base = "Mmap error";
+            break;
         case ReadError:
-            return "Read error";
+            base = "Read error";
+            break;
         case FrameTimeout:
-            return "Frame timeout";
+            base = "Frame timeout";
+            break;
         default:
-            return "Unknown error";
+            base = "Unknown error";
     }
+    errorMessage = base + ": " + message;
+}
+
+const char* UvcException::what() const noexcept {
+    return errorMessage.c_str();    
 }
 
 int UvcSource::xioctl(int fh, int request, void *arg) {
@@ -82,7 +98,7 @@ void UvcSource::init_mmap()
                             "memory mapping\n", this->uvcConfig.dev_name);
             exit(EXIT_FAILURE);
         } else {
-            throw UvcException(UvcException::Type::IoCtlError);
+            throw UvcException(UvcException::Type::IoCtlError, "VIDIOC_REQBUFS");
         }
     }
 
@@ -109,7 +125,7 @@ void UvcSource::init_mmap()
         buf.index       = n_buffers;
 
         if (-1 == xioctl(deviceFd, VIDIOC_QUERYBUF, &buf))
-            throw UvcException(UvcException::Type::IoCtlError);
+            throw UvcException(UvcException::Type::IoCtlError, "VIDIOC_QUERYBUF");
 
         buffers[n_buffers].length = buf.length;
         buffers[n_buffers].start =
@@ -120,7 +136,7 @@ void UvcSource::init_mmap()
                     deviceFd, buf.m.offset);
 
         if (MAP_FAILED == buffers[n_buffers].start)
-            throw UvcException(UvcException::Type::MmapError);
+            throw UvcException(UvcException::Type::MmapError, "mmap failed");
     }
 }
 
@@ -140,7 +156,7 @@ void UvcSource::init_userp(unsigned int buffer_size)
                             "user pointer i/o\n", this->uvcConfig.dev_name);
             exit(EXIT_FAILURE);
         } else {
-            throw UvcException(UvcException::Type::IoCtlError);
+            throw UvcException(UvcException::Type::IoCtlError, "VIDIOC_REQBUFS");
         }
     }
 
@@ -166,32 +182,31 @@ UvcSource::UvcSource() {
 }
 
 UvcSource::~UvcSource() {
-    // Destructor
-    // uninit_device();
-    // close_device();
+    close().get();
 }
 
 void UvcSource::open(const UvcSource::OpenConfiguration & config) {
+    std::cout << "Opening UVC device: " << config.dev_name << std::endl;
     PullSource::open(config);
     this->uvcConfig = config;
     struct stat st;
     const char* dev_name = uvcConfig.dev_name.c_str();
+    std::cout << "Opening 20" << std::endl;
 
     if (-1 == stat(dev_name, &st)) {
-        std::cerr << "Cannot identify '" << dev_name << "': " << errno << ", " << strerror(errno) << std::endl;
-        throw UvcException(UvcException::Type::WrongDevice);
+        throw UvcException(UvcException::Type::WrongDevice, "Cannot identify device");
     }
 
     if (!S_ISCHR(st.st_mode)) {
-        std::cerr << dev_name << " is not a character device" << std::endl;
-        throw UvcException(UvcException::Type::WrongDevice);
+        throw UvcException(UvcException::Type::WrongDevice, "Not a character device");
     }
+    std::cout << "Opening 30" << std::endl;
 
     deviceFd = ::open(dev_name, O_RDWR /* required */ | O_NONBLOCK, 0);
-
+    std::cout << "Opened device " << dev_name << " with fd " << deviceFd << std::endl;
     if (-1 == deviceFd) {
         std::cerr << "Cannot open '" << dev_name << "': " << errno << ", " << strerror(errno) << std::endl;
-        throw UvcException(UvcException::Type::CantOpenDevice);
+        throw UvcException(UvcException::Type::CantOpenDevice, "Can't open device");
     }
 }
 
@@ -205,7 +220,7 @@ std::future<void> UvcSource::close() {
             case IO_METHOD_MMAP:
                 for (i = 0; i < n_buffers; ++i)
                     if (-1 == munmap(buffers[i].start, buffers[i].length))
-                        throw UvcException(UvcException::Type::MmapError);
+                        throw UvcException(UvcException::Type::MmapError, "munmap");
                 break;
 
             case IO_METHOD_USERPTR:
@@ -217,7 +232,7 @@ std::future<void> UvcSource::close() {
         free(buffers);
 
         if (-1 == ::close(deviceFd))
-            throw UvcException(UvcException::Type::CantCloseDevice);
+            throw UvcException(UvcException::Type::CantCloseDevice, "close");
         deviceFd = -1;
     });
 }
@@ -229,12 +244,18 @@ void UvcSource::init_device() {
     struct v4l2_format fmt;
     unsigned int min;
 
+    std::cout << "Starting 20 " << deviceFd <<std::endl;
+    if (deviceFd < 0) {
+        throw UvcException(UvcException::Type::DeviceNotOpened, "Call open() before startProducing()");
+    }
+
     if (-1 == xioctl(deviceFd, VIDIOC_QUERYCAP, &cap)) {
         if (EINVAL == errno) {
             fprintf(stderr, "%s is no V4L2 device\n", this->uvcConfig.dev_name);
             exit(EXIT_FAILURE);
         } else {
-            throw UvcException(UvcException::Type::IoCtlError);
+            std::cout << "Starting 21" << errno << " " << strerror(errno) << std::endl;
+            throw UvcException(UvcException::Type::IoCtlError, "VIDIOC_QUERYCAP");
         }
     }
 
@@ -243,7 +264,7 @@ void UvcSource::init_device() {
             this->uvcConfig.dev_name);
         exit(EXIT_FAILURE);
     }
-
+    std::cout << "Starting 30" << std::endl;
     switch (io) {
         case IO_METHOD_READ:
             if (!(cap.capabilities & V4L2_CAP_READWRITE)) {
@@ -299,13 +320,13 @@ void UvcSource::init_device() {
         fmt.fmt.pix.field = V4L2_FIELD_ANY;
 
         if (-1 == xioctl(deviceFd, VIDIOC_S_FMT, &fmt))
-            throw UvcException(UvcException::Type::IoCtlError);
+            throw UvcException(UvcException::Type::IoCtlError, "VIDIOC_S_FMT");
 
         /* Note VIDIOC_S_FMT may change width and height. */
     } else {
         /* Preserve original settings as set by v4l2-ctl for example */
         if (-1 == xioctl(deviceFd, VIDIOC_G_FMT, &fmt))
-            throw UvcException(UvcException::Type::IoCtlError);
+            throw UvcException(UvcException::Type::IoCtlError, "VIDIOC_G_FMT");
     }
 
     /* Buggy driver paranoia. */
@@ -335,7 +356,9 @@ std::future<void> UvcSource::startProducing(const Source::ProducingConfiguration
 {    
     return std::async(std::launch::async, [this,&config]() {
         PullSource::startProducing(config).get();
+        std::cout << "Starting UVC with " << config.width << "x" << config.height << "@" << config.fps << std::endl;
         init_device();
+        std::cout << "Starting 10" << std::endl;
 
         unsigned int i;
         enum v4l2_buf_type type;
@@ -355,11 +378,11 @@ std::future<void> UvcSource::startProducing(const Source::ProducingConfiguration
                     buf.index = i;
 
                     if (-1 == xioctl(deviceFd, VIDIOC_QBUF, &buf))
-                        throw UvcException(UvcException::Type::IoCtlError);
+                        throw UvcException(UvcException::Type::IoCtlError, "VIDIOC_QBUF");
                 }
                 type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
                 if (-1 == xioctl(deviceFd, VIDIOC_STREAMON, &type))
-                    throw UvcException(UvcException::Type::IoCtlError);
+                    throw UvcException(UvcException::Type::IoCtlError, "VIDIOC_STREAMON");
                 break;
 
             case IO_METHOD_USERPTR:
@@ -374,11 +397,11 @@ std::future<void> UvcSource::startProducing(const Source::ProducingConfiguration
                     buf.length = buffers[i].length;
 
                     if (-1 == xioctl(deviceFd, VIDIOC_QBUF, &buf))
-                        throw UvcException(UvcException::Type::IoCtlError);
+                        throw UvcException(UvcException::Type::IoCtlError, "VIDIOC_QBUF");
                 }
                 type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
                 if (-1 == xioctl(deviceFd, VIDIOC_STREAMON, &type))
-                    throw UvcException(UvcException::Type::IoCtlError);
+                    throw UvcException(UvcException::Type::IoCtlError, "VIDIOC_STREAMON");
                 break;
         }
     });
@@ -397,31 +420,31 @@ std::future<void> UvcSource::stopProducing()
             case IO_METHOD_USERPTR:
                 type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
                 if (-1 == xioctl(deviceFd, VIDIOC_STREAMOFF, &type))
-                    throw UvcException(UvcException::Type::IoCtlError);
+                    throw UvcException(UvcException::Type::IoCtlError, "VIDIOC_STREAMOFF");
                 break;
         }
     });
 }
 
 
-auvc::Frame UvcSource::readFrame(){
+auvc::ExpectedFrame UvcSource::readFrame(){
     frameCounter++;
     struct v4l2_buffer buf;
     unsigned int i;
-    auvc::Frame result(0,0,auvc::FrameFormat::NONE,nullptr,0,std::chrono::high_resolution_clock::now());
+    std::optional<auvc::Frame> result = std::nullopt;
 
     switch (io) {
         case IO_METHOD_READ:
             if (-1 == read(deviceFd, buffers[0].start, buffers[0].length)) {
                 switch (errno) {
                     case EAGAIN:
-                        return result;
+                        return std::unexpected(auvc::SourceError(auvc::SourceErrorCode::SOURCE_ERROR_READ_AGAIN, "read again"));
                     case EIO:
                         /* Could ignore EIO, see spec. */
 
                         /* fall through */
                     default:
-                        throw UvcException(UvcException::Type::ReadError);
+                        throw UvcException(UvcException::Type::ReadError, "read device");
                 }
             }
             result = auvc::Frame(
@@ -443,26 +466,16 @@ auvc::Frame UvcSource::readFrame(){
             if (-1 == xioctl(deviceFd, VIDIOC_DQBUF, &buf)) {
                 switch (errno) {
                     case EAGAIN:
-                        return auvc::Frame(
-                            0,
-                            0,
-                            auvc::FrameFormat::NONE,
-                            nullptr,
-                            0,
-                            std::chrono::high_resolution_clock::now()
-                        );
-
+                        return std::unexpected(auvc::SourceError(auvc::SourceErrorCode::SOURCE_ERROR_READ_AGAIN, "read again"));
                     case EIO:
                         /* Could ignore EIO, see spec. */
-
                         /* fall through */
-
                     default:
-                        throw UvcException(UvcException::Type::IoCtlError);
+                        throw UvcException(UvcException::Type::IoCtlError, "VIDIOC_DQBUF");
                 }
             }
 
-            //printf("Process image 2 %p %d\n", buffers[buf.index].start, buf.bytesused);
+            std::cout << "Frame " << frameCounter << ": " << buf.bytesused << " bytes" << std::endl;
             result = auvc::Frame(
                 getProducingConfiguration().width,
                 getProducingConfiguration().height,
@@ -473,7 +486,7 @@ auvc::Frame UvcSource::readFrame(){
             );
 
             if (-1 == xioctl(deviceFd, VIDIOC_QBUF, &buf))
-                throw UvcException(UvcException::Type::IoCtlError);
+                throw UvcException(UvcException::Type::IoCtlError, "VIDIOC_QBUF");
             break;
 
         case IO_METHOD_USERPTR:
@@ -500,7 +513,7 @@ auvc::Frame UvcSource::readFrame(){
                         /* fall through */
 
                     default:
-                        throw UvcException(UvcException::Type::IoCtlError);
+                        throw UvcException(UvcException::Type::IoCtlError, "VIDIOC_DQBUF");
                 }
             }
 
@@ -518,11 +531,14 @@ auvc::Frame UvcSource::readFrame(){
                 std::chrono::high_resolution_clock::now()
             );
             if (-1 == xioctl(deviceFd, VIDIOC_QBUF, &buf))
-                throw UvcException(UvcException::Type::IoCtlError);
+                throw UvcException(UvcException::Type::IoCtlError, "VIDIOC_QBUF");
             break;
     }
 
-    return result;
+    if (!result.has_value()) {
+        return std::unexpected(auvc::SourceError(auvc::SourceErrorCode::SOURCE_FRAME_NOT_AVAILABLE, "No frame available"));
+    }
+    return result.value();
 }
 
 bool UvcSource::waitNextFrame() {
@@ -534,13 +550,13 @@ bool UvcSource::waitNextFrame() {
     FD_SET(deviceFd, &fds);
 
     /* Timeout. */
-    tv.tv_sec = 2;
+    tv.tv_sec = 4;
     tv.tv_usec = 0;
 
     r = select(deviceFd + 1, &fds, NULL, NULL, &tv);
 
     if (0 == r) {
-        throw UvcException(UvcException::Type::FrameTimeout);
+        throw UvcException(UvcException::Type::FrameTimeout, "select timeout");
     }
     return r > 0;
 }
@@ -552,7 +568,7 @@ std::vector<auvc::FrameFormat> UvcSource::getSupportedFrameFormats() const {
 auvc::ExpectedResolutions UvcSource::getSupportedResolutions() const {
     std::map<uint16_t, std::vector<auvc::Resolution>> result;
     if (deviceFd < 0) {
-        return std::unexpected(auvc::SourceError(auvc::SourceError::SOURCE_ERROR_NOT_OPENED, "Device not opened"));
+        return std::unexpected(auvc::SourceError(auvc::SourceErrorCode::SOURCE_ERROR_NOT_OPENED, "Device not opened"));
     }
 
     struct v4l2_fmtdesc fmtdesc;

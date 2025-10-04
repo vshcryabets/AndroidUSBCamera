@@ -41,11 +41,13 @@ TEST_CASE("testCapture", "[TestSourceYUV420]") {
     }).get();
     source.waitNextFrame();
     auto frame = source.readFrame();
-    REQUIRE(frame.getWidth() == 640);
-    REQUIRE(frame.getHeight() == 480);
-    REQUIRE(frame.getFormat() == auvc::FrameFormat::YUV420P);
-    REQUIRE(frame.getData() != nullptr);
-    REQUIRE(frame.getSize() == 640*480 * 3 / 2); // YUV420P has 1.5 bytes per pixel
+    REQUIRE(frame.has_value());
+    auto frameValue = frame.value();
+    REQUIRE(frameValue.getWidth() == 640);
+    REQUIRE(frameValue.getHeight() == 480);
+    REQUIRE(frameValue.getFormat() == auvc::FrameFormat::YUV420P);
+    REQUIRE(frameValue.getData() != nullptr);
+    REQUIRE(frameValue.getSize() == 640*480 * 3 / 2); // YUV420P has 1.5 bytes per pixel
 
     source.stopProducing().get();
     source.close().get();

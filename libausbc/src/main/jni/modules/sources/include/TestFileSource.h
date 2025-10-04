@@ -29,7 +29,7 @@ private:
 public:
     TestFileSource();
     virtual ~TestFileSource();
-    auvc::Frame readFrame() override;
+    auvc::ExpectedFrame readFrame() override;
     std::future<void> startProducing(const ProducingConfiguration &config) override;
     std::future<void> close() override;
     auvc::ExpectedResolutions getSupportedResolutions() const override;
