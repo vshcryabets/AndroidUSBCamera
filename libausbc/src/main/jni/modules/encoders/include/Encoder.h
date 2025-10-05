@@ -10,11 +10,12 @@
 class EncoderException : public std::exception
 {
 public:
-    enum Type
+    enum class Type
     {
         Unknown = 0,
         NotInitialized,
         FailedToEncodeFrame,
+        WrongConfiguration
     };
 
 public:

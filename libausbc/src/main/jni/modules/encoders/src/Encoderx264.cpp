@@ -12,6 +12,11 @@ X264Encoder::~X264Encoder()
 
 void X264Encoder::open(const X264EncConfiguration &config)
 {
+    if (config.consumer == nullptr)
+    {
+        throw EncoderException(EncoderException::Type::WrongConfiguration, 
+            "No consumer or frame callback set in encoder configuration.");
+    }
     EncoderWithConfiguration<X264EncConfiguration>::open(config);
     x264_param_default_preset(&x264_param, "medium", "zerolatency");
     x264_param.i_width = config.width;
@@ -102,9 +107,7 @@ void X264Encoder::consume(const auvc::Frame &frame) {
             bufferSize,
             frame.getTimestamp()
         );
-        if (encoderConfig.frameCallback) {
-            encoderConfig.frameCallback(encFrame);
-        } else if (encoderConfig.consumer) {
+        if (encoderConfig.consumer) {
             encoderConfig.consumer->consume(encFrame);
         }
     }
