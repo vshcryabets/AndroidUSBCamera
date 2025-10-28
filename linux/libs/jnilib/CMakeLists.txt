@@ -16,20 +16,19 @@ if(BUILD_JNI_WRAPPERS)
         Images
         JNI::JNI
         U8x8Font
-        Sources
     )
 
     ## Force linker to include all symbols from the Sources library
     if(APPLE)
+        target_link_libraries(
+            JniWrapper PRIVATE
+            Sources
+        )
         target_link_libraries(JniWrapper PRIVATE
             "LINKER:-force_load,$<TARGET_FILE:Sources>"
         )
     else()
-        target_link_libraries(JniWrapper PRIVATE
-            LINKER:--whole-archive
-            Sources
-            LINKER:--no-whole-archive
-        )
+        target_link_libraries(JniWrapper PRIVATE "$<LINK_LIBRARY:WHOLE_ARCHIVE,Sources>")
     endif()
 
     # Force linker to report undefined symbols as errors during shared library creation
