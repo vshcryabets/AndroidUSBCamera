@@ -61,7 +61,6 @@ jobject resolutionMapToJObject(const std::map<uint16_t, std::vector<Source::Reso
 }
 
 void JniSources_register(JNIEnv *env) {
-    JniTestSource_register(env);
     JniPullToPushSource_register(env);
     JniCountConsumer_register(env);
 }

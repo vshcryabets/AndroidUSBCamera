@@ -30,7 +30,9 @@ class PullToPushSource :
         nativeOpen(
             srcId = _srcId.get(),
             tag = configuration.tag,
-            pullSrcId = configuration.pullSource.getSrcId().orElseThrow(),
+            pullSrcId = configuration.pullSource.getSrcId().orElseThrow(
+                { IllegalStateException("Pull source is not opened") }
+            ),
             consumerId = 0
         )
     }
