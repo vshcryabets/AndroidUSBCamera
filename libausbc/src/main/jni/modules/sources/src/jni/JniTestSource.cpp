@@ -199,58 +199,32 @@ Java_com_vsh_source_TestSourceYUV420_nativeReadFrame(
     auto frame = source->readFrame();
     return prepareJniFrame(frame, env);
 }
-}
 
-void JniTestSource_register(JNIEnv *env)
+JNIEXPORT jboolean JNICALL
+Java_com_vsh_source_TestSourceYUV420_nativeIsPullSource(
+        JNIEnv *env,
+        jobject thiz,
+        jint sourceId)
 {
-//    jclass clazz = env->FindClass("com/vsh/source/TestSource");
-//    if (clazz != nullptr)
-//    {
-//        static const JNINativeMethod methods[] = {
-//            {"nativeCreate", "(J)I", (void *)&Java_com_vsh_source_TestSource_nativeCreate},
-//            {"nativeRelease", "(I)V", (void *)&Java_com_vsh_source_TestSource_nativeRelease},
-//            {"nativeStopCapturing", "(I)V", (void *)&Java_com_vsh_source_TestSource_nativeStopCapturing},
-//            {"nativeClose", "(I)V", (void *)&Java_com_vsh_source_TestSource_nativeClose},
-//            {"nativeGetSupportedResolutions", "(I)Ljava/util/Map;", (void *)&Java_com_vsh_source_TestSource_nativeGetSupportedResolutions},
-//        };
-//        env->RegisterNatives(clazz, methods, sizeof(methods) / sizeof(methods[0]));
-//        env->DeleteLocalRef(clazz);
-//    }
-//
-//    clazz = env->FindClass("com/vsh/source/TestSourceYUV420");
-//    if (clazz != nullptr)
-//    {
-//        static const JNINativeMethod methods[] = {
-//            {CONST_LITERAL("nativeCreate"), CONST_LITERAL("(J)I"),
-//                 (void *)&Java_com_vsh_source_TestSourceYUV420_nativeCreate},
-//            {CONST_LITERAL("nativeGetSupportedFrameFormats"), CONST_LITERAL("(I)Ljava/util/List;"),
-//                 (void *)&Java_com_vsh_source_TestSourceYUV420_nativeGetSupportedFrameFormats},
-//            {CONST_LITERAL("nativeOpen"), CONST_LITERAL("(I)V"),
-//                 (void *)&Java_com_vsh_source_TestSourceYUV420_nativeOpen},
-//            {CONST_LITERAL("nativeGetSupportedResolutions"), CONST_LITERAL("(I)Ljava/util/Map;"),
-//                 (void *)&Java_com_vsh_source_TestSourceYUV420_nativeGetSupportedResolutions},
-//            {CONST_LITERAL("nativeClose"), CONST_LITERAL("(I)V"),
-//                (void *)&Java_com_vsh_source_TestSourceYUV420_nativeClose},
-//            {CONST_LITERAL("nativeRelease"), CONST_LITERAL("(I)V"),
-//                (void *)&Java_com_vsh_source_TestSourceYUV420_nativeRelease},
-//            {CONST_LITERAL("nativeIsReadyForProducing"), CONST_LITERAL("(I)Z"),
-//                (void *)&Java_com_vsh_source_TestSourceYUV420_nativeIsReadyForProducing},
-//            {CONST_LITERAL("nativeStartProducing"), CONST_LITERAL("(ILcom/vsh/source/Source$ProducingConfiguration;)V"),
-//                (void *)&Java_com_vsh_source_TestSourceYUV420_nativeStartProducing},
-//            {CONST_LITERAL("nativeWaitNextFrame"), CONST_LITERAL("(I)Z"),
-//                (void *)&Java_com_vsh_source_TestSourceYUV420_nativeWaitNextFrame},
-//            {CONST_LITERAL("nativeReadFrame"), CONST_LITERAL("(I)Lcom/vsh/source/Frame;"),
-//                (void *)&Java_com_vsh_source_TestSourceYUV420_nativeReadFrame},
-//            {CONST_LITERAL("nativeStopProducing"), CONST_LITERAL("(I)V"),
-//                (void *)&Java_com_vsh_source_TestSourceYUV420_nativeStopProducing},
-//        };
-//        int res = env->RegisterNatives(clazz, methods, sizeof(methods) / sizeof(methods[0]));
-//        if (res < 0) {
-//            std::cerr << "Failed to register native methods for TestSourceYUV420" << std::endl;
-//            env->ThrowNew(env->FindClass("java/lang/RuntimeException"),
-//                          "Failed to register native methods for TestSourceYUV420");
-//        }
-//        env->DeleteLocalRef(clazz);
-//    }
+    auto source = std::dynamic_pointer_cast<TestSourceYUV420>(
+            JniSourcesRepo::getInstance()->getSource(sourceId));
+    if (!source) {
+        return JNI_FALSE;
+    }
+    return source->isPullSource() ? JNI_TRUE : JNI_FALSE;
 }
 
+JNIEXPORT jboolean JNICALL
+Java_com_vsh_source_TestSourceYUV420_nativeIsPushSource(
+        JNIEnv *env,
+        jobject thiz,
+        jint sourceId)
+{
+    auto source = std::dynamic_pointer_cast<TestSourceYUV420>(
+            JniSourcesRepo::getInstance()->getSource(sourceId));
+    if (!source) {
+        return JNI_FALSE;
+    }
+    return source->isPushSource() ? JNI_TRUE : JNI_FALSE;
+}
+}

@@ -25,49 +25,22 @@ import org.junit.jupiter.api.Test
 
 class PullToPushSourceTests {
 
-    @Disabled
     @Test
     fun pullToPushSourceAcceptsOnlyPullSource() {
-        val pullSource = PullToPushSource.OpenConfiguration(
+        val font = FontSrcImpl()
+        val pullSource = TestSourceYUV420(font)
+        val pullSourceConfiguration = PullToPushSource.OpenConfiguration(
             tag = "pull",
-            pullSource = object : JniSource<Source.OpenConfiguration, Source.ProducingConfiguration>() {
-                override fun open(configuration: Source.OpenConfiguration) {}
-                override fun initNative(): Int = 0
-                override fun getOpenConfiguration(): Source.OpenConfiguration =
-                    Source.OpenConfiguration("pull")
-
-                override fun close() {}
-                override fun startProducing(configuration: Source.ProducingConfiguration) {
-                    TODO("Not yet implemented")
-                }
-
-                override fun stopProducing() {}
-                override fun getProducingConfiguration(): Source.ProducingConfiguration? {
-                    TODO("Not yet implemented")
-                }
-
-                override fun isReadyForProducing(): Boolean = false
-                override fun getSupportedFrameFormats(): List<Source.FrameFormat> = emptyList()
-                override fun getSupportedResolutions(): Map<Int, List<SourceResolution>> =
-                    emptyMap()
-
-                override fun nativeRelease(srcId: Int) {}
-
-                override fun nativeGetSupportedResolutions(srcId: Int): Map<Integer, List<SourceResolution>> {
-                    TODO("Not yet implemented")
-                }
-
-                override fun nativeGetSupportedFrameFormats(srcId: Int): List<Integer> {
-                    TODO("Not yet implemented")
-                }
-                override fun isPullSource(): Boolean = true
-                override fun isPushSource(): Boolean = false
-            },
+            pullSource = pullSource,
             consumer = EmptyConsumer()
         )
 
+        pullSource.open(Source.OpenConfiguration(
+            tag = "pullSource"
+        ))
+
         PullToPushSource().use { source ->
-            source.open(pullSource)
+            source.open(pullSourceConfiguration)
         }
 
         val pushSource = PullToPushSource.OpenConfiguration(
@@ -97,7 +70,7 @@ class PullToPushSourceTests {
                     return emptyMap()
                 }
 
-                override fun nativeGetSupportedFrameFormats(nativePtr: Int): List<Integer> {
+                override fun nativeGetSupportedFrameFormats(srcId: Int): List<Integer> {
                     return emptyList()
                 }
 

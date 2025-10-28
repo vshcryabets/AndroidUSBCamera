@@ -86,11 +86,19 @@ class TestSourceYUV420(
     }
 
     override fun isPullSource(): Boolean {
-        TODO("Not yet implemented")
+        return _srcId.map {
+            nativeIsPullSource(it)
+        }.orElseThrow({
+            IllegalStateException("Source is not initialized")
+        })
     }
 
     override fun isPushSource(): Boolean {
-        TODO("Not yet implemented")
+        return _srcId.map {
+            nativeIsPushSource(it)
+        }.orElseThrow({
+            IllegalStateException("Source is not initialized")
+        })
     }
 
     private external fun nativeCreate(fontPtr: Long): Int
@@ -104,5 +112,7 @@ class TestSourceYUV420(
     external fun nativeOpen(srcId: Int)
     external fun nativeStartProducing(srcId: Int, configuration: Source.ProducingConfiguration)
     external fun nativeReadFrame(srcId: Int): Frame
+    private external fun nativeIsPullSource(srcId: Int): Boolean
+    private external fun nativeIsPushSource(srcId: Int): Boolean
 
 }

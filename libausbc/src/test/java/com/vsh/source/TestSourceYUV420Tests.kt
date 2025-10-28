@@ -9,9 +9,26 @@ import org.junit.jupiter.api.Test
 class TestSourceYUV420Tests {
 
     @Test
+    fun testIsPullSource() {
+        val font = FontSrcImpl()
+        val source = TestSourceYUV420(font)
+        source.open(Source.OpenConfiguration("test"))
+        Assertions.assertTrue(source.isPullSource())
+    }
+
+    @Test
+    fun testIsPushSource() {
+        val font = FontSrcImpl()
+        val source = TestSourceYUV420(font)
+        source.open(Source.OpenConfiguration("test"))
+        Assertions.assertFalse(source.isPushSource())
+    }
+
+    @Test
     fun testNotReadyBeforeCapture() {
         val font = FontSrcImpl()
         val source = TestSourceYUV420(font)
+        source.open(Source.OpenConfiguration("test"))
         Assertions.assertFalse(source.isReadyForProducing())
     }
 
