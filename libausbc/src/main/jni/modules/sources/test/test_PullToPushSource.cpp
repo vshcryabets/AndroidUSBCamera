@@ -26,7 +26,7 @@ TEST_CASE("testFormatsAndResolutions", "[PullToPushSource]") {
     PullToPushSource pullToPushSource;
     PullToPushSource::OpenConfiguration config;
     config.pullSource = source;
-    config.frameCallback = [&](const auvc::Frame &frame) {
+    config.consumer = std::make_shared<auvc::ConsumerToFrameCallback>([&](const auvc::Frame &frame) {
         REQUIRE(frame.getWidth() == realConfig.width);
         REQUIRE(frame.getHeight() == realConfig.height);
         REQUIRE(frame.getSize() > 0);
@@ -37,7 +37,7 @@ TEST_CASE("testFormatsAndResolutions", "[PullToPushSource]") {
             callbackCalled = true;
         }
         cv.notify_one();
-    };
+    });
 
     pullToPushSource.open(config);
 

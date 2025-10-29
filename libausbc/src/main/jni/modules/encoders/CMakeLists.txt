@@ -12,10 +12,10 @@ add_library(Encoders STATIC)
 target_sources(Encoders PRIVATE
         src/Encoderx264.cpp
         )
-target_link_directories(Encoders PRIVATE ${X264_LIBRARY_DIRS})
-target_compile_options(Encoders PRIVATE ${X264_CFLAGS})
+target_link_directories(Encoders PUBLIC ${X264_LIBRARY_DIRS})
+target_compile_options(Encoders PUBLIC ${X264_CFLAGS})
 
-target_link_libraries(Encoders PRIVATE
+target_link_libraries(Encoders PUBLIC
         ${X264_LIBRARIES}
         Sources
         )

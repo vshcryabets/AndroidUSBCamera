@@ -7,6 +7,26 @@
 #include "TestFileSource.h"
 #include <atomic>
 
+TEST_CASE("Encoder throws error if no consumer in open configuration", "[Encoderx264]") {
+    X264Encoder encoder;
+    X264EncConfiguration config;
+    config.width = 123;
+    config.height = 456;
+    config.fps_num = 30;
+    config.fps_den = 1;
+    config.keyframe_interval = 30; // Keyframe every 1 second at 30 fps
+    config.level_idc = 30;         // H.264 Level 3.0
+    config.profile = 0;
+    config.annexb = true;        // Use Annex B format for NAL units
+    config.intra_refresh = true; // Use IDR refresh
+    config.crf = 23.0f;          // CRF value
+
+    REQUIRE_THROWS_AS(
+        encoder.open(config),
+        EncoderException
+    );
+}
+
 TEST_CASE("testEncode", "[Encoderx264]") {
     uint32_t testWidth = 640;
     uint32_t testHeight = 480;
@@ -38,12 +58,12 @@ TEST_CASE("testEncode", "[Encoderx264]") {
 
     TestFileWriter framesWriter("framesFile.h264", testWidth, testHeight, "video/h264", testFps);
     std::atomic<int> callbackCalled{0};
-    config.frameCallback = [&framesWriter, &callbackCalled](const auvc::Frame &frame) {
+    config.consumer = std::make_shared<auvc::ConsumerToFrameCallback>([&framesWriter, &callbackCalled](const auvc::Frame &frame) {
         framesWriter.consume(frame);
         callbackCalled++;
         REQUIRE(frame.getSize() > 0);
         REQUIRE(frame.getData() != nullptr);
-    };
+    });
 
     encoder.open(config);
     encoder.startProducing({}).get();

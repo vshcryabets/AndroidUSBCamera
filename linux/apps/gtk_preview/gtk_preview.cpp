@@ -21,7 +21,7 @@ static void on_drawing_area_clicked(GtkGestureClick *gesture, int n_press, doubl
     g_print("Drawing area clicked at (%.0f, %.0f)\n", x, y);
 }
 
-class GtkPreviewApplication
+class GtkPreviewApplication: public auvc::Consumer, public std::enable_shared_from_this<GtkPreviewApplication>
 {
 private:
     GtkWidget *window;
@@ -189,22 +189,27 @@ public:
         pullToPush = std::make_shared<PullToPushSource>();
         PullToPushSource::OpenConfiguration config;
         config.pullSource = testSource;
-        config.frameCallback = [&](const auvc::Frame &frame) {
-            // Handle the frame data from the pull source
-            if (lastFrame == nullptr) {
-                lastFrame = std::make_shared<auvc::OwnBufferFrame>(frame.getWidth(),
-                 frame.getHeight(),
-                  frame.getFormat(), 
-                  frame.getSize(), 
-                  frame.getTimestamp());
-            }
-            *lastFrame = frame;
-            gtk_widget_queue_draw(draw_area);
-        };
+        config.consumer = shared_from_this();
         pullToPush->open(config);
-
         status = g_application_run(G_APPLICATION(app), argc, argv);
         return status;
+    }
+
+    void consume(const auvc::Frame& frame) override {
+        // Handle the frame data from the pull source
+        if (lastFrame == nullptr) {
+            lastFrame = std::make_shared<auvc::OwnBufferFrame>(frame.getWidth(),
+             frame.getHeight(),
+              frame.getFormat(), 
+              frame.getSize(), 
+              frame.getTimestamp());
+        }
+        *lastFrame = frame;
+        gtk_widget_queue_draw(draw_area);
+    }
+
+    void stopConsuming() override {
+        // No specific action needed on stop consuming
     }
 };
 
@@ -212,8 +217,8 @@ public:
 
 int main(int argc, char *argv[])
 {
-    GtkPreviewApplication app;
-    int status = app.run(argc, argv);
+    std::shared_ptr<GtkPreviewApplication> app = std::make_shared<GtkPreviewApplication>();
+    int status = app->run(argc, argv);
     return status;
 }
 
