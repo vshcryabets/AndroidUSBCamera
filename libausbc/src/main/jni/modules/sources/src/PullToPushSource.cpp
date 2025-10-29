@@ -52,7 +52,7 @@ std::future<void> PullToPushSource::startProducing(const Source::ProducingConfig
 
     startPromise = std::make_unique<std::promise<void>>();
     stopRequested.store(false);
-    workerThread = std::thread([this, &config]() {
+    workerThread = std::thread([this, config]() {
         running.store(true);
         startPromise->set_value();
         PushSource::startProducing(config).get();
