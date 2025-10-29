@@ -13,22 +13,7 @@ if "--build" in sys.argv:
     )
 if "--test" in sys.argv:
     subprocess.run(
-        ["./Decoders_tests", "-s"],
-        cwd="./build/modules/decoders",
-        check=True
-    )
-    subprocess.run(
-        ["./Encoders_tests", "-s"],
-        cwd="./build/modules/encoders",
-        check=True
-    )
-    subprocess.run(
-        ["./images_tests", "-s"],
-        cwd="./build/modules/images",
-        check=True
-    )
-    subprocess.run(
-        ["./Sources_tests"],
-        cwd="./build/modules/sources",
+        ["./ctest", "-s"],
+        cwd="./build",
         check=True
     )

@@ -49,13 +49,13 @@ std::future<void> PullToPushSource::startProducing(const Source::ProducingConfig
     if (consumer == nullptr) {
         throw SourceError(SourceError::SOURCE_ERROR_WRONG_CONFIG, "No consumer or frame callback set");
     }
-    PushSource::startProducing(config).get();
 
     startPromise = std::make_unique<std::promise<void>>();
     stopRequested.store(false);
-    workerThread = std::thread([this]() {
+    workerThread = std::thread([this, &config]() {
         running.store(true);
         startPromise->set_value();
+        PushSource::startProducing(config).get();
         while (!stopRequested.load()) {
             if (pullSource->waitNextFrame()) {
                 if (stopRequested.load()) {
