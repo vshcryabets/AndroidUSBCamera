@@ -13,7 +13,7 @@ if "--build" in sys.argv:
     )
 if "--test" in sys.argv:
     subprocess.run(
-        ["./ctest", "-s"],
+        ["ctest"],
         cwd="./build",
         check=True
     )
