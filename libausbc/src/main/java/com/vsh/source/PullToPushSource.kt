@@ -30,7 +30,9 @@ class PullToPushSource :
         nativeOpen(
             srcId = _srcId.get(),
             tag = configuration.tag,
-            pullSrcId = configuration.pullSource.getSrcId().orElseThrow(),
+            pullSrcId = configuration.pullSource.getSrcId().orElseThrow(
+                { IllegalStateException("Pull source is not opened") }
+            ),
             consumerId = 0
         )
     }
@@ -38,11 +40,19 @@ class PullToPushSource :
     override fun getOpenConfiguration(): OpenConfiguration? = openConfig
 
     override fun startProducing(configuration: Source.ProducingConfiguration) {
-        TODO("Not yet implemented")
+        return _srcId.map {
+            nativeStartProducing(it)
+        }.orElseThrow({
+            IllegalStateException("Source is not initialized")
+        })
     }
 
     override fun stopProducing() {
-        TODO("Not yet implemented")
+        return _srcId.map {
+            nativeStopProducing(it)
+        }.orElseThrow({
+            IllegalStateException("Source is not initialized")
+        })
     }
 
     override fun getProducingConfiguration(): Source.ProducingConfiguration? {
@@ -61,4 +71,6 @@ class PullToPushSource :
     private external fun nativeOpen(srcId: Int, tag: String, pullSrcId: Int, consumerId: Int)
     external override fun nativeGetSupportedResolutions(srcId: Int): Map<Integer, List<SourceResolution>>
     external override fun nativeGetSupportedFrameFormats(srcId: Int): List<Integer>
+    private external fun nativeStartProducing(srcId: Int)
+    private external fun nativeStopProducing(srcId: Int)
 }

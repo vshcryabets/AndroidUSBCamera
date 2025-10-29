@@ -17,7 +17,10 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
     compileOptions {
@@ -28,9 +31,8 @@ android {
         jvmTarget = libs.versions.jvmTarget.get()
     }
     externalNativeBuild {
-        cmake {
-            path = File(projectDir, "CMakeLists.txt")
-        }
+        cmake.version = libs.versions.cmake.get()
+        cmake.path = File(projectDir, "CMakeLists.txt")
     }
     testOptions {
         unitTests.all {

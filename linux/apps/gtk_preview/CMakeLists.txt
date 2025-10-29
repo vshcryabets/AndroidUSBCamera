@@ -19,7 +19,6 @@ if(BUILD_GTK_PREVIEW_APP)
 
         add_executable(gtk_preview
                 gtk_preview.cpp
-                # ../../../libausbc/src/main/jni/UVCCamera/ImageUseCases.cpp
                 )
         target_link_directories(gtk_preview PRIVATE ${GTK4_LINK_PATHS_LIST})
 
