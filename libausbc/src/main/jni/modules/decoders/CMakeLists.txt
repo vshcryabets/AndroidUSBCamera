@@ -20,6 +20,7 @@ if(BUILD_DECODERS_MODULE)
 
         target_link_libraries(Decoders PRIVATE
                 PkgConfig::FFMPEG
+                Sources
                 )
 
         target_include_directories(Decoders PUBLIC
