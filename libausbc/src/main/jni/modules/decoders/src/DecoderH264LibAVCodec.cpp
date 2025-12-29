@@ -1,5 +1,7 @@
 #include "DecoderH264LibAVCodec.h"
 #include <iostream>
+#include <future>
+
 extern "C" {
     #include <libavcodec/avcodec.h>
     #include <libavutil/frame.h>
@@ -23,5 +25,34 @@ void DecoderH264LibAVCodec::open(const X264DecoderConfig &config) {
     }
 }
 
-void DecoderH264LibAVCodec::close() {
+std::future<void> DecoderH264LibAVCodec::close() {
+    return std::async(std::launch::async, [this]() {
+        PushSource::close().get();
+        return;
+    });
+}
+
+void DecoderH264LibAVCodec::stopConsuming() {
+    // Implementation goes here
+}
+
+std::future<void> DecoderH264LibAVCodec::stopProducing() {
+    return std::async(std::launch::async, [this]() {
+    });
+}
+
+std::future<void> DecoderH264LibAVCodec::startProducing(
+    const Source::ProducingConfiguration &config) {
+    return PushSource::startProducing(config);
+}
+
+void DecoderH264LibAVCodec::consume(const auvc::Frame &frame) {
+    // Implementation goes here
+}
+
+std::map<uint16_t, std::vector<Source::Resolution>> DecoderH264LibAVCodec::getSupportedResolutions() const {
+    return {};
+}
+std::vector<auvc::FrameFormat> DecoderH264LibAVCodec::getSupportedFrameFormats() const {
+    return {auvc::FrameFormat::NONE};
 }

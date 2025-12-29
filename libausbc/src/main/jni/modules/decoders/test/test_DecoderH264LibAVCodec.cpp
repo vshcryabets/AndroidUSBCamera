@@ -11,10 +11,9 @@ TEST_CASE("testDecode", "[DecoderH264LibAVCodec]")
     auto decoder = std::make_shared<DecoderH264LibAVCodec>();
 
     X264DecoderConfig decoderOpenConfig;
-    decoderOpenConfig.frameCallback = [&](const auvc::Frame &frame)
-    {
+    decoderOpenConfig.consumer = std::make_shared<auvc::ConsumerToFrameCallback>([&](const auvc::Frame &frame) {
         // Process the decoded frame
-    };
+    });
 
     decoder->open(decoderOpenConfig);
 

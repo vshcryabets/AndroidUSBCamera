@@ -3,6 +3,8 @@
 #include <vector>
 #include <exception>
 #include <string>
+#include <future>
+
 #include "Consumer.h"
 #include "PushSource.h"
 
@@ -34,7 +36,9 @@ private:
     Type type;
 };
 
-class Decoder: public auvc::Consumer, public auvc::PushSource
+class Decoder: 
+    public auvc::Consumer, // will consume encoded frames
+    public auvc::PushSource
 {
 public:
     Decoder() = default;
@@ -61,6 +65,6 @@ public:
     {
         return config;
     }
-    virtual void close() = 0;
+    virtual std::future<void> close() = 0;
     virtual ~DecoderWithConfiguration() {}
 };
