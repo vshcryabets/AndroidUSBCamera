@@ -88,9 +88,7 @@ void UvcSource::init_mmap()
     }
 
     if (req.count < 2) {
-        fprintf(stderr, "Insufficient buffer memory on %s\n",
-            this->uvcConfig.dev_name);
-        exit(EXIT_FAILURE);
+        throw UvcException(UvcException::Type::CantOpenDevice, "Insufficient buffer memory" + this->uvcConfig.dev_name);
     }
 
     for (int i = 0; i < req.count; ++i) {
@@ -130,9 +128,7 @@ void UvcSource::init_userp(size_t buffer_size)
 
     if (-1 == xioctl(deviceFd, VIDIOC_REQBUFS, &req)) {
         if (EINVAL == errno) {
-            fprintf(stderr, "%s does not support "
-                            "user pointer i/o\n", this->uvcConfig.dev_name);
-            exit(EXIT_FAILURE);
+            throw UvcException(UvcException::Type::IoCtlError, this->uvcConfig.dev_name + " does not support user pointer i/o");
         } else {
             throw UvcException(UvcException::Type::IoCtlError, "VIDIOC_REQBUFS");
         }
@@ -209,33 +205,26 @@ void UvcSource::init_device() {
 
     if (-1 == xioctl(deviceFd, VIDIOC_QUERYCAP, &cap)) {
         if (EINVAL == errno) {
-            fprintf(stderr, "%s is no V4L2 device\n", this->uvcConfig.dev_name);
-            exit(EXIT_FAILURE);
+            throw UvcException(UvcException::Type::CantOpenDevice, "Is not V4L2 device " + this->uvcConfig.dev_name);
         } else {
             throw UvcException(UvcException::Type::IoCtlError, "VIDIOC_QUERYCAP");
         }
     }
 
     if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)) {
-        fprintf(stderr, "%s is no video capture device\n",
-            this->uvcConfig.dev_name);
-        exit(EXIT_FAILURE);
+        throw UvcException(UvcException::Type::CantOpenDevice, "Is not V4L2 device " + this->uvcConfig.dev_name);
     }
     switch (io) {
         case IO_METHOD_READ:
             if (!(cap.capabilities & V4L2_CAP_READWRITE)) {
-                fprintf(stderr, "%s does not support read i/o\n",
-                    this->uvcConfig.dev_name);
-                exit(EXIT_FAILURE);
+                throw UvcException(UvcException::Type::ReadError, "Doesn't support read i/o" + this->uvcConfig.dev_name);
             }
             break;
 
         case IO_METHOD_MMAP:
         case IO_METHOD_USERPTR:
             if (!(cap.capabilities & V4L2_CAP_STREAMING)) {
-                fprintf(stderr, "%s does not support streaming i/o\n",
-                    this->uvcConfig.dev_name);
-                exit(EXIT_FAILURE);
+                throw UvcException(UvcException::Type::MmapError, "Doesn't support streaming i/o" + this->uvcConfig.dev_name);
             }
             break;
     }
@@ -310,7 +299,7 @@ void UvcSource::init_device() {
 
 std::future<void> UvcSource::startProducing(const Source::ProducingConfiguration &config)
 {    
-    return std::async(std::launch::async, [this,&config]() {
+    return std::async(std::launch::async, [this, config]() {
         PullSource::startProducing(config).get();
         init_device();
 

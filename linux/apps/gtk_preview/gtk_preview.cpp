@@ -192,7 +192,7 @@ public:
                 .height = 480};
         }
         if (testSource == nullptr) {
-            std::cerr << "No test source specified. Use --testSourceYUV420 or --testSourceRGB, --uvcSource" << std::endl;
+            std::cerr << "No test source specified. Use --testSourceYUV420 or --testSourceRGB or --uvcSource" << std::endl;
             testSource = std::make_shared<TestSource>(u8x8_font_amstrad_cpc_extended_f);
         }
 
@@ -204,16 +204,16 @@ public:
 
         // Filter out our custom options before passing to GTK
         int gtk_argc = 1;
-        char *gtk_argv[argc];
-        gtk_argv[0] = argv[0];
+        std::vector<char*> gtk_argv;
+        gtk_argv.push_back(argv[0]);
         for (int i = 1; i < argc; ++i) {
             if (strcmp(argv[i], "--testSourceYUV420") != 0 && 
                 strcmp(argv[i], "--testSourceRGB") != 0 &&
                 strcmp(argv[i], "--uvcSource") != 0) {
-            gtk_argv[gtk_argc++] = argv[i];
+            gtk_argv.push_back(argv[i]);
             }
         }
-        status = g_application_run(G_APPLICATION(app), gtk_argc, gtk_argv);
+        status = g_application_run(G_APPLICATION(app), gtk_argc, gtk_argv.data());
         return status;
     }
 

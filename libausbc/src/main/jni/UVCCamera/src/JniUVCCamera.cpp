@@ -2131,7 +2131,7 @@ extern "C" {
 JNIEXPORT jobject JNICALL
 Java_com_jiangdg_uvc_UVCCamera_nativeGetSupportedSize(JNIEnv *env, jclass clazz, jlong id_camera) {
 
-    std::map<uint16_t, std::vector<Source::Resolution>> supportedSized;
+    auvc::ExpectedResolutions supportedSized;
     auto *camera = reinterpret_cast<UVCCamera *>(id_camera);
     if (LIKELY(camera)) {
         supportedSized = camera->getSupportedResolutions();

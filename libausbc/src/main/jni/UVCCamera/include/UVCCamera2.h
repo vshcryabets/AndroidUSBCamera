@@ -40,9 +40,9 @@ public:
     };
 public:
     UVCCamera2();
-	virtual ~UVCCamera2();
-    std::map<uint16_t, std::vector<Resolution>> getSupportedResolutions() const override;
-    std::vector<auvc::FrameFormat> getSupportedFrameFormats() const override;
+	~UVCCamera2() override;
+    [[nodiscard]] auvc::ExpectedResolutions getSupportedResolutions() const override;
+    [[nodiscard]] std::vector<auvc::FrameFormat> getSupportedFrameFormats() const override;
     std::future<void> stopProducing() override;
     std::future<void> close() override;
 };
