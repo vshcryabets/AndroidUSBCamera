@@ -44,6 +44,9 @@ UvcException::UvcException(Type type, const std::string& message) : errorType(ty
         case FrameTimeout:
             base = "Frame timeout";
             break;
+        case DeviceNotOpened:
+            base = "Device not opened";
+            break;
         default:
             base = "Unknown error";
     }
@@ -145,7 +148,11 @@ UvcSource::UvcSource() {
 }
 
 UvcSource::~UvcSource() {
-    close().get();
+    try {
+        close().get();
+    } catch (...) {
+        //ignore
+    }
 }
 
 void UvcSource::open(const UvcSource::OpenConfiguration & config) {
@@ -185,7 +192,7 @@ std::future<void> UvcSource::close() {
 
         buffers.clear();
 
-        if (deviceFd > 0) {
+        if (deviceFd >= 0) {
             ::close(deviceFd);
             deviceFd = -1;
         }
@@ -224,7 +231,7 @@ void UvcSource::init_device() {
         case IO_METHOD_MMAP:
         case IO_METHOD_USERPTR:
             if (!(cap.capabilities & V4L2_CAP_STREAMING)) {
-                throw UvcException(UvcException::Type::MmapError, "Doesn't support streaming i/o" + this->uvcConfig.dev_name);
+                throw UvcException(UvcException::Type::MmapError, "Doesn't support streaming i/o " + this->uvcConfig.dev_name);
             }
             break;
     }
@@ -521,11 +528,37 @@ auvc::ExpectedResolutions UvcSource::getSupportedResolutions() const {
 
         while (ioctl(deviceFd, VIDIOC_ENUM_FRAMESIZES, &frmsize) == 0) {
             if (frmsize.type == V4L2_FRMSIZE_TYPE_DISCRETE) {
-                resolutions.emplace_back(frmsize.discrete.width, frmsize.discrete.height);
+                resolutions.emplace_back(
+                    auvc::Resolution {
+                        .id = frmsize.index,
+                        .width = static_cast<uint16_t>(frmsize.discrete.width),
+                        .height = static_cast<uint16_t>(frmsize.discrete.height),
+                        .fps = {}
+                    });
             } else if (frmsize.type == V4L2_FRMSIZE_TYPE_STEPWISE) {
-                for (uint32_t w = frmsize.stepwise.min_width; w <= frmsize.stepwise.max_width; w += frmsize.stepwise.step_width) {
-                    for (uint32_t h = frmsize.stepwise.min_height; h <= frmsize.stepwise.max_height; h += frmsize.stepwise.step_height) {
-                        resolutions.emplace_back(w, h);
+                if (frmsize.stepwise.step_width == 0 || frmsize.stepwise.step_height == 0) {
+                    resolutions.emplace_back(
+                        auvc::Resolution {
+                            .id = frmsize.index,
+                            .width = static_cast<uint16_t>(frmsize.stepwise.min_width),
+                            .height = static_cast<uint16_t>(frmsize.stepwise.min_height),
+                            .fps = {}
+                        });
+                    continue;
+                }
+                for (uint32_t w = frmsize.stepwise.min_width; 
+                    w <= frmsize.stepwise.max_width; 
+                    w += frmsize.stepwise.step_width) {
+                    for (uint32_t h = frmsize.stepwise.min_height; 
+                        h <= frmsize.stepwise.max_height; 
+                        h += frmsize.stepwise.step_height) {
+                        resolutions.emplace_back(
+                            auvc::Resolution {
+                                .id = frmsize.index,
+                                .width = static_cast<uint16_t>(w),
+                                .height = static_cast<uint16_t>(h),
+                                .fps = {}
+                            });
                     }
                 }
             }

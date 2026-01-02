@@ -170,6 +170,7 @@ public:
                 convertUseCase = std::make_shared<ConvertYUV420ptoRGBAUseCase>();
                 convertToRgba = true;
             } else if (strcmp(argv[i], "--uvcSource") == 0) {
+#ifdef SUPPORT_V4L2                
                 auto uvcSource = std::make_shared<UvcSource>();
                 std::cout << "Opening /dev/video0" << std::endl;
                 uvcSource->open(UvcSource::OpenConfiguration{
@@ -178,6 +179,10 @@ public:
                 testSource = uvcSource;
                 convertUseCase = std::make_shared<ConvertYUYVtoRGBAUseCase>();
                 convertToRgba = true;
+#else
+                std::cerr << "UVC Source support is not enabled in this build." << std::endl;
+                return -1;
+#endif
             } else if (strcmp(argv[i], "--testSourceRGB") == 0) {
                 testSource = std::make_shared<TestSource>(u8x8_font_amstrad_cpc_extended_f);
             }
@@ -210,7 +215,7 @@ public:
             if (strcmp(argv[i], "--testSourceYUV420") != 0 && 
                 strcmp(argv[i], "--testSourceRGB") != 0 &&
                 strcmp(argv[i], "--uvcSource") != 0) {
-            gtk_argv.push_back(argv[i]);
+                gtk_argv.push_back(argv[i]);
             }
         }
         status = g_application_run(G_APPLICATION(app), gtk_argc, gtk_argv.data());

@@ -25,6 +25,7 @@ class UvcException : public std::exception {
     const char* what() const noexcept override;
 };
 
+#ifdef SUPPORT_V4L2
 class UvcSource: public PullSource {
     public:
         struct OpenConfiguration: public Source::OpenConfiguration  {
@@ -66,3 +67,4 @@ class UvcSource: public PullSource {
         std::vector<auvc::FrameFormat> getSupportedFrameFormats() const override;
         [[nodiscard]] virtual auvc::ExpectedResolutions getSupportedResolutions() const override;
 };
+#endif
