@@ -20,6 +20,9 @@ if(BUILD_GTK_PREVIEW_APP)
         add_executable(gtk_preview
                 gtk_preview.cpp
                 )
+        if(BUILD_SOURCES_MODULE_V4L2)
+            target_compile_definitions(gtk_preview PRIVATE SUPPORT_V4L2)
+        endif()
         target_link_directories(gtk_preview PRIVATE ${GTK4_LINK_PATHS_LIST})
 
         target_include_directories(gtk_preview PUBLIC

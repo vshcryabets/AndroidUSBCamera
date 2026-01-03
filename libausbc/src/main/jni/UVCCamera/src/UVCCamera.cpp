@@ -148,8 +148,8 @@ void UVCCamera::disconnect() {
     }
 }
 
-std::map<uint16_t, std::vector<Source::Resolution>> UVCCamera::getSupportedResolutions() const {
-    auto result = std::map<uint16_t, std::vector<Source::Resolution>>();
+auvc::ExpectedResolutions UVCCamera::getSupportedResolutions() const {
+    auto result = std::map<uint16_t, std::vector<auvc::Resolution>>();
     if (!mDeviceHandle)
         return result;
     if (mDeviceHandle->info->stream_ifs) {

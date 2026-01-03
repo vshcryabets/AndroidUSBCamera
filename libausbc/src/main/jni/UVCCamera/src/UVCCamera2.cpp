@@ -50,7 +50,7 @@ std::future<void> UVCCamera2::close()
     return auvc::completed();
 }
 
-std::map<uint16_t, std::vector<Source::Resolution>> UVCCamera2::getSupportedResolutions() const
+auvc::ExpectedResolutions UVCCamera2::getSupportedResolutions() const
 {
     return {};
 }

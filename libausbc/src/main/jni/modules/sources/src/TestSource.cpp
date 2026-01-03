@@ -19,7 +19,7 @@ TestSource::~TestSource()
     close();
 }
 
-auvc::Frame TestSource::readFrame()
+auvc::ExpectedFrame TestSource::readFrame()
 {
     frameCounter++;
     if (testData)
@@ -61,7 +61,7 @@ auvc::Frame TestSource::readFrame()
             std::chrono::high_resolution_clock::now()
         );
     }
-    throw SourceError(SourceError::SOURCE_ERROR_CAPTURE_NOT_STARTED, 
+    throw auvc::SourceError(auvc::SourceErrorCode::SOURCE_ERROR_CAPTURE_NOT_STARTED, 
         "Capture not started or invalid configuration");
 }
 
@@ -74,7 +74,7 @@ std::future<void> TestSource::startProducing(const Source::ProducingConfiguratio
             config.height == 0 ||
             (config.width % testRGBAColors.size() != 0))
         {
-            throw SourceError(SourceError::SOURCE_ERROR_WRONG_CONFIG, 
+            throw auvc::SourceError(auvc::SourceErrorCode::SOURCE_ERROR_WRONG_CONFIG, 
                 "Invalid capture configuration, width,height must be > 0 and width % " + 
                 std::to_string(testRGBAColors.size()) + " == 0");
         }
@@ -166,10 +166,10 @@ void TestSource::drawString(std::string str, uint16_t x, uint16_t y, uint8_t ups
     }
 }
 
-std::map<uint16_t, std::vector<Source::Resolution>> TestSource::getSupportedResolutions() const
+auvc::ExpectedResolutions TestSource::getSupportedResolutions() const
 {
-    std::map<uint16_t, std::vector<Source::Resolution>> result;
-    std::vector<Source::Resolution> resoltions {
+    std::map<uint16_t, std::vector<auvc::Resolution>> result;
+    std::vector<auvc::Resolution> resoltions {
         {1, 640, 480, {30.0f, 60.0f}},
         {1, 1280, 720, {30.0f, 60.0f}},
         {1, 1920, 1080, {30.0f, 60.0f}},

@@ -17,11 +17,11 @@ TEST_CASE("testFormatsAndResolutions", "[TestSourceYUV420]") {
     REQUIRE(supportedFormats.size() == 1);
     REQUIRE(supportedFormats[0] == auvc::FrameFormat::YUV420P);
 
-    REQUIRE(supportedResolutions.size() == 1);
-    auto firstResolution = supportedResolutions.begin();
-    REQUIRE(firstResolution != supportedResolutions.end());
+    REQUIRE(supportedResolutions.value().size() == 1);
+    auto firstResolution = supportedResolutions.value().begin();
+    REQUIRE(firstResolution != supportedResolutions.value().end());
     uint16_t type = firstResolution->first;
-    std::vector<Source::Resolution> resolutions = firstResolution->second;
+    std::vector<auvc::Resolution> resolutions = firstResolution->second;
     REQUIRE(resolutions.size() > 1);
     REQUIRE(resolutions[0].width == 640);
     REQUIRE(resolutions[0].height == 480);
@@ -41,11 +41,13 @@ TEST_CASE("testCapture", "[TestSourceYUV420]") {
     }).get();
     source.waitNextFrame();
     auto frame = source.readFrame();
-    REQUIRE(frame.getWidth() == 640);
-    REQUIRE(frame.getHeight() == 480);
-    REQUIRE(frame.getFormat() == auvc::FrameFormat::YUV420P);
-    REQUIRE(frame.getData() != nullptr);
-    REQUIRE(frame.getSize() == 640*480 * 3 / 2); // YUV420P has 1.5 bytes per pixel
+    REQUIRE(frame.has_value());
+    auto frameValue = frame.value();
+    REQUIRE(frameValue.getWidth() == 640);
+    REQUIRE(frameValue.getHeight() == 480);
+    REQUIRE(frameValue.getFormat() == auvc::FrameFormat::YUV420P);
+    REQUIRE(frameValue.getData() != nullptr);
+    REQUIRE(frameValue.getSize() == 640*480 * 3 / 2); // YUV420P has 1.5 bytes per pixel
 
     source.stopProducing().get();
     source.close().get();

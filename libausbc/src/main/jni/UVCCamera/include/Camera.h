@@ -30,5 +30,5 @@
 class Camera {
 public:
     virtual ~Camera() = default;
-    virtual std::map<uint16_t, std::vector<Source::Resolution>> getSupportedResolutions() const = 0;
+    [[nodiscard]] virtual auvc::ExpectedResolutions getSupportedResolutions() const = 0;
 };

@@ -12,8 +12,9 @@ target_sources(Sources PRIVATE
         src/DataTypes.cpp
         )
 if(BUILD_SOURCES_MODULE_V4L2)
+    target_compile_definitions(Sources PRIVATE SUPPORT_V4L2)
     target_sources(Sources PRIVATE
-        src/UvcCamera.cpp)
+        src/UvcSource.cpp)
 endif()
 
 if(BUILD_JNI_WRAPPERS)
