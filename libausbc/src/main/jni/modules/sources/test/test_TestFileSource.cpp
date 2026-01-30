@@ -35,7 +35,6 @@ TEST_CASE("testFramesReading", "[TestFileSource]") {
     source.open({
         .fileName = "testh264.bin"
     });
-
     REQUIRE(source.getFramesCount() == 60);
     auto supportedResolutions = source.getSupportedResolutions();
     REQUIRE(supportedResolutions.has_value());
@@ -48,6 +47,16 @@ TEST_CASE("testFramesReading", "[TestFileSource]") {
     REQUIRE(resolutions[0].height == 480);
     REQUIRE(resolutions[0].fps.size() == 1);
     REQUIRE(resolutions[0].fps[0] == 30.00f);
+
+    source.startProducing({
+        .width = 640,
+        .height = 480,
+        .fps = 30.0f
+    }).get();
+    REQUIRE(source.isReadyForProducing() == true);
+    INFO("waitNextFrame should return true");
+    REQUIRE(source.waitNextFrame() == true);
+
 
     REQUIRE(source.setCurrentFrame(10) == 10);
     for (size_t i = 0; i < 10 ; i++) {

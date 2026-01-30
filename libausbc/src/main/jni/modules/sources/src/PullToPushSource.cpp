@@ -43,7 +43,10 @@ std::future<void> PullToPushSource::startProducing(const Source::ProducingConfig
         throw auvc::SourceError(auvc::SourceErrorCode::SOURCE_ERROR_WRONG_CONFIG, "Pull source not set");
     }
     if (!pullSource->isReadyForProducing()) {
-        throw auvc::SourceError(auvc::SourceErrorCode::SOURCE_ERROR_CAPTURE_NOT_STARTED, "Pull source not started");
+        throw auvc::SourceError(
+            auvc::SourceErrorCode::SOURCE_ERROR_CAPTURE_NOT_STARTED, 
+            "PullToPushSource::startProducing: Pull (input) source not started"
+        );
     }
     if (consumer == nullptr) {
         throw auvc::SourceError(auvc::SourceErrorCode::SOURCE_ERROR_WRONG_CONFIG, "No consumer");
@@ -55,22 +58,26 @@ std::future<void> PullToPushSource::startProducing(const Source::ProducingConfig
         running.store(true);
         startPromise->set_value();
         PushSource::startProducing(config).get();
+        std::cout << "PullToPushSource worker thread started" << std::endl;
         while (!stopRequested.load()) {
             if (pullSource->waitNextFrame()) {
                 if (stopRequested.load()) {
                     break;
                 }
+                std::cout << "PullToPushSource: reading frame..." << std::endl;
                 auto frame = pullSource->readFrame();
                 if (stopRequested.load()) {
                     break;
                 }
                 if (frame.has_value()) {
+                    std::cout << "PullToPushSource: pushing frame..." << std::endl;
                     this->pushFrame(frame.value());
                 }
             }
         }
         running.store(false);
         stopRequested.store(false);
+        std::cout << "PullToPushSource worker thread stopped" << std::endl;
     });
     return startPromise->get_future();
 }

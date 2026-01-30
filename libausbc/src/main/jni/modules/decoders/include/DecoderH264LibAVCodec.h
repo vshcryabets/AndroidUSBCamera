@@ -19,6 +19,6 @@ public:
     void stopConsuming() override;
     std::future<void> stopProducing() override;
     std::future<void> close() override;
-    std::map<uint16_t, std::vector<Source::Resolution>> getSupportedResolutions() const override;
+    auvc::ExpectedResolutions getSupportedResolutions() const override;
     std::vector<auvc::FrameFormat> getSupportedFrameFormats() const override;
 };

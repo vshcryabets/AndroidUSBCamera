@@ -48,9 +48,10 @@ std::future<void> DecoderH264LibAVCodec::startProducing(
 
 void DecoderH264LibAVCodec::consume(const auvc::Frame &frame) {
     // Implementation goes here
+    std::cout << "DecoderH264LibAVCodec::consume called with frame of size: " << frame.getSize() << std::endl;
 }
 
-std::map<uint16_t, std::vector<Source::Resolution>> DecoderH264LibAVCodec::getSupportedResolutions() const {
+auvc::ExpectedResolutions DecoderH264LibAVCodec::getSupportedResolutions() const {
     return {};
 }
 std::vector<auvc::FrameFormat> DecoderH264LibAVCodec::getSupportedFrameFormats() const {
