@@ -24,23 +24,29 @@ void DecoderH264LibAVCodec::open(const X264DecoderConfig &config) {
     if (!codecContext) {
         throw DecoderException(DecoderException::Type::NotInitialized, "Could not allocate video codec context");
     }
-    avcodec_open2(codecContext, codec, NULL);
+    int res = avcodec_open2(codecContext, codec, NULL);
+    if (res < 0) {
+        avcodec_free_context(&codecContext);
+        throw DecoderException(DecoderException::Type::NotInitialized, "Could not open codec");
+    }
 }
 
 std::future<void> DecoderH264LibAVCodec::close() {
     return std::async(std::launch::async, [this]() {
-        avcodec_free_context(&codecContext);
+        if (codecContext)
+            avcodec_free_context(&codecContext);
         PushSource::close().get();
         return;
     });
 }
 
 void DecoderH264LibAVCodec::stopConsuming() {
-    // Implementation goes here
+    // No specific action needed for stopping consuming in this implementation
 }
 
 std::future<void> DecoderH264LibAVCodec::stopProducing() {
     return std::async(std::launch::async, [this]() {
+        // No specific action needed for stopping producing in this implementation
     });
 }
 
@@ -110,7 +116,11 @@ void DecoderH264LibAVCodec::consume(const auvc::Frame &frame) {
                     avframe->width / 2
                 );
             }
-            consumer->consume(decodedFrame);
+            try {
+                pushFrame(decodedFrame);
+            } catch (const std::exception &e) {
+                std::cout << "Failed to push decoded frame: " << e.what() << std::endl;
+            }
         }
         av_frame_free(&avframe);
     }
