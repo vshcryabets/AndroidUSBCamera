@@ -22,7 +22,8 @@ TEST_CASE("testDecode", "[DecoderH264LibAVCodec]")
     X264DecoderConfig decoderOpenConfig;
     decoderOpenConfig.consumer = std::make_shared<auvc::ConsumerToFrameCallback>(
         [&](const auvc::Frame &frame) {
-            std::cout << "Got frame number: " << framesCounter << std::endl;
+            std::cout << "Got frame number: " << framesCounter << " " << frame.getTimestamp() << 
+             " " << frame.getSize() << std::endl;
             framesCounter--;
             if (framesCounter <= 0) {
                 cv.notify_one();

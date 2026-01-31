@@ -1,5 +1,4 @@
 #include "PullToPushSource.h"
-#include <iostream>
 
 PullToPushSource::PullToPushSource()
 {
@@ -58,26 +57,22 @@ std::future<void> PullToPushSource::startProducing(const Source::ProducingConfig
         running.store(true);
         startPromise->set_value();
         PushSource::startProducing(config).get();
-        std::cout << "PullToPushSource worker thread started" << std::endl;
         while (!stopRequested.load()) {
             if (pullSource->waitNextFrame()) {
                 if (stopRequested.load()) {
                     break;
                 }
-                std::cout << "PullToPushSource: reading frame..." << std::endl;
                 auto frame = pullSource->readFrame();
                 if (stopRequested.load()) {
                     break;
                 }
                 if (frame.has_value()) {
-                    std::cout << "PullToPushSource: pushing frame..." << std::endl;
                     this->pushFrame(frame.value());
                 }
             }
         }
         running.store(false);
         stopRequested.store(false);
-        std::cout << "PullToPushSource worker thread stopped" << std::endl;
     });
     return startPromise->get_future();
 }

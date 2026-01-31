@@ -2,6 +2,10 @@
 
 #include "Decoder.h"
 
+extern "C" {
+    #include <libavcodec/avcodec.h>
+}
+
 struct X264DecoderConfig : public DecoderBaseConfiguration
 {
 };
@@ -10,6 +14,8 @@ class DecoderH264LibAVCodec : public Decoder,
                               public DecoderWithConfiguration<X264DecoderConfig>
 {
 private:
+    AVCodec* codec {nullptr};
+    AVCodecContext* codecContext {nullptr};
 public:
     DecoderH264LibAVCodec();
     virtual ~DecoderH264LibAVCodec();
