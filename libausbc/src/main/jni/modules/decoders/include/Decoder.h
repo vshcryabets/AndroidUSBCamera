@@ -3,6 +3,10 @@
 #include <vector>
 #include <exception>
 #include <string>
+#include <future>
+
+#include "Consumer.h"
+#include "PushSource.h"
 
 class DecoderException : public std::exception
 {
@@ -32,35 +36,17 @@ private:
     Type type;
 };
 
-struct DecoderBuffer
-{
-    uint8_t *data;
-    size_t size;
-};
-
-struct DecoderMultiBuffer
-{
-    std::vector<DecoderBuffer> buffers;
-    DecoderBuffer single;
-    size_t totalSize{0};
-};
-
-class Decoder
+class Decoder: 
+    public auvc::Consumer, // will consume encoded frames
+    public auvc::PushSource
 {
 public:
     Decoder() = default;
     virtual ~Decoder() {};
-    virtual void start() = 0;
-    virtual void stop() = 0;
-    virtual DecoderMultiBuffer decodeFrame(const DecoderBuffer &inputBuffer) = 0;
 };
 
-struct DecoderBaseConfiguration
+struct DecoderBaseConfiguration: auvc::PushSource::OpenConfiguration
 {
-    uint32_t width;
-    uint32_t height;
-    uint16_t fps_num;
-    uint16_t fps_den;
 };
 
 template <typename T>
@@ -79,6 +65,6 @@ public:
     {
         return config;
     }
-    virtual void close() = 0;
+    virtual std::future<void> close() = 0;
     virtual ~DecoderWithConfiguration() {}
 };

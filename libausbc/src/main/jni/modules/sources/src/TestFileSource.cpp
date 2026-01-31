@@ -147,7 +147,7 @@ std::future<void> TestFileSource::stopProducing()
 
 bool TestFileSource::waitNextFrame() 
 {
-    return false;
+    return true; // Always ready to read the next frame
 }
 
 auvc::ExpectedFrame TestFileSource::readFrame()

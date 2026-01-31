@@ -1,5 +1,4 @@
 #include "PullToPushSource.h"
-#include <iostream>
 
 PullToPushSource::PullToPushSource()
 {
@@ -43,7 +42,10 @@ std::future<void> PullToPushSource::startProducing(const Source::ProducingConfig
         throw auvc::SourceError(auvc::SourceErrorCode::SOURCE_ERROR_WRONG_CONFIG, "Pull source not set");
     }
     if (!pullSource->isReadyForProducing()) {
-        throw auvc::SourceError(auvc::SourceErrorCode::SOURCE_ERROR_CAPTURE_NOT_STARTED, "Pull source not started");
+        throw auvc::SourceError(
+            auvc::SourceErrorCode::SOURCE_ERROR_CAPTURE_NOT_STARTED, 
+            "PullToPushSource::startProducing: Pull (input) source not started"
+        );
     }
     if (consumer == nullptr) {
         throw auvc::SourceError(auvc::SourceErrorCode::SOURCE_ERROR_WRONG_CONFIG, "No consumer");

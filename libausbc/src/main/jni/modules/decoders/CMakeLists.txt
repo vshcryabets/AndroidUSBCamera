@@ -20,6 +20,7 @@ if(BUILD_DECODERS_MODULE)
 
         target_link_libraries(Decoders PRIVATE
                 PkgConfig::FFMPEG
+                Sources
                 )
 
         target_include_directories(Decoders PUBLIC
@@ -27,28 +28,30 @@ if(BUILD_DECODERS_MODULE)
                 $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
                 )
 
-        if (BUILD_CATCH2_TESTS)
-                add_executable(Decoders_tests
-                        test/test_DecoderH264LibAVCodec.cpp
-                        )
-                target_compile_options(Decoders_tests PRIVATE ${FFMPEG_CFLAGS})
-                target_include_directories(Decoders_tests PRIVATE ./include/)
-                # target_link_directories(Decoders_tests PRIVATE ${X264_LIBRARY_DIRS})
-                target_link_libraries(Decoders_tests PRIVATE 
-                        Catch2::Catch2WithMain 
-                        Decoders 
-                        PkgConfig::FFMPEG
-                        Sources)
-                set(RESOURCE_FILES
-                    "${CMAKE_CURRENT_SOURCE_DIR}/test/framesFile.h264"
+        add_executable(Decoders_tests
+                test/test_DecoderH264LibAVCodec.cpp
                 )
-                add_custom_command(
-                    TARGET Decoders_tests POST_BUILD
-                    COMMAND ${CMAKE_COMMAND} -E copy
-                        ${RESOURCE_FILES}
-                        $<TARGET_FILE_DIR:Decoders_tests>
-                    COMMENT "Copying resources to build directory..."
-                )
+        target_compile_options(Decoders_tests PRIVATE ${FFMPEG_CFLAGS})
+        target_include_directories(Decoders_tests PRIVATE ./include/)
+        # target_link_directories(Decoders_tests PRIVATE ${X264_LIBRARY_DIRS})
+        target_link_libraries(Decoders_tests PRIVATE 
+                Catch2::Catch2WithMain 
+                Decoders 
+                PkgConfig::FFMPEG
+                Sources)
+        set(RESOURCE_FILES
+            "${CMAKE_CURRENT_SOURCE_DIR}/test/framesFile.h264"
+        )
+        add_custom_command(
+            TARGET Decoders_tests POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy
+                ${RESOURCE_FILES}
+                $<TARGET_FILE_DIR:Decoders_tests>
+            COMMENT "Copying resources to build directory..."
+        )
 
-        endif()
-endif()                
+        catch_discover_tests(Decoders_tests
+            PROPERTIES
+            TIMEOUT 10)
+
+endif()
