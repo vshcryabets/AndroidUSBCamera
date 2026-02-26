@@ -34,12 +34,12 @@ private:
     int status;
     ConvertBitmapUseCase::Buffer draw_buffer;
     std::shared_ptr<auvc::OwnBufferFrame> lastFrame;
-    std::shared_ptr<PullToPushSource> pullToPush;
-    std::shared_ptr<PullSource> testSource;
+    std::shared_ptr<auvc::PullToPushSource> pullToPush;
+    std::shared_ptr<auvc::PullSource> testSource;
 
     std::shared_ptr<ConvertBitmapUseCase> convertUseCase;
     ConvertBitmapUseCase::Buffer *rgbaBuffer = nullptr;
-    Source::ProducingConfiguration captureConfig = {
+    auvc::Source::ProducingConfiguration captureConfig = {
         .width = 640,
         .height = 480,
         .fps = 10.0f};
@@ -166,14 +166,14 @@ public:
         // Parse command line arguments for --testSourceYUV420
         for (int i = 1; i < argc; ++i) {
             if (strcmp(argv[i], "--testSourceYUV420") == 0) {
-                testSource = std::make_shared<TestSourceYUV420>(u8x8_font_amstrad_cpc_extended_f);
+                testSource = std::make_shared<auvc::TestSourceYUV420>(u8x8_font_amstrad_cpc_extended_f);
                 convertUseCase = std::make_shared<ConvertYUV420ptoRGBAUseCase>();
                 convertToRgba = true;
             } else if (strcmp(argv[i], "--uvcSource") == 0) {
 #ifdef SUPPORT_V4L2                
-                auto uvcSource = std::make_shared<UvcSource>();
+                auto uvcSource = std::make_shared<auvc::UvcSource>();
                 std::cout << "Opening /dev/video0" << std::endl;
-                uvcSource->open(UvcSource::OpenConfiguration{
+                uvcSource->open(auvc::UvcSource::OpenConfiguration{
                     .dev_name = "/dev/video0"
                 });
                 testSource = uvcSource;
@@ -184,7 +184,7 @@ public:
                 return -1;
 #endif
             } else if (strcmp(argv[i], "--testSourceRGB") == 0) {
-                testSource = std::make_shared<TestSource>(u8x8_font_amstrad_cpc_extended_f);
+                testSource = std::make_shared<auvc::TestSource>(u8x8_font_amstrad_cpc_extended_f);
             }
         }
         if (convertToRgba) {
@@ -198,11 +198,11 @@ public:
         }
         if (testSource == nullptr) {
             std::cerr << "No test source specified. Use --testSourceYUV420 or --testSourceRGB or --uvcSource" << std::endl;
-            testSource = std::make_shared<TestSource>(u8x8_font_amstrad_cpc_extended_f);
+            testSource = std::make_shared<auvc::TestSource>(u8x8_font_amstrad_cpc_extended_f);
         }
 
-        pullToPush = std::make_shared<PullToPushSource>();
-        PullToPushSource::OpenConfiguration config;
+        pullToPush = std::make_shared<auvc::PullToPushSource>();
+        auvc::PullToPushSource::OpenConfiguration config;
         config.pullSource = testSource;
         config.consumer = shared_from_this();
         pullToPush->open(config);

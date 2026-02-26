@@ -2,6 +2,8 @@
 
 #include "Source.h"
 
+namespace auvc {
+
 class TestSourceYUV420: public PullSource {
     private:
         struct YUVColor {
@@ -33,3 +35,5 @@ class TestSourceYUV420: public PullSource {
         [[nodiscard]] std::future<void> stopProducing() override;
         bool waitNextFrame() override;
 };
+
+}

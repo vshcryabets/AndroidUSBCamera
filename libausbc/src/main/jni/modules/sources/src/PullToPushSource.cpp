@@ -1,5 +1,7 @@
 #include "PullToPushSource.h"
 
+namespace auvc {
+
 PullToPushSource::PullToPushSource()
 {
 
@@ -86,4 +88,6 @@ std::future<void> PullToPushSource::stopProducing()
             workerThread.join();
        }
     });
+}
+
 }

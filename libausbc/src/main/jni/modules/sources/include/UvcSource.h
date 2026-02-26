@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include "Source.h"
 
+namespace auvc {
+
 class UvcException : public std::exception {
     public:
     enum Type {
@@ -68,3 +70,5 @@ class UvcSource: public PullSource {
         [[nodiscard]] virtual auvc::ExpectedResolutions getSupportedResolutions() const override;
 };
 #endif
+
+}

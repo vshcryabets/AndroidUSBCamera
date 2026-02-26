@@ -2,6 +2,8 @@
 #include <fstream>
 #include <iostream>
 
+namespace auvc {
+
 TestFileWriter::TestFileWriter(const std::string &fileName,
                 uint16_t width, 
                 uint16_t height,
@@ -187,4 +189,6 @@ uint32_t TestFileSource::setCurrentFrame(uint32_t frameIndex)
         currentFrame = frameIndex;
     }
     return currentFrame;
+}
+
 }

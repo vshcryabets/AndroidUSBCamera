@@ -7,7 +7,7 @@ TEST_CASE("JniSourcesRepo Test source operations", "[JniSourcesRepo]") {
     auto repo = JniSourcesRepo::getInstance();
 
     SECTION("Add and get source") {
-        auto source = std::make_shared<TestFileSource>();
+        auto source = std::make_shared<auvc::TestFileSource>();
         int id = repo->addSource(source);
         REQUIRE(id > 0);
 
@@ -17,7 +17,7 @@ TEST_CASE("JniSourcesRepo Test source operations", "[JniSourcesRepo]") {
     }
 
     SECTION("Remove source") {
-        auto source = std::make_shared<TestFileSource>();
+        auto source = std::make_shared<auvc::TestFileSource>();
         int id = repo->addSource(source);
         REQUIRE(id > 0);
 

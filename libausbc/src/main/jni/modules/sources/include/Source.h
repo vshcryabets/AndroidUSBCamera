@@ -36,66 +36,64 @@ namespace auvc {
 
     using ExpectedResolutions = std::expected<std::map<uint16_t, std::vector<Resolution>>, SourceError>;
     using ExpectedFrame = std::expected<auvc::Frame, auvc::SourceError>;
+
+    class Source {
+    public:
+        struct OpenConfiguration {
+            std::string tag;
+        };
+        struct ProducingConfiguration {
+            uint32_t width {0};
+            uint32_t height {0};
+            float fps {0.0f};
+        };
+        
+    protected:
+        OpenConfiguration sourceConfig;
+        ProducingConfiguration captureConfiguration;
+    protected:
+        uint32_t frameCounter {0};
+    public:
+        Source() {
+            sourceConfig = OpenConfiguration();
+            captureConfiguration = ProducingConfiguration();
+        };
+        virtual ~Source() = default;
+        // open-close
+        virtual void open(const OpenConfiguration &config) {
+            this->sourceConfig = config;
+        }
+        [[nodiscard]] const OpenConfiguration getOpenConfiguration() const;
+        [[nodiscard]] virtual std::future<void> close() = 0;
+        // producing
+        [[nodiscard]] const ProducingConfiguration getProducingConfiguration() const;
+        [[nodiscard]] virtual std::future<void> startProducing(const ProducingConfiguration &config) {
+            this->captureConfiguration = config;
+            return auvc::completed();
+        }
+        [[nodiscard]] virtual std::future<void> stopProducing() {
+            this->captureConfiguration = ProducingConfiguration();
+            return auvc::completed();
+        };
+        [[nodiscard]] virtual bool isReadyForProducing() const;
+
+        [[nodiscard]] virtual auvc::ExpectedResolutions getSupportedResolutions() const = 0;
+        [[nodiscard]] virtual std::vector<auvc::FrameFormat> getSupportedFrameFormats() const = 0;
+        [[nodiscard]] virtual bool isPullSource() const = 0;
+        [[nodiscard]] virtual bool isPushSource() const = 0;
+    };
+
+    class PullSource : public Source {
+    public:
+        PullSource() : Source() {}
+        virtual ~PullSource() = default;
+        virtual auvc::ExpectedFrame readFrame() = 0;
+        virtual bool waitNextFrame() = 0;
+        [[nodiscard]] bool isPullSource() const override {
+            return true;
+        }
+        [[nodiscard]] bool isPushSource() const override {
+            return false;
+        }
+    };
 }
-
-
-
-class Source {
-public:
-    struct OpenConfiguration {
-        std::string tag;
-    };
-    struct ProducingConfiguration {
-        uint32_t width {0};
-        uint32_t height {0};
-        float fps {0.0f};
-    };
-    
-protected:
-    OpenConfiguration sourceConfig;
-    ProducingConfiguration captureConfiguration;
-protected:
-    uint32_t frameCounter {0};
-public:
-    Source() {
-        sourceConfig = OpenConfiguration();
-        captureConfiguration = ProducingConfiguration();
-    };
-    virtual ~Source() = default;
-    // open-close
-    virtual void open(const OpenConfiguration &config) {
-        this->sourceConfig = config;
-    }
-    [[nodiscard]] const OpenConfiguration getOpenConfiguration() const;
-    [[nodiscard]] virtual std::future<void> close() = 0;
-    // producing
-    [[nodiscard]] const ProducingConfiguration getProducingConfiguration() const;
-    [[nodiscard]] virtual std::future<void> startProducing(const ProducingConfiguration &config) {
-        this->captureConfiguration = config;
-        return auvc::completed();
-    }
-    [[nodiscard]] virtual std::future<void> stopProducing() {
-        this->captureConfiguration = ProducingConfiguration();
-        return auvc::completed();
-    };
-    [[nodiscard]] virtual bool isReadyForProducing() const;
-
-    [[nodiscard]] virtual auvc::ExpectedResolutions getSupportedResolutions() const = 0;
-    [[nodiscard]] virtual std::vector<auvc::FrameFormat> getSupportedFrameFormats() const = 0;
-    [[nodiscard]] virtual bool isPullSource() const = 0;
-    [[nodiscard]] virtual bool isPushSource() const = 0;
-};
-
-class PullSource : public Source {
-public:
-    PullSource() : Source() {}
-    virtual ~PullSource() = default;
-    virtual auvc::ExpectedFrame readFrame() = 0;
-    virtual bool waitNextFrame() = 0;
-    [[nodiscard]] bool isPullSource() const override {
-        return true;
-    }
-    [[nodiscard]] bool isPushSource() const override {
-        return false;
-    }
-};

@@ -3,12 +3,12 @@
 #include "u8x8.h"
 
 TEST_CASE("Test source not ready before startCapture", "[TestSourceYUV420]") {
-    TestSourceYUV420 source(u8x8_font_amstrad_cpc_extended_f);
+    auvc::TestSourceYUV420 source(u8x8_font_amstrad_cpc_extended_f);
     REQUIRE(source.isReadyForProducing() == false);
 }
 
 TEST_CASE("testFormatsAndResolutions", "[TestSourceYUV420]") {
-    TestSourceYUV420 source(u8x8_font_amstrad_cpc_extended_f);
+    auvc::TestSourceYUV420 source(u8x8_font_amstrad_cpc_extended_f);
     source.open({});
 
     auto supportedFormats = source.getSupportedFrameFormats();
@@ -32,9 +32,9 @@ TEST_CASE("testFormatsAndResolutions", "[TestSourceYUV420]") {
 }
 
 TEST_CASE("testCapture", "[TestSourceYUV420]") {
-    TestSourceYUV420 source(u8x8_font_amstrad_cpc_extended_f);
+    auvc::TestSourceYUV420 source(u8x8_font_amstrad_cpc_extended_f);
     source.open({});
-    source.startProducing(Source::ProducingConfiguration {
+    source.startProducing(auvc::Source::ProducingConfiguration {
         .width = 640, 
         .height = 480,
         .fps = 30.0f
@@ -54,9 +54,9 @@ TEST_CASE("testCapture", "[TestSourceYUV420]") {
 }
 
 TEST_CASE("Test that source gives frames with delay", "[TestSourceYUV420]") {
-    TestSourceYUV420 source(u8x8_font_amstrad_cpc_extended_f);
+    auvc::TestSourceYUV420 source(u8x8_font_amstrad_cpc_extended_f);
     source.open({});
-    source.startProducing(Source::ProducingConfiguration {
+    source.startProducing(auvc::Source::ProducingConfiguration {
         .width = 640, 
         .height = 480,
         .fps = 10.0f

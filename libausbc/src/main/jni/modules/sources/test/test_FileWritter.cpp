@@ -3,7 +3,7 @@
 #include <fstream>
 
 TEST_CASE("testHeaders", "[TestFileWriter]") {
-    TestFileWriter writer("test.bin", 640, 480, "video/h264", 29.97f);
+    auvc::TestFileWriter writer("test.bin", 640, 480, "video/h264", 29.97f);
     writer.stopConsuming();
     // Check if the file was created and has the correct headers
     std::ifstream file("test.bin", std::ios::binary);
@@ -36,7 +36,7 @@ TEST_CASE("testHeaders", "[TestFileWriter]") {
 }
 
 TEST_CASE("testWriteData", "[TestFileWriter]") {
-    TestFileWriter writer("test.bin", 640, 480, "video/h264", 29.97f);
+    auvc::TestFileWriter writer("test.bin", 640, 480, "video/h264", 29.97f);
     uint8_t testData[1000] = {0x01, 0x02, 0x03, 0x04, 0x05};
     uint32_t framesCount = 160;
     auvc::Frame frame(640, 480, auvc::FrameFormat::ENCODED,

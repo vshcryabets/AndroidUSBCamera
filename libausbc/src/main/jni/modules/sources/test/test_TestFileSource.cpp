@@ -4,10 +4,10 @@
 #include <fstream>
 
 TEST_CASE("testReadHeaders", "[TestFileSource]") {
-    TestFileWriter writer("test.bin", 640, 480, "video/h264", 29.97f);
+    auvc::TestFileWriter writer("test.bin", 640, 480, "video/h264", 29.97f);
     writer.stopConsuming();
 
-    TestFileSource source;
+    auvc::TestFileSource source;
     source.open({
         .fileName = "test.bin"
     });
@@ -31,7 +31,7 @@ TEST_CASE("testReadHeaders", "[TestFileSource]") {
 }
 
 TEST_CASE("testFramesReading", "[TestFileSource]") {
-    TestFileSource source;
+    auvc::TestFileSource source;
     source.open({
         .fileName = "testh264.bin"
     });

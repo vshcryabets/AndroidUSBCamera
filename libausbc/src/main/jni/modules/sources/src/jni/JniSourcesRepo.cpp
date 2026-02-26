@@ -13,13 +13,13 @@ void JniSourcesRepo::releaseInstance() {
     instance.reset();
 }
 
-int JniSourcesRepo::addSource(std::shared_ptr<Source> source) {
+int JniSourcesRepo::addSource(std::shared_ptr<auvc::Source> source) {
     int id = nextId++;
     sources[id] = source;
     return id;
 }
 
-std::shared_ptr<Source> JniSourcesRepo::getSource(int id) const {
+std::shared_ptr<auvc::Source> JniSourcesRepo::getSource(int id) const {
     auto it = sources.find(id);
     if (it != sources.end()) {
         return it->second;
