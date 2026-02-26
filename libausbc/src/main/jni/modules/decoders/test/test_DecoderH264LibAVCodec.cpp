@@ -11,9 +11,9 @@
 
 TEST_CASE("testDecode", "[DecoderH264LibAVCodec]")
 {
-    auto fileSource = std::make_shared<TestFileSource>();
+    auto fileSource = std::make_shared<auvc::TestFileSource>();
     fileSource->open({.fileName = "framesFile.h264"});
-    auto pullToPushSource = std::make_shared<PullToPushSource>();
+    auto pullToPushSource = std::make_shared<auvc::PullToPushSource>();
     auto decoder = std::make_shared<DecoderH264LibAVCodec>();
     std::condition_variable cv;
     std::mutex cvMutex;
@@ -30,7 +30,7 @@ TEST_CASE("testDecode", "[DecoderH264LibAVCodec]")
 
     decoder->open(decoderOpenConfig);
 
-    PullToPushSource::OpenConfiguration pullToPushSourceConfig;
+    auvc::PullToPushSource::OpenConfiguration pullToPushSourceConfig;
     pullToPushSourceConfig.pullSource = fileSource;
     pullToPushSourceConfig.consumer = decoder;
     pullToPushSource->open(pullToPushSourceConfig);

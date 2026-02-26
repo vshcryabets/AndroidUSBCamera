@@ -5,8 +5,8 @@
 #include "jni/JniSources.h"
 #include "jni/JniSourcesRepo.h"
 
-Source::ProducingConfiguration parseProducingConfiguration(jobject object, JNIEnv* env) {
-    Source::ProducingConfiguration config;
+auvc::Source::ProducingConfiguration parseProducingConfiguration(jobject object, JNIEnv* env) {
+    auvc::Source::ProducingConfiguration config;
     jclass cls = env->GetObjectClass(object);
 
     jfieldID widthField = env->GetFieldID(cls, "width", "I");
@@ -54,7 +54,7 @@ extern "C"
 JNIEXPORT jint JNICALL
 Java_com_vsh_source_TestSource_nativeCreate(JNIEnv *env, jobject thiz, jlong fontPtr)
 {
-    return JniSourcesRepo::getInstance()->addSource(std::make_shared<TestSource>((const uint8_t *)fontPtr));
+    return JniSourcesRepo::getInstance()->addSource(std::make_shared<auvc::TestSource>((const uint8_t *)fontPtr));
 }
 
 JNIEXPORT void JNICALL
@@ -94,7 +94,7 @@ Java_com_vsh_source_TestSourceYUV420_nativeCreate(
     jlong fontPtr)
 {
     return JniSourcesRepo::getInstance()->
-        addSource(std::make_shared<TestSourceYUV420>((const uint8_t *)fontPtr));
+        addSource(std::make_shared<auvc::TestSourceYUV420>((const uint8_t *)fontPtr));
 }
 
 JNIEXPORT jobject JNICALL
@@ -175,7 +175,7 @@ Java_com_vsh_source_TestSourceYUV420_nativeWaitNextFrame(
         jobject thiz,
         jint sourceId)
 {
-    auto source = std::dynamic_pointer_cast<TestSourceYUV420>(JniSourcesRepo::getInstance()->getSource(sourceId));
+    auto source = std::dynamic_pointer_cast<auvc::TestSourceYUV420>(JniSourcesRepo::getInstance()->getSource(sourceId));
     return source->waitNextFrame();
 }
 
@@ -187,7 +187,7 @@ Java_com_vsh_source_TestSourceYUV420_nativeStartProducing(
         jobject producingConfiguration)
 {
     auto source = JniSourcesRepo::getInstance()->getSource(sourceId);
-    Source::ProducingConfiguration config = parseProducingConfiguration(
+    auvc::Source::ProducingConfiguration config = parseProducingConfiguration(
             producingConfiguration, env);
     source->startProducing(config).get();
 }
@@ -198,7 +198,7 @@ Java_com_vsh_source_TestSourceYUV420_nativeReadFrame(
         jobject thiz,
         jint sourceId)
 {
-    auto source = std::dynamic_pointer_cast<TestSourceYUV420>(
+    auto source = std::dynamic_pointer_cast<auvc::TestSourceYUV420>(
             JniSourcesRepo::getInstance()->getSource(sourceId));
     auto frame = source->readFrame();
     return prepareJniFrame(frame, env);
@@ -210,7 +210,7 @@ Java_com_vsh_source_TestSourceYUV420_nativeIsPullSource(
         jobject thiz,
         jint sourceId)
 {
-    auto source = std::dynamic_pointer_cast<TestSourceYUV420>(
+    auto source = std::dynamic_pointer_cast<auvc::TestSourceYUV420>(
             JniSourcesRepo::getInstance()->getSource(sourceId));
     if (!source) {
         return JNI_FALSE;
@@ -224,7 +224,7 @@ Java_com_vsh_source_TestSourceYUV420_nativeIsPushSource(
         jobject thiz,
         jint sourceId)
 {
-    auto source = std::dynamic_pointer_cast<TestSourceYUV420>(
+    auto source = std::dynamic_pointer_cast<auvc::TestSourceYUV420>(
             JniSourcesRepo::getInstance()->getSource(sourceId));
     if (!source) {
         return JNI_FALSE;

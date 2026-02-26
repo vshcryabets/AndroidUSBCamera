@@ -14,10 +14,10 @@ Java_com_vsh_source_PullToPushSource_nativeOpen(
         jstring tag,
         jint pullSourceId,
         jint consumerId) {
-    auto source = std::dynamic_pointer_cast<PullToPushSource>(JniSourcesRepo::getInstance()->getSource(sourceId));
+    auto source = std::dynamic_pointer_cast<auvc::PullToPushSource>(JniSourcesRepo::getInstance()->getSource(sourceId));
     const char *native_tag = env->GetStringUTFChars(tag, nullptr);
-    auto openConfig = PullToPushSource::OpenConfiguration();
-    openConfig.pullSource = std::dynamic_pointer_cast<PullSource>(
+    auto openConfig = auvc::PullToPushSource::OpenConfiguration();
+    openConfig.pullSource = std::dynamic_pointer_cast<auvc::PullSource>(
             JniSourcesRepo::getInstance()->getSource(pullSourceId));
     openConfig.consumer = JniSourcesRepo::getInstance()->getConsumer(consumerId);
     source->open(openConfig);
@@ -30,7 +30,7 @@ Java_com_vsh_source_PullToPushSource_nativeCreate(
         JNIEnv *env,
         jobject thiz) {
     return JniSourcesRepo::getInstance()->
-            addSource(std::make_shared<PullToPushSource>());
+            addSource(std::make_shared<auvc::PullToPushSource>());
 }
 
 extern "C"
