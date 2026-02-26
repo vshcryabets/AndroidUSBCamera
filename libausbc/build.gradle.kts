@@ -6,12 +6,19 @@ plugins {
 android {
     compileSdk = libs.versions.compileSdk.get().toInt()
     namespace = "com.jiangdg.ausbc"
+    ndkVersion = libs.versions.ndk.get()
 
     defaultConfig {
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.targetSdk.get().toInt()
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         ndk.abiFilters.addAll(listOf("armeabi-v7a","arm64-v8a")) // x86, x86_64 still in progress
+        externalNativeBuild {
+            cmake {
+                arguments.add("-DANDROID_ALIGNED_AS_PAGE_SIZE=ON")
+                cppFlags += "-Wl,-z,max-page-size=16384"
+            }
+        }
     }
 
     buildTypes {

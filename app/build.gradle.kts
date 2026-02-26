@@ -7,6 +7,7 @@ plugins {
 android {
     compileSdk = libs.versions.compileSdk.get().toInt()
     namespace = "com.jiangdg.demo"
+    ndkVersion = libs.versions.ndk.get()
 
     defaultConfig {
         applicationId = "com.jiangdg.ausbc"
