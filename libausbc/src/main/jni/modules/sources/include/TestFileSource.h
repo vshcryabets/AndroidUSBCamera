@@ -5,6 +5,8 @@
 #include <map>
 #include <Consumer.h>
 
+namespace auvc {
+
 class TestFileSource : public PullSource {
 public:
     struct ConnectConfiguration: public Source::OpenConfiguration {
@@ -67,3 +69,5 @@ public:
         return framesCount;
     }
 };
+
+}

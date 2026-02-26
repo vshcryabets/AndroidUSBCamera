@@ -10,7 +10,6 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${COMPILATION_FLAGS} -std=c99")
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} ${COMPILATION_RELEASE_FLAGS}")
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} ${COMPILATION_DEBUG_FLAGS}")
 
-option(BUILD_IMAGES_MODULE "Build the Images module" ON)
 option(BUILD_JNIWRAPPER_MODULE "Build the JniWrapper module" ON)
 option(BUILD_LIBUVC "Build the LibUVC library" ON)
 option(BUILD_LIBUSB "Build the LibUSB library" ON)

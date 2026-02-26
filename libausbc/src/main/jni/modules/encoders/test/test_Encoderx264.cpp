@@ -33,7 +33,7 @@ TEST_CASE("testEncode", "[Encoderx264]") {
     float testFps = 30.0f;
     uint32_t testFrameSizeY = testWidth * testHeight;
     uint32_t testFrameSizeU = (testWidth / 2) * (testHeight / 2);
-    TestSourceYUV420 source(u8x8_font_amstrad_cpc_extended_f);
+    auvc::TestSourceYUV420 source(u8x8_font_amstrad_cpc_extended_f);
     source.open({}); // Open the source
     source.startProducing({
         .width = testWidth,
@@ -56,7 +56,7 @@ TEST_CASE("testEncode", "[Encoderx264]") {
     config.crf = 23.0f;          // CRF value
 
 
-    TestFileWriter framesWriter("framesFile.h264", testWidth, testHeight, "video/h264", testFps);
+    auvc::TestFileWriter framesWriter("framesFile.h264", testWidth, testHeight, "video/h264", testFps);
     std::atomic<int> callbackCalled{0};
     config.consumer = std::make_shared<auvc::ConsumerToFrameCallback>([&framesWriter, &callbackCalled](const auvc::Frame &frame) {
         framesWriter.consume(frame);

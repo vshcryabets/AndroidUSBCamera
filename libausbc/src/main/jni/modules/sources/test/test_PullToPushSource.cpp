@@ -11,20 +11,20 @@ TEST_CASE("testFormatsAndResolutions", "[PullToPushSource]") {
     std::mutex mtx;
     std::condition_variable cv;
 
-    auto source = std::make_shared<TestSourceYUV420>(u8x8_font_amstrad_cpc_extended_f);
+    auto source = std::make_shared<auvc::TestSourceYUV420>(u8x8_font_amstrad_cpc_extended_f);
     REQUIRE(source->isPullSource());
     REQUIRE(!source->isPushSource());
 
     source->open({});
 
-    const Source::ProducingConfiguration realConfig = {
+    const auvc::Source::ProducingConfiguration realConfig = {
         .width = 320,
         .height = 240,
         .fps = 30.0f
     };
 
-    PullToPushSource pullToPushSource;
-    PullToPushSource::OpenConfiguration config;
+    auvc::PullToPushSource pullToPushSource;
+    auvc::PullToPushSource::OpenConfiguration config;
     config.pullSource = source;
     config.consumer = std::make_shared<auvc::ConsumerToFrameCallback>([&](const auvc::Frame &frame) {
         REQUIRE(frame.getWidth() == realConfig.width);

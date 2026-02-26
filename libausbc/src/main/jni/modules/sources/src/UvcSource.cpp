@@ -16,6 +16,7 @@
 
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
 
+namespace auvc {
 
 UvcException::UvcException(Type type, const std::string& message) : errorType(type) {
     std::string base;
@@ -572,4 +573,6 @@ auvc::ExpectedResolutions UvcSource::getSupportedResolutions() const {
     }
 
     return result;
+}
+
 }

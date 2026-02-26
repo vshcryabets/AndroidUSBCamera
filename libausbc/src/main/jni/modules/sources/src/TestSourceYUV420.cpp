@@ -2,6 +2,8 @@
 #include <iostream>
 #include <thread>
 
+namespace auvc {
+
 TestSourceYUV420::TestSourceYUV420(const uint8_t *customFont): customFont(customFont)
 {
     testYUVColors = {
@@ -202,4 +204,6 @@ auvc::ExpectedResolutions TestSourceYUV420::getSupportedResolutions() const
         {1, 3840, 2160, {30.0f}}
     };
     return result;
+}
+
 }

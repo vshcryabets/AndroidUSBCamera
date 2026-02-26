@@ -1,6 +1,8 @@
 #include "TestSource.h"
 #include <iostream>
 
+namespace auvc {
+
 TestSource::TestSource(const uint8_t *customFont): customFont(customFont)
 {
     testRGBAColors = {
@@ -177,4 +179,6 @@ auvc::ExpectedResolutions TestSource::getSupportedResolutions() const
     };
     result[0] = std::move(resoltions);
     return result;
+}
+
 }

@@ -3,6 +3,8 @@
 #include "Source.h"
 #include <chrono>
 
+namespace auvc {
+
 class TestSource: public PullSource {
     private:
         uint8_t* testData {nullptr};
@@ -25,3 +27,5 @@ class TestSource: public PullSource {
         std::future<void> stopProducing() override;
         bool waitNextFrame() override;
 };
+
+}

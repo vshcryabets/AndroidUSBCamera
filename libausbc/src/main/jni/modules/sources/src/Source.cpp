@@ -1,11 +1,11 @@
 #include "Source.h"
 
 namespace auvc {
-    std::future<void> completed() {
-        std::promise<void> promise;
-        promise.set_value();
-        return promise.get_future();
-    }
+
+std::future<void> completed() {
+    std::promise<void> promise;
+    promise.set_value();
+    return promise.get_future();
 }
 
 const Source::OpenConfiguration Source::getOpenConfiguration() const
@@ -26,4 +26,6 @@ bool Source::isReadyForProducing() const {
     return captureConfiguration.width != 0 && 
     captureConfiguration.height != 0 && 
     captureConfiguration.fps != 0.0f;
+}
+
 }

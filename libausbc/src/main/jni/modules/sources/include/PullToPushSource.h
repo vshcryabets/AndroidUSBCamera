@@ -4,6 +4,8 @@
 #include <thread>
 #include <atomic>
 
+namespace auvc {
+
 class PullToPushSource: public auvc::PushSource {
 public:
     struct OpenConfiguration: public PushSource::OpenConfiguration {
@@ -25,3 +27,5 @@ public:
     auvc::ExpectedResolutions getSupportedResolutions() const override;
     std::vector<auvc::FrameFormat> getSupportedFrameFormats() const override;
 };
+
+} // namespace auvc
