@@ -25,8 +25,6 @@
 #ifndef LOCALDEFINES_H_
 #define LOCALDEFINES_H_
 
-#include <jni.h>
-
 #ifndef LOG_TAG
 #define LOG_TAG "libUVCCamera"
 #endif
@@ -63,10 +61,13 @@
 #undef USE_LOGALL
 #endif
 
-// Absolute class name of Java object
-// if you change the package name of UVCCamera library, you must fix these
-#define		JTYPE_SYSTEM				"Ljava/lang/System;"
-#define		JTYPE_UVCCAMERA				"Lcom/serenegiant/usb/UVCCamera;"
+#if defined(__ANDROID__)
+    #include <jni.h>
+    // Absolute class name of Java object
+    // if you change the package name of UVCCamera library, you must fix these
+    #define		JTYPE_SYSTEM				"Ljava/lang/System;"
+    #define		JTYPE_UVCCAMERA				"Lcom/serenegiant/usb/UVCCamera;"
+#endif
 //
 typedef		jlong						ID_TYPE;
 

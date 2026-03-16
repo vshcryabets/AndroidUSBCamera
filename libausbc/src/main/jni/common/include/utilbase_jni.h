@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2014-2017 saki t_saki@serenegiant.com
  *
- * File name: utilbase.cpp
+ * File name: utilbase.h
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,22 +22,13 @@
  * Files in the jni/libjpeg, jni/libusb, jin/libuvc, jni/rapidjson folder may have a different license, see the respective files.
 */
 
-#include "utilbase.h"
+#ifndef UTILBASE_JNI_H_
+#define UTILBASE_JNI_H_
 
-static JavaVM *savedVm;
+#include <jni.h>
 
-void setVM(JavaVM *vm) {
-	savedVm = vm;
-}
+void setVM(JavaVM *);
+JavaVM *getVM();
+JNIEnv *getEnv();
 
-JavaVM *getVM() {
-	return savedVm;
-}
-
-JNIEnv *getEnv() {
-    JNIEnv *env = NULL;
-    if (savedVm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6) != JNI_OK) {
-    	env = NULL;
-    }
-    return env;
-}
+#endif /* UTILBASE_JNI_H_ */

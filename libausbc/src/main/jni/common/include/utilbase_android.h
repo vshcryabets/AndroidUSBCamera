@@ -22,13 +22,12 @@
  * Files in the jni/libjpeg, jni/libusb, jin/libuvc, jni/rapidjson folder may have a different license, see the respective files.
 */
 
-#ifndef UTILBASE_H_
-#define UTILBASE_H_
+#ifndef UTILBASE_ANDROID_H_
+#define UTILBASE_ANDROID_H_
 
-#include <jni.h>
-#ifdef __ANDROID__
+#include "utilbase_jni.h"
+
 #include <android/log.h>
-#endif
 #include <unistd.h>
 #include <libgen.h>
 #include "localdefines.h"
@@ -60,7 +59,7 @@
 #define CHECK_LE(X, Y) { bool RES = (X <= Y); assert(RES); }
 #define CHECK_LT(X, Y) { bool RES = (X < Y); assert(RES); }
 
-#if defined(USE_LOGALL) && defined(__ANDROID__) && !defined(LOG_NDEBUG)
+#if defined(USE_LOGALL) && !defined(LOG_NDEBUG)
 	#define LOGV(FMT, ...) __android_log_print(ANDROID_LOG_VERBOSE, LOG_TAG, "[%d*%s:%d:%s]:" FMT,	\
 							gettid(), basename(__FILE__), __LINE__, __FUNCTION__, ## __VA_ARGS__)
 	#define LOGD(FMT, ...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "[%d*%s:%d:%s]:" FMT,	\
@@ -98,7 +97,7 @@
 			? LOGF(__VA_ARGS__) \
 			: (0) )
 #else
-	#if defined(USE_LOGV) && defined(__ANDROID__) && !defined(LOG_NDEBUG)
+	#if defined(USE_LOGV) && !defined(LOG_NDEBUG)
 		#define LOGV(FMT, ...) __android_log_print(ANDROID_LOG_VERBOSE, LOG_TAG, "[%d*%s:%d:%s]:" FMT,	\
          	 	 	 	 	 	 gettid(), basename(__FILE__), __LINE__, __FUNCTION__, ## __VA_ARGS__)
 		#define LOGV_IF(cond, ...) \
@@ -109,7 +108,7 @@
 		#define LOGV(...)
 		#define LOGV_IF(cond, ...)
 	#endif
-	#if defined(USE_LOGD) && defined(__ANDROID__) && !defined(LOG_NDEBUG)
+	#if defined(USE_LOGD) && !defined(LOG_NDEBUG)
 		#define LOGD(FMT, ...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "[%d*%s:%d:%s]:" FMT,	\
          	 	 	 	 	 	 gettid(), basename(__FILE__), __LINE__, __FUNCTION__, ## __VA_ARGS__)
 		#define LOGD_IF(cond, ...) \
@@ -120,7 +119,7 @@
 		#define LOGD(...)
 		#define LOGD_IF(cond, ...)
 	#endif
-	#if defined(USE_LOGI) && defined(__ANDROID__)
+	#if defined(USE_LOGI)
 		#define LOGI(FMT, ...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, "[%d*%s:%d:%s]:" FMT,	\
          	 	 	 	 	 	 gettid(), basename(__FILE__), __LINE__, __FUNCTION__, ## __VA_ARGS__)
 		#define LOGI_IF(cond, ...) \
@@ -222,8 +221,4 @@
 			__FILE__ ":" LITERAL_TO_STRING(__LINE__)            \
 			" Should not be here.");
 
-void setVM(JavaVM *);
-JavaVM *getVM();
-JNIEnv *getEnv();
-
-#endif /* UTILBASE_H_ */
+#endif /* UTILBASE_ANDROID_H_ */

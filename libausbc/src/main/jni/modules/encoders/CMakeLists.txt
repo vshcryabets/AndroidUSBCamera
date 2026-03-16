@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.28)
 
+# brew install x264
+
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(X264 REQUIRED x264)
 

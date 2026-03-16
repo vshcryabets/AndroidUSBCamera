@@ -26,6 +26,7 @@ option(BUILD_GTK_PREVIEW_APP "Build GTK preview sample app" ON)
 option(BUILD_CATCH2_TESTS "Build Catch2 tests" ON)
 option(BUILD_X264_TEST_APP "Build X264 test app" OFF)
 option(BUILD_JNI_WRAPPERS "Build JNI wrappers" ON)
+option(BUILD_LIBUSB "Build libusb" ON)
 
 include(FetchContent)
 FetchContent_Declare(
@@ -47,6 +48,7 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 endif()
 
 add_subdirectory(../libausbc/src/main/jni/modules/images modules/images)
+add_subdirectory(../libausbc/src/main/jni/common modules/common)
 
 if(BUILD_SDL_MODULE)
     add_subdirectory(modules/sdl)
@@ -70,6 +72,10 @@ endif()
 
 if(BUILD_DECODERS_MODULE)
     add_subdirectory(../libausbc/src/main/jni/modules/decoders modules/decoders)
+endif()
+
+if (BUILD_LIBUSB)
+    add_subdirectory(../libausbc/src/main/jni/modules/libusb modules/libusb)
 endif()
 
 add_subdirectory(../libausbc/src/main/jni/modules/font modules/font)
