@@ -11,6 +11,5 @@ object LoadJniLibrary {
         val rootDir = currentDir.parentFile
         val libFileName = System.mapLibraryName("JniWrapper")
         System.load( File(rootDir, "linux/build/libs/jnilib/$libFileName").absolutePath)
-
     }
 }

@@ -1,12 +1,11 @@
 package com.vsh.source
 
 import com.jiangdg.uvc.SourceResolution
-import java.io.Closeable
 import java.util.Optional
 
 abstract class JniSource<OC : Source.OpenConfiguration, PC : Source.ProducingConfiguration> :
     Source<OC, PC>,
-    Closeable {
+    AutoCloseable {
     protected var _srcId: Optional<Int> = Optional.empty()
 
     override fun open(configuration: OC) {
@@ -19,8 +18,8 @@ abstract class JniSource<OC : Source.OpenConfiguration, PC : Source.ProducingCon
 
     override fun getSupportedFrameFormats(): List<Source.FrameFormat> {
         return _srcId.map { id ->
-            nativeGetSupportedFrameFormats(id).map {
-                Source.FrameFormat.entries[it.toInt()]
+            nativeGetSupportedFrameFormats(id).map { id : Integer ->
+                Source.FrameFormat.entries[id.toInt()]
             }
         }.orElseGet {
             emptyList()

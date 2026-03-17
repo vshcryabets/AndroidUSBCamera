@@ -145,9 +145,13 @@ class DevicesActivity : ComponentActivity() {
                 }
                 if (state.openPreviewDevice) {
                     viewModel.onPreviewOpened()
-                    val intent =
-                        MainActivity.newInstance(applicationContext, state.selectedDeviceId)
-                    startActivity(intent)
+                    if (!USE_NEW_PREVIEW) {
+                        val intent =
+                            MainActivity.newInstance(applicationContext, state.selectedDeviceId)
+                        startActivity(intent)
+                    } else {
+                        
+                    }
                 }
             }
         }
@@ -191,6 +195,7 @@ class DevicesActivity : ComponentActivity() {
     }
 
     companion object {
+        const val USE_NEW_PREVIEW = false
         const val CAMERA_PERMISSION_REQUEST_CODE = 1
         const val ACTION_USB_PERMISSION: String = "com.vsh.activity.USB_PERMISSION"
     }

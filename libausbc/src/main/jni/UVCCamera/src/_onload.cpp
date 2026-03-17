@@ -80,13 +80,11 @@ jint JNI_OnLoad(JavaVM *vm, void *reserved) {
     }
     // register native methods
     int result = register_uvccamera(env);
-	setVM(vm);
 
     FontWrapper_register(env);
-    JniSources_register(env);
 
 #if LOCAL_DEBUG
-    LOGD("JNI_OnLoad:finshed:result=%d", result);
+    LOGD("JNI_OnLoad:finished:result=%d", result);
 #endif
     return JNI_VERSION_1_6;
 }

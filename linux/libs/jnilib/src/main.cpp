@@ -10,7 +10,6 @@ jint JNI_OnLoad(JavaVM *vm, void *reserved) {
     }
     std::cout << "JNI_OnLoad called" << std::endl;
     FontWrapper_register(env);
-    JniSources_register(env);
 
     return JNI_VERSION_1_6;
 }

@@ -25,8 +25,6 @@
 #ifndef UTILBASE_ANDROID_H_
 #define UTILBASE_ANDROID_H_
 
-#include "utilbase_jni.h"
-
 #include <android/log.h>
 #include <unistd.h>
 #include <libgen.h>

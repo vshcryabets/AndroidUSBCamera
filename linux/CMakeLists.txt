@@ -26,7 +26,7 @@ option(BUILD_GTK_PREVIEW_APP "Build GTK preview sample app" ON)
 option(BUILD_CATCH2_TESTS "Build Catch2 tests" ON)
 option(BUILD_X264_TEST_APP "Build X264 test app" OFF)
 option(BUILD_JNI_WRAPPERS "Build JNI wrappers" ON)
-option(BUILD_LIBUSB "Build libusb" ON)
+option(BUILD_LIBUSB "Build libusb" OFF)
 
 include(FetchContent)
 FetchContent_Declare(

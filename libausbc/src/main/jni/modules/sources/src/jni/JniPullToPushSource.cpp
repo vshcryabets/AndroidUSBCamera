@@ -1,6 +1,5 @@
 #include <iostream>
 
-#include "jni/JniPullToPushSource.h"
 #include "jni/JniSources.h"
 #include "PullToPushSource.h"
 #include "jni/JniSourcesRepo.h"
@@ -37,23 +36,4 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_vsh_source_PullToPushSource_nativeRelease(JNIEnv *env, jobject thiz, jint srcId) {
     JniSourcesRepo::getInstance()->removeSource(srcId);
-}
-
-void JniPullToPushSource_register(JNIEnv *env) {
-//    jclass clazz = env->FindClass("com/vsh/source/PullToPushSource");
-//    if (clazz != nullptr) {
-//        static const JNINativeMethod methods[] = {
-//                {CONST_LITERAL("nativeCreate"), CONST_LITERAL("()I"),
-//                 (void *) &Java_com_vsh_source_PullToPushSource_nativeCreate},
-//                {CONST_LITERAL("nativeRelease"), CONST_LITERAL("(I)V"),
-//                    (void *) &Java_com_vsh_source_PullToPushSource_nativeRelease},
-//        };
-//        int res = env->RegisterNatives(clazz, methods, sizeof(methods) / sizeof(methods[0]));
-//        if (res < 0) {
-//            std::cerr << "Failed to register native methods for TestSourceYUV420" << std::endl;
-//            env->ThrowNew(env->FindClass("java/lang/RuntimeException"),
-//                          "Failed to register native methods for TestSourceYUV420");
-//        }
-//        env->DeleteLocalRef(clazz);
-//    }
 }

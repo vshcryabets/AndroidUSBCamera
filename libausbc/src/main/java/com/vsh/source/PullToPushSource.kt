@@ -33,7 +33,9 @@ class PullToPushSource :
             pullSrcId = configuration.pullSource.getSrcId().orElseThrow(
                 { IllegalStateException("Pull source is not opened") }
             ),
-            consumerId = 0
+            consumerId = configuration.consumer.getConsumerId().orElseThrow {
+                IllegalStateException("Consumer is not opened")
+            }
         )
     }
 

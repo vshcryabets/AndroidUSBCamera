@@ -24,5 +24,9 @@
 
 #ifndef UTILBASE_H_
 #define UTILBASE_H_
-ß
+
+#ifdef __ANDROID__
+#include "utilbase_android.h"
+#endif
+
 #endif /* UTILBASE_H_ */
