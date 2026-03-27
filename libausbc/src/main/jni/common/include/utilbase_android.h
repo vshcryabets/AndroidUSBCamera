@@ -35,17 +35,6 @@
 #define		SAFE_DELETE_ARRAY(p)		{ if (p) { delete [](p); (p) = NULL; } }
 #define		NUM_ARRAY_ELEMENTS(p)		((int) sizeof(p) / sizeof(p[0]))
 
-#if defined(__GNUC__)
-// the macro for branch prediction optimaization for gcc(-O2/-O3 required)
-#define		CONDITION(cond)				((__builtin_expect((cond)!=0, 0)))
-#define		LIKELY(x)					((__builtin_expect(!!(x), 1)))	// x is likely true
-#define		UNLIKELY(x)					((__builtin_expect(!!(x), 0)))	// x is likely false
-#else
-#define		CONDITION(cond)				((cond))
-#define		LIKELY(x)					((x))
-#define		UNLIKELY(x)					((x))
-#endif
-
 // XXX assertはNDEBUGが定義されていたら引数を含めて丸ごと削除されてしまうので
 // 関数実行を直接assertの引数にするとその関数はNDEBUGの時に実行されなくなるので注意
 #include <assert.h>
@@ -198,11 +187,6 @@
 #endif
 
 #endif
-
-#define		RETURN(code,type)	{type RESULT = code; return RESULT;}
-#define		RET(code)			{LOGD("end"); return code;}
-#define		EXIT()				{LOGD("end"); return;}
-#define		PRE_EXIT()			LOGD("end")
 
 #if defined(__ANDROID__) && (defined(USE_LOGALL) || defined(USE_LOGI)) && !defined(LOG_NDEBUG)
 #define MARK(FMT, ...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, "[%s:%d:%s]:" FMT,	\

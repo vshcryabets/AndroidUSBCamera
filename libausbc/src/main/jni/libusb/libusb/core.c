@@ -93,11 +93,6 @@ static struct timeval timestamp_origin = { 0, 0 };
 usbi_mutex_static_t active_contexts_lock = USBI_MUTEX_INITIALIZER;
 struct list_head active_contexts_list;
 
-#ifdef __ANDROID__
-int android_generate_device(struct libusb_context *ctx, struct libusb_device **dev,
-	int vid, int pid, const char *serial, int fd, int busnum, int devaddr);
-#endif
-
 /**
  * \mainpage libusb-1.0 API Reference
  *
@@ -1246,21 +1241,23 @@ int API_EXPORTED libusb_set_device_fd(libusb_device *dev, int fd) {
 	return usbi_backend->set_device_fd(dev, fd);
 }
 
+#ifdef __ANDROID__
+int android_generate_device(struct libusb_context *ctx, struct libusb_device **dev,
+	int vid, int pid, const char *serial, int fd, int busnum, int devaddr);
+
 libusb_device * LIBUSB_CALL libusb_get_device_with_fd(libusb_context *ctx,
 	int vid, int pid, const char *serial, int fd, int busnum, int devaddr) {
-
-	
-
 	struct libusb_device *device = NULL;
-	// android_generate_device内でusbi_alloc_deviceが呼ばれた時に参照カウンタは1
+    // android_generate_device内でusbi_alloc_deviceが呼ばれた時に参照カウンタは1
 	int ret = android_generate_device(ctx, &device, vid, pid, serial, fd, busnum, devaddr);
 	if (ret) {
 		LOGD("android_generate_device failed:err=%d", ret);
 		device = NULL;
 	}
-
+	
 	RET(device);
 }
+#endif
 
 /** \ingroup dev
  * Convenience function for finding a device with a particular

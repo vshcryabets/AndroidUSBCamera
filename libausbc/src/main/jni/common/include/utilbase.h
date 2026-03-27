@@ -25,8 +25,35 @@
 #ifndef UTILBASE_H_
 #define UTILBASE_H_
 
+#include <stdio.h>
+
+#define		RETURN(code,type)	{type RESULT = code; return RESULT;}
+
+#if defined(__GNUC__)
+// the macro for branch prediction optimaization for gcc(-O2/-O3 required)
+#define		CONDITION(cond)				((__builtin_expect((cond)!=0, 0)))
+#define		LIKELY(x)					((__builtin_expect(!!(x), 1)))	// x is likely true
+#define		UNLIKELY(x)					((__builtin_expect(!!(x), 0)))	// x is likely false
+#else
+#define		CONDITION(cond)				((cond))
+#define		LIKELY(x)					((x))
+#define		UNLIKELY(x)					((x))
+#endif
+
+#define LOGV(FMT, ...) printf(FMT, ## __VA_ARGS__)
+#define LOGD(FMT, ...) printf(FMT, ## __VA_ARGS__)
+#define LOGI(FMT, ...) printf(FMT, ## __VA_ARGS__)
+#define LOGW(FMT, ...) printf(FMT, ## __VA_ARGS__)
+#define LOGF(FMT, ...) printf(FMT, ## __VA_ARGS__)
+#define LOGE(FMT, ...) printf(FMT, ## __VA_ARGS__)
+#define MARK(...)
+
 #ifdef __ANDROID__
 #include "utilbase_android.h"
 #endif
+
+#define		RET(code)			{LOGD("end"); return code;}
+#define		EXIT()				{LOGD("end"); return;}
+#define		PRE_EXIT()			LOGD("end")
 
 #endif /* UTILBASE_H_ */
