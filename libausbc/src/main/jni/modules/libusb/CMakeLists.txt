@@ -22,16 +22,21 @@ if (TARGET_OS STREQUAL "Android")
     ${LIBUSB}/libusb/os/android_usbfs.c
     ${LIBUSB}/libusb/os/android_netlink.c
     )
+    target_compile_definitions(LibUsb PRIVATE OS_ANDROID=1)
 elseif (TARGET_OS STREQUAL "Darwin")
     target_sources(LibUsb PRIVATE
     ${LIBUSB}/libusb/os/darwin_usb.c
     )
+    target_compile_definitions(LibUsb PRIVATE OS_DARWIN=1)
 elseif (TARGET_OS STREQUAL "Linux")
     target_sources(LibUsb PRIVATE
-    ${LIBUSB}/libusb/os/linux-netlink.c
+    ${LIBUSB}/libusb/os/linux_netlink.c
     ${LIBUSB}/libusb/os/linux_usbfs.c
     ${LIBUSB}/libusb/os/linux_udev.c
     )    
+    target_compile_definitions(LibUsb PRIVATE OS_LINUX=1)
+else()
+    message(FATAL_ERROR "Unsupported OS: ${TARGET_OS}")
 endif()
 
 target_link_libraries(LibUsb
@@ -40,4 +45,12 @@ target_link_libraries(LibUsb
 target_include_directories(LibUsb PUBLIC
         $<BUILD_INTERFACE:${LIBUSB}/libusb/>
         $<BUILD_INTERFACE:${LIBUSB}/>
+)
+
+add_executable(ListUsb)
+target_sources(ListUsb PRIVATE
+    test/list_usb.cpp
+)
+target_link_libraries(ListUsb
+    LibUsb
 )
