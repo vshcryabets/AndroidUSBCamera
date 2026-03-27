@@ -21,10 +21,15 @@ add_library(LibUsb STATIC
 
 if (TARGET_OS STREQUAL "Android")
     target_sources(LibUsb PRIVATE
-    ${LIBUSB}/libusb/os/android_usbfs.c
-    ${LIBUSB}/libusb/os/android_netlink.c
-    )
+        ${LIBUSB}/libusb/os/android_usbfs.c
+        ${LIBUSB}/libusb/os/android_netlink.c
+        )
     target_compile_definitions(LibUsb PRIVATE OS_ANDROID=1)
+
+    target_link_libraries(LibUsb
+                android
+                log)
+
 elseif (TARGET_OS STREQUAL "Darwin")
     target_sources(LibUsb PRIVATE
     ${LIBUSB}/libusb/os/darwin_usb.c
