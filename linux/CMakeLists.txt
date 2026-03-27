@@ -89,6 +89,7 @@ endif()
 
 if (BUILD_LIBUSB)
     add_subdirectory(../libausbc/src/main/jni/modules/libusb modules/libusb)
+    add_subdirectory(../libausbc/src/main/jni/modules/libuvc modules/libuvc)
 endif()
 
 add_subdirectory(../libausbc/src/main/jni/modules/font modules/font)
