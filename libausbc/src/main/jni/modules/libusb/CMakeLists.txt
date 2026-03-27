@@ -1,10 +1,11 @@
 cmake_minimum_required(VERSION 3.31)
 
+## Old one libusb 1.0.18
 set(LIBUSB ${CMAKE_CURRENT_LIST_DIR}/../../libusb/)
+## Latest one 1.0.30
+#set(LIBUSB ${CMAKE_CURRENT_LIST_DIR}/../../../../../../submodules/libusb.git/)
 
 add_compile_definitions(ACCESS_RAW_DESCRIPTORS)
-
-
 
 add_library(LibUsb STATIC
     ${LIBUSB}/libusb/core.c
@@ -13,7 +14,8 @@ add_library(LibUsb STATIC
     ${LIBUSB}/libusb/io.c
     ${LIBUSB}/libusb/sync.c
     ${LIBUSB}/libusb/strerror.c    
-    ${LIBUSB}/libusb/os/poll_posix.c
+    ${LIBUSB}/libusb/os/poll_posix.c # 1.0.18
+    #${LIBUSB}/libusb/os/events_posix.c # 1.0.30
     ${LIBUSB}/libusb/os/threads_posix.c
     )
 
@@ -44,7 +46,8 @@ target_link_libraries(LibUsb
 
 target_include_directories(LibUsb PUBLIC
         $<BUILD_INTERFACE:${LIBUSB}/libusb/>
-        $<BUILD_INTERFACE:${LIBUSB}/>
+        $<BUILD_INTERFACE:${LIBUSB}/
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include/>
 )
 
 add_executable(ListUsb)
