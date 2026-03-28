@@ -19,7 +19,22 @@ add_library(LibUvc STATIC
 
 target_link_libraries(LibUvc PUBLIC
         LibUsb
+        )
+if (TARGET_OS STREQUAL "Android")
+target_link_libraries(LibUvc PUBLIC
         libJpegStatic)
+else()
+    find_package(JPEG REQUIRED)
+
+    if (TARGET JPEG::JPEG)
+        target_link_libraries(LibUvc PUBLIC
+                JPEG::JPEG)
+    else()
+        target_include_directories(LibUvc PUBLIC ${JPEG_INCLUDE_DIRS})
+        target_link_libraries(LibUvc PUBLIC
+                ${JPEG_LIBRARIES})
+    endif()
+endif()
 
 target_compile_definitions(LibUvc PUBLIC 
     LIBUVC_HAS_JPEG)
@@ -28,3 +43,10 @@ target_include_directories(LibUvc PUBLIC
         $<INSTALL_INTERFACE:include>
         $<BUILD_INTERFACE:${LIBUVC}/include>
 )
+
+add_executable(checkCameraCapabilities
+    test/checkCameraCapabilities.cpp
+    )
+target_link_libraries(checkCameraCapabilities PRIVATE
+    LibUvc
+    )
