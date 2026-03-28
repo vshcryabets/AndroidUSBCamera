@@ -1,6 +1,7 @@
 #include <iostream>
 #include <libusb.h>
 #include <libuvc/libuvc.h>
+#include <libuvc/libuvc_internal.h> // For internal structures and definitions
 
 int main() {
     uvc_context_t *ctx;
@@ -24,10 +25,50 @@ int main() {
 
     for (int i = 0; list[i] != NULL; i++) {
         uvc_device_t *dev = list[i];
-        std::cout << "Device " << i << ": bus " << 
+        std::cout << "\tDevice " << i << ": bus " << 
             (int)uvc_get_bus_number(dev) << 
             " addr " << (int)uvc_get_device_address(dev) 
             << std::endl;
+        uvc_device_handle_t *devh;
+        uvc_stream_ctrl_t ctrl;
+
+        res = uvc_open(dev, &devh);
+        if (res < 0) {
+            std::cerr << "uvc_open error: " << uvc_strerror(res) << std::endl;
+            continue;
+        }
+
+        if (devh->info->stream_ifs) {
+            int stream_idx = 0;
+            for (auto *stream_if = devh->info->stream_ifs;
+                stream_if;
+                stream_if = stream_if->next) {
+                ++stream_idx;
+                for (auto *fmt_desc = stream_if->format_descs;
+                    fmt_desc;
+                    fmt_desc = fmt_desc->next) {
+                    uvc_vs_desc_subtype subtype = fmt_desc->bDescriptorSubtype;
+                    std::cout << " Subtype: " << (int)subtype << std::endl;
+                    if (subtype != UVC_VS_FORMAT_UNCOMPRESSED &&
+                        subtype != UVC_VS_FORMAT_MJPEG) {
+                        continue; // Skip unsupported formats
+                    }
+                    for (const auto *frame_desc = fmt_desc->frame_descs;
+                        frame_desc;
+                        frame_desc = frame_desc->next) {
+                        std::cout << "\tStream " << stream_idx << ": format " << (int)fmt_desc->bFormatIndex
+                            << ", resolution " << frame_desc->wWidth << "x" << frame_desc->wHeight
+                            << " Intervals: ";
+                        for (auto interval = frame_desc->intervals; *interval; ++interval) {
+                            float fps = 10000000.0f / (float)*interval;
+                            std::cout << fps << " fps, ";
+                        }
+                        std::cout << std::endl;
+                    }
+                }
+            }
+        }
+        uvc_close(devh);
     }
 
     uvc_free_device_list(list, 1);
