@@ -48,20 +48,36 @@ int main() {
                     fmt_desc;
                     fmt_desc = fmt_desc->next) {
                     uvc_vs_desc_subtype subtype = fmt_desc->bDescriptorSubtype;
-                    std::cout << " Subtype: " << (int)subtype << std::endl;
-                    if (subtype != UVC_VS_FORMAT_UNCOMPRESSED &&
-                        subtype != UVC_VS_FORMAT_MJPEG) {
+                    std::cout << " Subtype: " << (int)subtype << " ";
+                    switch (subtype)
+                    {
+                    case UVC_VS_FORMAT_UNCOMPRESSED:
+                        std::cout << "UVC_VS_FORMAT_UNCOMPRESSED";
+                        break;
+                    case UVC_VS_FORMAT_MJPEG:
+                        std::cout << "UVC_VS_FORMAT_MJPEG";
+                        break;
+                    default:
+                        std::cout << "Unsupported format subtype";
                         continue; // Skip unsupported formats
                     }
+                    std::cout << std::endl;
+                    std::cout << " Frame desc pointer = " << fmt_desc->frame_descs << std::endl;
                     for (const auto *frame_desc = fmt_desc->frame_descs;
                         frame_desc;
                         frame_desc = frame_desc->next) {
                         std::cout << "\tStream " << stream_idx << ": format " << (int)fmt_desc->bFormatIndex
                             << ", resolution " << frame_desc->wWidth << "x" << frame_desc->wHeight
                             << " Intervals: ";
-                        for (auto interval = frame_desc->intervals; *interval; ++interval) {
-                            float fps = 10000000.0f / (float)*interval;
-                            std::cout << fps << " fps, ";
+                        if (frame_desc->bFrameIntervalType == 1) {
+                            // discrete intervals
+                            for (auto interval = frame_desc->intervals; *interval; ++interval) {
+                                float fps = 10000000.0f / (float)*interval;
+                                std::cout << fps << " fps, ";
+                            }
+                        } else {
+                            std::cout << "Continious intevals " << frame_desc->dwMinFrameInterval << " to " << frame_desc->dwMaxFrameInterval
+                                << " with step " << frame_desc->dwFrameIntervalStep;
                         }
                         std::cout << std::endl;
                     }
