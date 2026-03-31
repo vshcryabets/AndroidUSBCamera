@@ -65,3 +65,11 @@ add_executable(checkCameraCapabilities
 target_link_libraries(checkCameraCapabilities PRIVATE
     LibUvc
     )
+
+add_executable(readFrames
+    test/readFrames.cpp
+    )
+target_link_libraries(readFrames PRIVATE
+    LibUvc
+    common
+    )

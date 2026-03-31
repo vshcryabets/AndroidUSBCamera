@@ -40,12 +40,12 @@
 #define		UNLIKELY(x)					((x))
 #endif
 
-#define LOGV(FMT, ...) printf(FMT, ## __VA_ARGS__)
-#define LOGD(FMT, ...) printf(FMT, ## __VA_ARGS__)
-#define LOGI(FMT, ...) printf(FMT, ## __VA_ARGS__)
-#define LOGW(FMT, ...) printf(FMT, ## __VA_ARGS__)
-#define LOGF(FMT, ...) printf(FMT, ## __VA_ARGS__)
-#define LOGE(FMT, ...) printf(FMT, ## __VA_ARGS__)
+#define LOGV(FMT, ...) printf(FMT, ## __VA_ARGS__);printf("\n")
+#define LOGD(FMT, ...) printf(FMT, ## __VA_ARGS__);printf("\n")
+#define LOGI(FMT, ...) printf(FMT, ## __VA_ARGS__);printf("\n")
+#define LOGW(FMT, ...) printf(FMT, ## __VA_ARGS__);printf("\n")
+#define LOGF(FMT, ...) printf(FMT, ## __VA_ARGS__);printf("\n")
+#define LOGE(FMT, ...) printf(FMT, ## __VA_ARGS__);printf("\n")
 #define MARK(...)
 
 #ifdef __ANDROID__
