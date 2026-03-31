@@ -51,7 +51,7 @@ target_link_libraries(LibUsb
 
 target_include_directories(LibUsb PUBLIC
         $<BUILD_INTERFACE:${LIBUSB}/libusb/>
-        $<BUILD_INTERFACE:${LIBUSB}/
+        $<BUILD_INTERFACE:${LIBUSB}/>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include/>
 )
 

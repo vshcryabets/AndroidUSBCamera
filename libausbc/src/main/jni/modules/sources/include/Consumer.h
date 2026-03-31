@@ -16,7 +16,7 @@ class ConsumerToFrameCallback : public Consumer {
 public:
     using FrameCallback = std::function<void(const auvc::Frame &frame)>;
 private:
-    FrameCallback frameCallback;    
+    FrameCallback frameCallback;
 public:
     explicit ConsumerToFrameCallback(FrameCallback callback) : frameCallback(std::move(callback)) {}
     void consume(const Frame& frame) override {

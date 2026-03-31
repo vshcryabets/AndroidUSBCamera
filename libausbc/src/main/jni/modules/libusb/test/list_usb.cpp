@@ -18,6 +18,7 @@ int main() {
     cnt = libusb_get_device_list(ctx, &devs);
     if (cnt < 0) {
         std::cerr << "Get Device List Error" << std::endl;
+        libusb_exit(ctx);
         return 1;
     }
 
