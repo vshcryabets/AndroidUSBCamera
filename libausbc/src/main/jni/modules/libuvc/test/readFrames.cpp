@@ -1,4 +1,7 @@
 #include <iostream>
+#include <chrono>
+#include <thread>
+
 #include <libusb.h>
 #include <libuvc/libuvc.h>
 #include <libuvc/libuvc_internal.h> // For internal structures and definitions
@@ -56,8 +59,8 @@ class UvcFramesReader {
             if (res < 0) {
                 uvc_perror(res, "start_streaming");
             } else {
-                std::cout << "Start streaming..." << std::endl;                
-                sleep(3); 
+                std::cout << "Start streaming..." << std::endl;
+                std::this_thread::sleep_for(std::chrono::seconds(3));
                 uvc_stop_streaming(deviceHandle);
             }
         }
