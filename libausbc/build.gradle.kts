@@ -10,7 +10,6 @@ android {
 
     defaultConfig {
         minSdk = libs.versions.minSdk.get().toInt()
-        targetSdk = libs.versions.targetSdk.get().toInt()
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         ndk.abiFilters.addAll(listOf("armeabi-v7a","arm64-v8a")) // x86, x86_64 still in progress
         externalNativeBuild {
@@ -42,9 +41,13 @@ android {
         cmake.path = File(projectDir, "CMakeLists.txt")
     }
     testOptions {
+        targetSdk = libs.versions.targetSdk.get().toInt()
         unitTests.all {
             it.useJUnitPlatform()
         }
+    }
+    lint {
+        targetSdk = libs.versions.targetSdk.get().toInt()
     }
 }
 
