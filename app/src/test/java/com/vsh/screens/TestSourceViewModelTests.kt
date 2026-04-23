@@ -15,9 +15,9 @@
 */
 package com.vsh.screens
 
-import com.vsh.source.Source
 import com.jiangdg.uvc.SourceResolution
 import com.vsh.domain.usecases.GetTestSourceUseCase
+import com.vsh.source.Source
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
