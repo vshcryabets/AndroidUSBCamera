@@ -55,16 +55,23 @@ void JniCountConsumer::consume(const auvc::Frame &frame) {
     JNIEnv* env = attacher.env;
     if (env == nullptr) return;
 
-    std::lock_guard<std::mutex> lock(jniConsumerMutex);
-    if (consuming && jniConsumer != nullptr) {
-        frameCount++;
-        
-        jclass clazz = env->GetObjectClass(jniConsumer);
-        jmethodID methodId = env->GetMethodID(clazz, "consume", "(Lcom/vsh/source/Frame;)V");         
+    jobject consumerObj = nullptr;
+    {
+        std::lock_guard<std::mutex> lock(jniConsumerMutex);
+        if (consuming && jniConsumer != nullptr) {
+            frameCount++;
+            consumerObj = env->NewLocalRef(jniConsumer);
+        }
+    }
+
+    if (consumerObj != nullptr) {
+        jclass clazz = env->GetObjectClass(consumerObj);
+        jmethodID methodId = env->GetMethodID(clazz, "consume", "(Lcom/vsh/source/Frame;)V");
         if (methodId != nullptr) {
-            env->CallVoidMethod(jniConsumer, methodId, NULL);
+            env->CallVoidMethod(consumerObj, methodId, nullptr);
         }
         env->DeleteLocalRef(clazz);
+        env->DeleteLocalRef(consumerObj);
     }
 }
 
