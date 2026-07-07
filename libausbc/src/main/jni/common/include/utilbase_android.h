@@ -22,13 +22,10 @@
  * Files in the jni/libjpeg, jni/libusb, jin/libuvc, jni/rapidjson folder may have a different license, see the respective files.
 */
 
-#ifndef UTILBASE_H_
-#define UTILBASE_H_
+#ifndef UTILBASE_ANDROID_H_
+#define UTILBASE_ANDROID_H_
 
-#include <jni.h>
-#ifdef __ANDROID__
 #include <android/log.h>
-#endif
 #include <unistd.h>
 #include <libgen.h>
 #include "localdefines.h"
@@ -37,17 +34,6 @@
 #define		SAFE_DELETE(p)				{ if (p) { delete (p); (p) = NULL; } }
 #define		SAFE_DELETE_ARRAY(p)		{ if (p) { delete [](p); (p) = NULL; } }
 #define		NUM_ARRAY_ELEMENTS(p)		((int) sizeof(p) / sizeof(p[0]))
-
-#if defined(__GNUC__)
-// the macro for branch prediction optimaization for gcc(-O2/-O3 required)
-#define		CONDITION(cond)				((__builtin_expect((cond)!=0, 0)))
-#define		LIKELY(x)					((__builtin_expect(!!(x), 1)))	// x is likely true
-#define		UNLIKELY(x)					((__builtin_expect(!!(x), 0)))	// x is likely false
-#else
-#define		CONDITION(cond)				((cond))
-#define		LIKELY(x)					((x))
-#define		UNLIKELY(x)					((x))
-#endif
 
 // XXX assertはNDEBUGが定義されていたら引数を含めて丸ごと削除されてしまうので
 // 関数実行を直接assertの引数にするとその関数はNDEBUGの時に実行されなくなるので注意
@@ -60,7 +46,7 @@
 #define CHECK_LE(X, Y) { bool RES = (X <= Y); assert(RES); }
 #define CHECK_LT(X, Y) { bool RES = (X < Y); assert(RES); }
 
-#if defined(USE_LOGALL) && defined(__ANDROID__) && !defined(LOG_NDEBUG)
+#if defined(USE_LOGALL) && !defined(LOG_NDEBUG)
 	#define LOGV(FMT, ...) __android_log_print(ANDROID_LOG_VERBOSE, LOG_TAG, "[%d*%s:%d:%s]:" FMT,	\
 							gettid(), basename(__FILE__), __LINE__, __FUNCTION__, ## __VA_ARGS__)
 	#define LOGD(FMT, ...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "[%d*%s:%d:%s]:" FMT,	\
@@ -98,7 +84,7 @@
 			? LOGF(__VA_ARGS__) \
 			: (0) )
 #else
-	#if defined(USE_LOGV) && defined(__ANDROID__) && !defined(LOG_NDEBUG)
+	#if defined(USE_LOGV) && !defined(LOG_NDEBUG)
 		#define LOGV(FMT, ...) __android_log_print(ANDROID_LOG_VERBOSE, LOG_TAG, "[%d*%s:%d:%s]:" FMT,	\
          	 	 	 	 	 	 gettid(), basename(__FILE__), __LINE__, __FUNCTION__, ## __VA_ARGS__)
 		#define LOGV_IF(cond, ...) \
@@ -109,7 +95,7 @@
 		#define LOGV(...)
 		#define LOGV_IF(cond, ...)
 	#endif
-	#if defined(USE_LOGD) && defined(__ANDROID__) && !defined(LOG_NDEBUG)
+	#if defined(USE_LOGD) && !defined(LOG_NDEBUG)
 		#define LOGD(FMT, ...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "[%d*%s:%d:%s]:" FMT,	\
          	 	 	 	 	 	 gettid(), basename(__FILE__), __LINE__, __FUNCTION__, ## __VA_ARGS__)
 		#define LOGD_IF(cond, ...) \
@@ -120,7 +106,7 @@
 		#define LOGD(...)
 		#define LOGD_IF(cond, ...)
 	#endif
-	#if defined(USE_LOGI) && defined(__ANDROID__)
+	#if defined(USE_LOGI)
 		#define LOGI(FMT, ...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, "[%d*%s:%d:%s]:" FMT,	\
          	 	 	 	 	 	 gettid(), basename(__FILE__), __LINE__, __FUNCTION__, ## __VA_ARGS__)
 		#define LOGI_IF(cond, ...) \
@@ -202,11 +188,6 @@
 
 #endif
 
-#define		RETURN(code,type)	{type RESULT = code; return RESULT;}
-#define		RET(code)			{LOGD("end"); return code;}
-#define		EXIT()				{LOGD("end"); return;}
-#define		PRE_EXIT()			LOGD("end")
-
 #if defined(__ANDROID__) && (defined(USE_LOGALL) || defined(USE_LOGI)) && !defined(LOG_NDEBUG)
 #define MARK(FMT, ...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, "[%s:%d:%s]:" FMT,	\
 						basename(__FILE__), __LINE__, __FUNCTION__, ## __VA_ARGS__)
@@ -222,8 +203,4 @@
 			__FILE__ ":" LITERAL_TO_STRING(__LINE__)            \
 			" Should not be here.");
 
-void setVM(JavaVM *);
-JavaVM *getVM();
-JNIEnv *getEnv();
-
-#endif /* UTILBASE_H_ */
+#endif /* UTILBASE_ANDROID_H_ */

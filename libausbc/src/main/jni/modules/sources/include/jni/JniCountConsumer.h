@@ -5,8 +5,6 @@
 
 #include "Consumer.h"
 
-void JniCountConsumer_register(JNIEnv *env);
-
 class JniCountConsumer: public auvc::Consumer {
 private:
     std::atomic<int> frameCount {0};

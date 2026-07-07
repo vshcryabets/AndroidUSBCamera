@@ -1,3 +1,6 @@
 [submodule "libuvc-git"]
-	path = libuvc-git
+	path = submodules/libuvc.git
 	url = git@github.com:libuvc/libuvc.git
+[submodule "submodules/libusb.git"]
+	path = submodules/libusb.git
+	url = git@github.com:libusb/libusb.git

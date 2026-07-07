@@ -14,5 +14,3 @@ jobject resolutionMapToJObject(
 jobject frameFormatsToJList(
     const std::vector<auvc::FrameFormat> &formats,
     JNIEnv *env);
-
-void JniSources_register(JNIEnv *env);

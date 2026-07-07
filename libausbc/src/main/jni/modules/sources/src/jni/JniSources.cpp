@@ -2,8 +2,6 @@
 #include <iostream>
 
 #include "jni/JniSources.h"
-#include "jni/JniTestSource.h"
-#include "jni/JniPullToPushSource.h"
 #include "jni/JniCountConsumer.h"
 
 jobject resolutionMapToJObject(const auvc::ExpectedResolutions &map, JNIEnv *env)
@@ -67,11 +65,6 @@ jobject resolutionMapToJObject(const auvc::ExpectedResolutions &map, JNIEnv *env
     return result;
 }
 
-void JniSources_register(JNIEnv *env) {
-    JniPullToPushSource_register(env);
-    JniCountConsumer_register(env);
-}
-
 jobject frameFormatsToJList(const std::vector<auvc::FrameFormat> &formats, JNIEnv *env) {
     jclass arrayListCls = env->FindClass("java/util/ArrayList");
     jmethodID arrayListInit = env->GetMethodID(arrayListCls, "<init>", "()V");
@@ -89,5 +82,4 @@ jobject frameFormatsToJList(const std::vector<auvc::FrameFormat> &formats, JNIEn
     env->DeleteLocalRef(integerClass);
     env->DeleteLocalRef(arrayListCls);
     return list;
-
 }

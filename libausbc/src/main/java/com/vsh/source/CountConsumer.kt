@@ -1,28 +1,17 @@
 package com.vsh.source
 
-class CountConsumer: JniConsumer {
-    private var nativePtr: Long = 0
+import java.util.concurrent.atomic.AtomicInteger
 
-    override fun getNativeObject(): Long = nativePtr
+class CountConsumer: JniConsumer() {
 
-    override fun close() {
-        if (nativePtr != 0L) {
-            nativeRelease(nativePtr)
-            nativePtr = 0L
-        }
-    }
+    val counter: AtomicInteger = AtomicInteger(0)
 
     override fun consume(frame: Frame) {
-        TODO("Not yet implemented")
+        counter.incrementAndGet()
     }
+    override fun initNative(): Int = nativeCreate()
 
-    override fun stopConsuming() {
-        if (nativePtr != 0L) {
-            nativeStopConsuming(nativePtr)
-        }
-    }
-
-    protected external fun nativeCreate(): Long
-    protected external fun nativeRelease(ptr: Long)
-    protected external fun nativeStopConsuming(ptr: Long)
+    private external fun nativeCreate(): Int
+    external override fun nativeRelease(ptr: Int)
+    external override fun nativeStopConsuming(ptr: Int)
 }

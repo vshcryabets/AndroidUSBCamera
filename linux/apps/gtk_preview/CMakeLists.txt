@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.22)
 
+# brew install gtk4
+
 if(BUILD_GTK_PREVIEW_APP)
         find_package(PkgConfig REQUIRED)
         pkg_check_modules(GTK4 REQUIRED gtk4)

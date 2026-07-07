@@ -32,9 +32,6 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #define HAVE_INTTYPES_H 1
 
-/* Android backend */
-#define OS_ANDROID 1
-
 /* Enable output to system log */
 #define USE_SYSTEM_LOGGING_FACILITY 1
 

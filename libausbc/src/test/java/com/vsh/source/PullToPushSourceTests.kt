@@ -32,7 +32,7 @@ class PullToPushSourceTests {
         val pullSourceConfiguration = PullToPushSource.OpenConfiguration(
             tag = "pull",
             pullSource = pullSource,
-            consumer = EmptyConsumer()
+            consumer = CountConsumer()
         )
 
         pullSource.open(Source.OpenConfiguration(
@@ -77,7 +77,7 @@ class PullToPushSourceTests {
                 override fun isPullSource(): Boolean = false
                 override fun isPushSource(): Boolean = true
             },
-            consumer = EmptyConsumer()
+            consumer = CountConsumer()
         )
         Assertions.assertThrowsExactly(IllegalArgumentException::class.java) {
             PullToPushSource().use { source ->
@@ -98,7 +98,7 @@ class PullToPushSourceTests {
             PullToPushSource.OpenConfiguration(
                 tag = "pullToPush",
                 pullSource = pullSource,
-                consumer = EmptyConsumer()
+                consumer = CountConsumer()
             )
         )
 
