@@ -2,6 +2,7 @@
 
 #include "jni.h"
 #include <atomic>
+#include <mutex>
 
 #include "Consumer.h"
 
@@ -9,6 +10,7 @@ class JniCountConsumer: public auvc::OpenCloseConsumer {
 private:
     std::atomic<int> frameCount {0};
     std::atomic<bool> consuming {false};
+    std::mutex jniConsumerMutex;
     jobject jniConsumer {nullptr};
     JavaVM* g_jvm;
 public:

@@ -20,9 +20,6 @@ namespace auvc {
 
         // Receives an incoming frame. Subclass should process it and call pushFrame().
         void consume(const Frame& frame) override = 0;
-
-        // Signals that no more frames will arrive; subclass should flush / clean up.
-        void stopConsuming() override = 0;
     };
 
 } // namespace auvc

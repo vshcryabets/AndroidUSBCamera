@@ -58,7 +58,6 @@ std::future<void> PullToPushSource::startProducing(const Source::ProducingConfig
     workerThread = std::thread([this, config]() {
         running.store(true);
         PushSource::startProducing(config).get();
-        std::printf("PullToPushSource: started producing A11\n");
         startPromise->set_value();
         while (!stopRequested.load()) {
             if (pullSource->waitNextFrame()) {

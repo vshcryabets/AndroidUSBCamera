@@ -45,7 +45,6 @@ class PullToPushSource :
         if (_srcId.isEmpty)
             return JniSourceError(JniSourceErrorType.SOURCE_NOT_INITIALIZED)
         val errorCode = nativeStartProducing(_srcId.get())
-        println("PullToPushSource.startProducing: errorCode=$errorCode")
         return JniSourceError.fromErrorCode(errorCode)
     }
 

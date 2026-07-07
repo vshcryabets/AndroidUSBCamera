@@ -7,7 +7,6 @@ class CountConsumer: JniConsumer() {
     val counter: AtomicInteger = AtomicInteger(0)
 
     override fun consume(frame: Frame?) {
-        println("CountConsumer.consume: frame=$frame")
         counter.incrementAndGet()
     }
     override fun initNative(): Int = nativeCreate()

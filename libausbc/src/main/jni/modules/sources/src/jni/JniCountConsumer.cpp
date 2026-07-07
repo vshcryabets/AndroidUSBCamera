@@ -26,8 +26,7 @@ Java_com_vsh_source_CountConsumer_nativeRelease(JNIEnv *env, jobject thiz, jint 
     JniSourcesRepo::getInstance()->removeConsumer(sourceId);
     if (source) {
         auto jniConsumer = std::dynamic_pointer_cast<JniCountConsumer>(source);
-        auto jniConsumerGlobal = jniConsumer->getJniConsumer();
-        env->DeleteGlobalRef(jniConsumerGlobal);
+        jniConsumer->closeConsumer();
     }
 }
 
@@ -45,6 +44,7 @@ JNIEXPORT void JNICALL
 Java_com_vsh_source_CountConsumer_nativeOpen(JNIEnv *env, jobject thiz, jint sourceId) {
     auto source = std::dynamic_pointer_cast<JniCountConsumer>(JniSourcesRepo::getInstance()->getConsumer(sourceId));
     if (source) {
+        source->closeConsumer();
         source->setOpenConfiguration(env->NewGlobalRef(thiz));
         source->openConsumer();
     }
@@ -52,23 +52,19 @@ Java_com_vsh_source_CountConsumer_nativeOpen(JNIEnv *env, jobject thiz, jint sou
 
 void JniCountConsumer::consume(const auvc::Frame &frame) {
     thread_local JniThreadAttacher attacher(g_jvm);
-    std::printf("ASD JniCountConsumer::consume: start\n");
     JNIEnv* env = attacher.env;
     if (env == nullptr) return;
 
-    if (consuming) {
+    std::lock_guard<std::mutex> lock(jniConsumerMutex);
+    if (consuming && jniConsumer != nullptr) {
         frameCount++;
-
-        jclass clazz = env->GetObjectClass(jniConsumer);
-        jmethodID methodId = env->GetMethodID(clazz, "consume", "(Lcom/vsh/source/Frame;)V"); 
         
+        jclass clazz = env->GetObjectClass(jniConsumer);
+        jmethodID methodId = env->GetMethodID(clazz, "consume", "(Lcom/vsh/source/Frame;)V");         
         if (methodId != nullptr) {
             env->CallVoidMethod(jniConsumer, methodId, NULL);
         }
-        
         env->DeleteLocalRef(clazz);
-
-        std::printf("ASD JniCountConsumer::consume: counter %d\n", frameCount.load());
     }
 }
 
@@ -90,16 +86,20 @@ auvc::ConsumerError JniCountConsumer::openConsumer() {
 }
 
 auvc::ConsumerError JniCountConsumer::closeConsumer() {
-    std::printf("ASD JniCountConsumer::closeConsumer: start\n");
-    thread_local JniThreadAttacher attacher(g_jvm);
-    JNIEnv* env = attacher.env;
-    env->DeleteGlobalRef(jniConsumer);
+    std::lock_guard<std::mutex> lock(jniConsumerMutex);
     consuming = false;
+    if (jniConsumer != nullptr) {
+        thread_local JniThreadAttacher attacher(g_jvm);
+        JNIEnv* env = attacher.env;
+        env->DeleteGlobalRef(jniConsumer);
+        jniConsumer = nullptr;
+    }
     return auvc::ConsumerError::SUCCESS;
 }
 
 void JniCountConsumer::setOpenConfiguration(
     jobject jniConsumer
 ) {
+    std::lock_guard<std::mutex> lock(jniConsumerMutex);
     this->jniConsumer = jniConsumer;
 }

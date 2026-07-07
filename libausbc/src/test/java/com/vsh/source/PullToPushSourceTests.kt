@@ -119,11 +119,16 @@ class PullToPushSourceTests {
         Thread.sleep(1000)
 
         result = pullToPush.stopProducing()
-        consumer.close()
+        Assertions.assertTrue { result.isSuccess() }
+        result = pullSource.stopProducing()
         Assertions.assertTrue { result.isSuccess() }
 
-        Thread.sleep(100)
         Assertions.assertTrue(consumer.getFrameCount() > 0, "Consumer should have received frames")
+
+        consumer.closeConsumer()
+        consumer.close()
+        pullSource.close()
+        pullToPush.close()
     }
 
     companion object {

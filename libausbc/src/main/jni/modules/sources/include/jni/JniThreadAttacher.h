@@ -11,7 +11,11 @@ public:
         int status = g_jvm->GetEnv((void**)&env, JNI_VERSION_1_6);
 
         if (status == JNI_EDETACHED) {
+#ifdef __ANDROID__
+            g_jvm->AttachCurrentThread(&env, nullptr);
+#else
             g_jvm->AttachCurrentThread((void**)&env, nullptr);
+#endif
             needsDetach = true;
         }
     }

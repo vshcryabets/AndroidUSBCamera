@@ -51,7 +51,6 @@ Java_com_vsh_source_PullToPushSource_nativeStartProducing(
     if (source == nullptr) {
         return JniSourceErrorType::SOURCE_NOT_FOUND;
     }
-    std::printf("PullToPushSource: started producing A01\n");
     source->startProducing(
             // there is no configuration for PullToPushSource, so we pass an empty ProducingConfiguration
             {
@@ -60,7 +59,6 @@ Java_com_vsh_source_PullToPushSource_nativeStartProducing(
                     .fps = 0.0f
             }
     ).get();
-    std::printf("PullToPushSource: started producing A12\n");
     return JniSourceErrorType::SUCCESS;
 }
 
