@@ -45,7 +45,7 @@ class TestSource(
         _srcId = Optional.empty()
     }
 
-    override fun startProducing(configuration: Source.ProducingConfiguration) {
+    override fun startProducing(configuration: Source.ProducingConfiguration): JniSourceError {
         TODO("Not yet implemented")
     }
 
@@ -57,8 +57,11 @@ class TestSource(
         TODO("Not yet implemented")
     }
 
-    override fun stopProducing() {
-        _srcId.ifPresent { nativeStopCapturing(it) }
+    override fun stopProducing(): JniSourceError {
+        if (_srcId.isEmpty)
+            return JniSourceError(JniSourceErrorType.SOURCE_NOT_INITIALIZED)
+        val errorCode = nativeStopCapturing(_srcId.get())
+        return JniSourceError.fromErrorCode(errorCode)
     }
 
     override fun isPullSource(): Boolean {
@@ -71,7 +74,7 @@ class TestSource(
 
     private external fun nativeCreate(fontPtr: Long): Int
     external override fun nativeRelease(srcId: Int)
-    private external fun nativeStopCapturing(srcId: Int)
+    private external fun nativeStopCapturing(srcId: Int): Int
     private external fun nativeClose(srcId: Int)
     external override fun nativeGetSupportedResolutions(srcId: Int): Map<Integer, List<SourceResolution>>
     override external fun nativeGetSupportedFrameFormats(srcId: Int): List<Integer>

@@ -73,10 +73,6 @@ std::future<void> X264Encoder::close() {
     });
 }
 
-void X264Encoder::stopConsuming() {
-    // nothing to do
-}
-
 void X264Encoder::consume(const auvc::Frame &frame) {
     if (encoder == nullptr)
     {

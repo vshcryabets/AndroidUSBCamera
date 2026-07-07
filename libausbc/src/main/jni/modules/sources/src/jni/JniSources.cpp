@@ -2,7 +2,6 @@
 #include <iostream>
 
 #include "jni/JniSources.h"
-#include "jni/JniCountConsumer.h"
 
 jobject resolutionMapToJObject(const auvc::ExpectedResolutions &map, JNIEnv *env)
 {

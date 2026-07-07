@@ -10,6 +10,7 @@ target_sources(Sources PRIVATE
         src/TestFileSource.cpp
         src/PullToPushSource.cpp
         src/DataTypes.cpp
+        src/Consumer.cpp
         )
 if(BUILD_SOURCES_MODULE_V4L2)
     target_compile_definitions(Sources PRIVATE SUPPORT_V4L2)

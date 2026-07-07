@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 vschryabets@gmail.com
+ * Copyright 2025-2026 vschryabets@gmail.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.vsh.screens
+package com.vsh.screens.testsource
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -24,13 +24,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.vsh.screens.AusbcScreen
 
 @Composable
 fun TestSourceConfiguration(
@@ -68,9 +71,9 @@ fun TestSourceConfiguration(
                                     }
                                     .background(
                                         if (isSelected)
-                                            androidx.compose.ui.graphics.Color.LightGray
+                                            Color.LightGray
                                         else
-                                            androidx.compose.ui.graphics.Color.Transparent
+                                            Color.Transparent
                                     )
                                     .padding(8.dp)
                             ) {
@@ -78,7 +81,7 @@ fun TestSourceConfiguration(
                             }
                         }
                     }
-                    androidx.compose.material3.Button(
+                    Button(
                         onClick = { navController.navigate(AusbcScreen.TestSourcePreview.name) },
                         modifier = Modifier
                             .fillMaxWidth()

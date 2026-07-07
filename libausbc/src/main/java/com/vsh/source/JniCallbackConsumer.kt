@@ -12,12 +12,15 @@ class JniCallbackConsumer(
         TODO("Not yet implemented")
     }
 
-    override fun nativeStopConsuming(ptr: Int) {
+    override fun nativeClose(ptr: Int) {
         TODO("Not yet implemented")
     }
 
-    // Called from native code
-    override fun consume(frame: Frame) {
+    override fun nativeOpen(ptr: Int) {
+        TODO("Not yet implemented")
+    }
+
+    override fun consume(frame: Frame?) {
         TODO("Not yet implemented")
     }
 }

@@ -40,10 +40,6 @@ std::future<void> DecoderH264LibAVCodec::close() {
     });
 }
 
-void DecoderH264LibAVCodec::stopConsuming() {
-    // No specific action needed for stopping consuming in this implementation
-}
-
 std::future<void> DecoderH264LibAVCodec::stopProducing() {
     return std::async(std::launch::async, [this]() {
         // No specific action needed for stopping producing in this implementation

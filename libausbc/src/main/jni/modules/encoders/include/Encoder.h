@@ -56,7 +56,7 @@ struct EncoderBaseConfiguration: public auvc::PushSource::OpenConfiguration
     uint16_t fps_den;
 };
 
-class Encoder: public auvc::Consumer, public auvc::PushSource
+class Encoder: public auvc::OpenCloseConsumer, public auvc::PushSource
 {
 public:
     Encoder() = default;

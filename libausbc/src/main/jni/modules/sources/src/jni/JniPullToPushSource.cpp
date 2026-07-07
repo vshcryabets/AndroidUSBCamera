@@ -3,6 +3,7 @@
 #include "jni/JniSources.h"
 #include "PullToPushSource.h"
 #include "jni/JniSourcesRepo.h"
+#include "jni/JniSourceError.h"
 
 extern "C"
 JNIEXPORT void JNICALL
@@ -36,4 +37,43 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_vsh_source_PullToPushSource_nativeRelease(JNIEnv *env, jobject thiz, jint srcId) {
     JniSourcesRepo::getInstance()->removeSource(srcId);
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_com_vsh_source_PullToPushSource_nativeStartProducing(
+        JNIEnv *env,
+        jobject thiz,
+        jint sourceId
+        )
+{
+    auto source = JniSourcesRepo::getInstance()->getSource(sourceId);
+    if (source == nullptr) {
+        return JniSourceErrorType::SOURCE_NOT_FOUND;
+    }
+    source->startProducing(
+            // there is no configuration for PullToPushSource, so we pass an empty ProducingConfiguration
+            {
+                    .width = 0,
+                    .height = 0,
+                    .fps = 0.0f
+            }
+    ).get();
+    return JniSourceErrorType::SUCCESS;
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_com_vsh_source_PullToPushSource_nativeStopProducing(
+        JNIEnv *env,
+        jobject thiz,
+        jint sourceId
+)
+{
+    auto source = JniSourcesRepo::getInstance()->getSource(sourceId);
+    if (source == nullptr) {
+        return JniSourceErrorType::SOURCE_NOT_FOUND;
+    }
+    JniSourcesRepo::getInstance()->getSource(sourceId)->stopProducing().get();
+    return JniSourceErrorType::SUCCESS;
 }

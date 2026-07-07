@@ -48,7 +48,7 @@ public:
     }
 };
 
-class TestFileWriter: auvc::Consumer {
+class TestFileWriter: public auvc::OpenCloseConsumer {
 private:
     const static uint32_t TOC_POSITION = 12;
     uint32_t framesCount = 0;
@@ -64,7 +64,8 @@ public:
     ~TestFileWriter();
 
     void consume(const auvc::Frame& frame) override;
-    void stopConsuming() override;
+    auvc::ConsumerError openConsumer() override;
+    auvc::ConsumerError closeConsumer() override;
     uint32_t getFramesCount() const {
         return framesCount;
     }

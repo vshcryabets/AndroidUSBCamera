@@ -20,7 +20,6 @@ import com.vsh.LoadJniLibrary
 import com.vsh.font.FontSrcImpl
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 class PullToPushSourceTests {
@@ -45,17 +44,17 @@ class PullToPushSourceTests {
 
         val pushSource = PullToPushSource.OpenConfiguration(
             "push",
-            object : JniSource<Source.OpenConfiguration, Source.ProducingConfiguration>() {
+            pullSource = object : JniSource<Source.OpenConfiguration, Source.ProducingConfiguration>() {
                 override fun initNative(): Int = 0
                 override fun getOpenConfiguration(): Source.OpenConfiguration =
                     Source.OpenConfiguration("pull")
 
                 override fun close() {}
-                override fun startProducing(configuration: Source.ProducingConfiguration) {
+                override fun startProducing(configuration: Source.ProducingConfiguration): JniSourceError {
                     TODO("Not yet implemented")
                 }
 
-                override fun stopProducing() {}
+                override fun stopProducing() = JniSourceError(JniSourceErrorType.SOURCE_NOT_INITIALIZED)
                 override fun getProducingConfiguration(): Source.ProducingConfiguration? {
                     TODO("Not yet implemented")
                 }
@@ -86,23 +85,25 @@ class PullToPushSourceTests {
         }
     }
 
-    @Disabled
     @Test
     fun testPullToPushSendingFramesToConsumer() {
         val font = FontSrcImpl()
         val pullSource = TestSourceYUV420(font)
+        val consumer = CountConsumer()
         pullSource.open(Source.OpenConfiguration("pull"))
+
+        consumer.openConsumer()
 
         val pullToPush = PullToPushSource()
         pullToPush.open(
             PullToPushSource.OpenConfiguration(
                 tag = "pullToPush",
                 pullSource = pullSource,
-                consumer = CountConsumer()
+                consumer = consumer
             )
         )
 
-        pullSource.startProducing(
+        var result = pullSource.startProducing(
             Source.ProducingConfiguration(
                 tag = "producing1",
                 width  = 640,
@@ -110,14 +111,24 @@ class PullToPushSourceTests {
                 fps = 30.0f
             )
         )
+        Assertions.assertTrue { result.isSuccess() }
 
-        pullToPush.startProducing(Source.ProducingConfiguration())
+        result = pullToPush.startProducing(Source.ProducingConfiguration())
+        Assertions.assertTrue { result.isSuccess() }
 
         Thread.sleep(1000)
 
-        pullToPush.stopProducing()
+        result = pullToPush.stopProducing()
+        Assertions.assertTrue { result.isSuccess() }
+        result = pullSource.stopProducing()
+        Assertions.assertTrue { result.isSuccess() }
 
+        Assertions.assertTrue(consumer.getFrameCount() > 0, "Consumer should have received frames")
 
+        consumer.closeConsumer()
+        consumer.close()
+        pullSource.close()
+        pullToPush.close()
     }
 
     companion object {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 vschryabets@gmail.com
+ * Copyright 2025-2026 vschryabets@gmail.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.vsh.screens
+package com.vsh.screens.testsource
 
 import android.view.SurfaceHolder
 import android.view.SurfaceView
@@ -28,7 +28,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
-import timber.log.Timber
 
 @Composable
 fun TestSourcePreview(

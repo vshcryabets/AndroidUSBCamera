@@ -52,14 +52,16 @@ class UVCCamera2 : Source<UVCCamera2.OpenConfiguration, Source.ProducingConfigur
         }
     }
 
-    override fun startProducing(configuration: Source.ProducingConfiguration) {
+    override fun startProducing(configuration: Source.ProducingConfiguration): JniSourceError {
         TODO("Not yet implemented")
     }
 
-    override fun stopProducing() {
+    override fun stopProducing(): JniSourceError {
         if (nativePtr != 0L) {
             nativeStopCapturing(nativePtr)
+            return JniSourceError(JniSourceErrorType.SUCCESS)
         }
+        return JniSourceError(JniSourceErrorType.SOURCE_NOT_INITIALIZED)
     }
 
     override fun getProducingConfiguration(): Source.ProducingConfiguration? {

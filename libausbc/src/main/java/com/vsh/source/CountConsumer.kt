@@ -6,12 +6,15 @@ class CountConsumer: JniConsumer() {
 
     val counter: AtomicInteger = AtomicInteger(0)
 
-    override fun consume(frame: Frame) {
+    override fun consume(frame: Frame?) {
         counter.incrementAndGet()
     }
     override fun initNative(): Int = nativeCreate()
 
     private external fun nativeCreate(): Int
     external override fun nativeRelease(ptr: Int)
-    external override fun nativeStopConsuming(ptr: Int)
+    external override fun nativeClose(ptr: Int)
+    external override fun nativeOpen(ptr: Int)
+
+    fun getFrameCount() = counter.get()
 }
