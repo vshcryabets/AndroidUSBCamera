@@ -84,7 +84,7 @@ TEST_CASE("testEncode", "[Encoderx264]") {
     }
     REQUIRE(callbackCalled.load() == 60);
     REQUIRE(framesWriter.getFramesCount() == 60);
-    framesWriter.closeConsumer();
+    framesWriter.stopConsuming();
     source.stopProducing().get();
     source.close().get();
     encoder.stopProducing().get();

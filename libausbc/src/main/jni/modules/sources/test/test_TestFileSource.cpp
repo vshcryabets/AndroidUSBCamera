@@ -5,7 +5,7 @@
 
 TEST_CASE("testReadHeaders", "[TestFileSource]") {
     auvc::TestFileWriter writer("test.bin", 640, 480, "video/h264", 29.97f);
-    writer.closeConsumer();
+    writer.stopConsuming();
 
     auvc::TestFileSource source;
     source.open({

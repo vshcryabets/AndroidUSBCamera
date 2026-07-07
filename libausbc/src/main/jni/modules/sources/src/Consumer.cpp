@@ -4,11 +4,11 @@ namespace auvc {
 
 ConsumerError ConsumerError::SUCCESS = ConsumerError(ConsumerErrorCode::SUCCESS, "Success");
 
-auvc::ConsumerError OpenCloseConsumer::openConsumer()
+auvc::ConsumerError OpenCloseConsumer::startConsuming()
 {
     return ConsumerError::SUCCESS;
 }
-auvc::ConsumerError OpenCloseConsumer::closeConsumer()
+auvc::ConsumerError OpenCloseConsumer::stopConsuming()
 {
     return ConsumerError::SUCCESS;
 }

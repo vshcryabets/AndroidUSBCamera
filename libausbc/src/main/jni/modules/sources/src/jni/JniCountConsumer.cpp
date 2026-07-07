@@ -26,27 +26,27 @@ Java_com_vsh_source_CountConsumer_nativeRelease(JNIEnv *env, jobject thiz, jint 
     JniSourcesRepo::getInstance()->removeConsumer(sourceId);
     if (source) {
         auto jniConsumer = std::dynamic_pointer_cast<JniCountConsumer>(source);
-        jniConsumer->closeConsumer();
+        jniConsumer->stopConsuming();
     }
 }
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_vsh_source_CountConsumer_nativeClose(JNIEnv *env, jobject thiz, jint sourceId) {
+Java_com_vsh_source_CountConsumer_nativeStopConsuming(JNIEnv *env, jobject thiz, jint sourceId) {
     auto source = std::dynamic_pointer_cast<JniCountConsumer>(JniSourcesRepo::getInstance()->getConsumer(sourceId));
     if (source) {
-        source->closeConsumer();
+        source->stopConsuming();
     }
 }
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_vsh_source_CountConsumer_nativeOpen(JNIEnv *env, jobject thiz, jint sourceId) {
+Java_com_vsh_source_CountConsumer_nativeStartConsuming(JNIEnv *env, jobject thiz, jint sourceId) {
     auto source = std::dynamic_pointer_cast<JniCountConsumer>(JniSourcesRepo::getInstance()->getConsumer(sourceId));
     if (source) {
-        source->closeConsumer();
+        source->stopConsuming();
         source->setOpenConfiguration(env->NewGlobalRef(thiz));
-        source->openConsumer();
+        source->startConsuming();
     }
 }
 
@@ -81,10 +81,11 @@ JniCountConsumer::JniCountConsumer(JavaVM* g_jvm):
 }
 
 JniCountConsumer::~JniCountConsumer() {
-    closeConsumer();
+    stopConsuming();
 }
 
-auvc::ConsumerError JniCountConsumer::openConsumer() {
+auvc::ConsumerError JniCountConsumer::startConsuming() {
+    std::lock_guard<std::mutex> lock(jniConsumerMutex);
     if (jniConsumer == nullptr) {
         return auvc::ConsumerError(auvc::ConsumerErrorCode::WRONG_CONFIGURATION, "JniCountConsumer: jniConsumer is null");
     }
@@ -92,7 +93,7 @@ auvc::ConsumerError JniCountConsumer::openConsumer() {
     return auvc::ConsumerError::SUCCESS;
 }
 
-auvc::ConsumerError JniCountConsumer::closeConsumer() {
+auvc::ConsumerError JniCountConsumer::stopConsuming() {
     std::lock_guard<std::mutex> lock(jniConsumerMutex);
     consuming = false;
     if (jniConsumer != nullptr) {
