@@ -92,6 +92,8 @@ class PullToPushSourceTests {
         val consumer = CountConsumer()
         pullSource.open(Source.OpenConfiguration("pull"))
 
+        consumer.openConsumer()
+
         val pullToPush = PullToPushSource()
         pullToPush.open(
             PullToPushSource.OpenConfiguration(
@@ -117,6 +119,7 @@ class PullToPushSourceTests {
         Thread.sleep(1000)
 
         result = pullToPush.stopProducing()
+        consumer.close()
         Assertions.assertTrue { result.isSuccess() }
 
         Thread.sleep(100)

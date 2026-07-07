@@ -234,10 +234,6 @@ public:
         *lastFrame = frame;
         gtk_widget_queue_draw(draw_area);
     }
-
-    void stopConsuming() override {
-        // No specific action needed on stop consuming
-    }
 };
 
 

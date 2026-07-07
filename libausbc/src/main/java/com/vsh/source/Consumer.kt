@@ -1,7 +1,7 @@
 package com.vsh.source
 
 interface Consumer {
-    fun consume(frame: Frame)
-    fun close()
-    fun open()
+    fun consume(frame: Frame?)
+    fun closeConsumer()
+    fun openConsumer()
 }

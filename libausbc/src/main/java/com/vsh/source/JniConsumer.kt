@@ -17,7 +17,7 @@ abstract class JniConsumer: Consumer, AutoCloseable {
         }
     }
 
-    override fun close() {
+    override fun closeConsumer() {
         return _srcId.map {
             nativeClose(it)
         }.orElseThrow({
@@ -25,7 +25,7 @@ abstract class JniConsumer: Consumer, AutoCloseable {
         })
     }
 
-    override fun open() {
+    override fun openConsumer() {
         return _srcId.map {
             nativeOpen(it)
         }.orElseThrow({
@@ -36,7 +36,7 @@ abstract class JniConsumer: Consumer, AutoCloseable {
     fun getConsumerId(): Optional<Int> = _srcId
 
     override fun close() {
-        stopConsuming()
+        closeConsumer()
         releaseNativeObject()
     }
 

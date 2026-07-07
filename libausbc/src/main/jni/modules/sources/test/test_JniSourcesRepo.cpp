@@ -1,7 +1,14 @@
 #include <catch2/catch_test_macros.hpp>
 #include "jni/JniSourcesRepo.h"
 #include "TestFileSource.h"
-#include "jni/JniCountConsumer.h"
+#include "Consumer.h"
+
+class TestConsumer : public auvc::Consumer {
+public:
+    void consume(const auvc::Frame& frame) override {
+        // Do nothing for testing purposes
+    }
+};
 
 TEST_CASE("JniSourcesRepo Test source operations", "[JniSourcesRepo]") {
     auto repo = JniSourcesRepo::getInstance();
@@ -32,7 +39,7 @@ TEST_CASE("JniSourcesRepo Test source operations", "[JniSourcesRepo]") {
 TEST_CASE("JniSourcesRepo test consumer operations", "[JniSourcesRepo]") {
     auto repo = JniSourcesRepo::getInstance();
     SECTION("Add and get consumer") {
-        auto consumer = std::make_shared<JniCountConsumer>();
+        auto consumer = std::make_shared<TestConsumer>();
         int id = repo->addConsumer(consumer);
         REQUIRE(id > 0);
 
@@ -41,8 +48,8 @@ TEST_CASE("JniSourcesRepo test consumer operations", "[JniSourcesRepo]") {
         REQUIRE(retrieved == consumer);
     }
 
-    SECTION("Remove source") {
-        auto consumer = std::make_shared<JniCountConsumer>();
+    SECTION("Remove consumer") {
+        auto consumer = std::make_shared<TestConsumer>();
         int id = repo->addConsumer(consumer);
         REQUIRE(id > 0);
 

@@ -10,10 +10,14 @@ private:
     std::atomic<int> frameCount {0};
     std::atomic<bool> consuming {false};
     jobject jniConsumer {nullptr};
+    JavaVM* g_jvm;
 public:
-    JniCountConsumer();
+    JniCountConsumer(JavaVM* g_jvm);
     virtual ~JniCountConsumer() override;
     void consume(const auvc::Frame& frame) override;
+    void setOpenConfiguration(
+        jobject jniConsumer
+    );
     auvc::ConsumerError openConsumer() override;
     auvc::ConsumerError closeConsumer() override;
     jobject getJniConsumer() const { return jniConsumer; }
