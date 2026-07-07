@@ -13,7 +13,7 @@ Original project here - https://github.com/jiangdongguo/AndroidUSBCamera
    git submodule update --init --recursive
    ```
 1. Open the project in Android Studio.
-1. Make sure you have the NDK installed **27.0.12077973**. Also, you will need CMake **3.31.6**.
+1. Make sure you have the NDK installed **29.0.14206865**. Also, you will need CMake **3.31.6**.
 1. Build the project.
 
 
