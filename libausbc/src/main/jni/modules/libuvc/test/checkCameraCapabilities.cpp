@@ -76,7 +76,7 @@ int main() {
                                 std::cout << fps << " fps, ";
                             }
                         } else {
-                            std::cout << "Continious intevals " << frame_desc->dwMinFrameInterval << " to " << frame_desc->dwMaxFrameInterval
+                            std::cout << "Continuous intevals " << frame_desc->dwMinFrameInterval << " to " << frame_desc->dwMaxFrameInterval
                                 << " with step " << frame_desc->dwFrameIntervalStep;
                         }
                         std::cout << std::endl;

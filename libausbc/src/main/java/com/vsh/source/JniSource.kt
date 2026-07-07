@@ -18,8 +18,8 @@ abstract class JniSource<OC : Source.OpenConfiguration, PC : Source.ProducingCon
 
     override fun getSupportedFrameFormats(): List<Source.FrameFormat> {
         return _srcId.map { id ->
-            nativeGetSupportedFrameFormats(id).map { id : Integer ->
-                Source.FrameFormat.entries[id.toInt()]
+            nativeGetSupportedFrameFormats(id).map { formatId : Integer ->
+                Source.FrameFormat.entries[formatId.toInt()]
             }
         }.orElseGet {
             emptyList()

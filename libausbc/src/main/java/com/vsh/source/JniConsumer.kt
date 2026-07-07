@@ -1,6 +1,5 @@
 package com.vsh.source
 
-import java.io.Closeable
 import java.util.Optional
 
 abstract class JniConsumer: Consumer, AutoCloseable {
