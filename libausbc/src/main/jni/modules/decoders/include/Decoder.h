@@ -37,7 +37,7 @@ private:
 };
 
 class Decoder: 
-    public auvc::Consumer, // will consume encoded frames
+    public auvc::OpenCloseConsumer, // will consume encoded frames
     public auvc::PushSource
 {
 public:

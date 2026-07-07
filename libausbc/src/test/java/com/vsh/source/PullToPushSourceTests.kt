@@ -101,7 +101,7 @@ class PullToPushSourceTests {
             )
         )
 
-        pullSource.startProducing(
+        var result = pullSource.startProducing(
             Source.ProducingConfiguration(
                 tag = "producing1",
                 width  = 640,
@@ -109,8 +109,9 @@ class PullToPushSourceTests {
                 fps = 30.0f
             )
         )
+        Assertions.assertTrue { result.isSuccess() }
 
-        var result = pullToPush.startProducing(Source.ProducingConfiguration())
+        result = pullToPush.startProducing(Source.ProducingConfiguration())
         Assertions.assertTrue { result.isSuccess() }
 
         Thread.sleep(1000)

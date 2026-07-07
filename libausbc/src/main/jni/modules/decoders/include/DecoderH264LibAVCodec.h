@@ -21,7 +21,6 @@ public:
     virtual void open(const X264DecoderConfig &config) override;
     std::future<void> startProducing(const Source::ProducingConfiguration &config) override;
     void consume(const auvc::Frame &frame) override;
-    void stopConsuming() override;
     std::future<void> stopProducing() override;
     std::future<void> close() override;
     auvc::ExpectedResolutions getSupportedResolutions() const override;

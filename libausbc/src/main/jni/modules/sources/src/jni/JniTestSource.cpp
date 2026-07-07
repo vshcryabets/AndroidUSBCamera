@@ -188,7 +188,8 @@ Java_com_vsh_source_TestSourceYUV420_nativeWaitNextFrame(
         jobject thiz,
         jint sourceId)
 {
-    auto source = std::dynamic_pointer_cast<auvc::TestSourceYUV420>(JniSourcesRepo::getInstance()->getSource(sourceId));
+    auto source = std::dynamic_pointer_cast<auvc::TestSourceYUV420>(
+            JniSourcesRepo::getInstance()->getSource(sourceId));
     return source->waitNextFrame();
 }
 

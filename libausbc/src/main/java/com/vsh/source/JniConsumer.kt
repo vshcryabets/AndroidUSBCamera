@@ -17,9 +17,17 @@ abstract class JniConsumer: Consumer, AutoCloseable {
         }
     }
 
-    override fun stopConsuming() {
+    override fun close() {
         return _srcId.map {
-            nativeStopConsuming(it)
+            nativeClose(it)
+        }.orElseThrow({
+            IllegalStateException("Consumer is not initialized")
+        })
+    }
+
+    override fun open() {
+        return _srcId.map {
+            nativeOpen(it)
         }.orElseThrow({
             IllegalStateException("Consumer is not initialized")
         })
@@ -33,7 +41,8 @@ abstract class JniConsumer: Consumer, AutoCloseable {
     }
 
     protected abstract fun nativeRelease(ptr: Int)
-    protected abstract fun nativeStopConsuming(ptr: Int)
+    protected abstract fun nativeClose(ptr: Int)
+    protected abstract fun nativeOpen(ptr: Int)
 
 
 }

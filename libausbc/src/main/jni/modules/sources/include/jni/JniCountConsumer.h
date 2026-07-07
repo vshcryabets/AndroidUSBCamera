@@ -5,13 +5,16 @@
 
 #include "Consumer.h"
 
-class JniCountConsumer: public auvc::Consumer {
+class JniCountConsumer: public auvc::OpenCloseConsumer {
 private:
     std::atomic<int> frameCount {0};
     std::atomic<bool> consuming {false};
+    jobject jniConsumer {nullptr};
 public:
-    JniCountConsumer() = default;
-    ~JniCountConsumer() override = default;
+    JniCountConsumer();
+    virtual ~JniCountConsumer() override;
     void consume(const auvc::Frame& frame) override;
-    void stopConsuming() override;
+    auvc::ConsumerError openConsumer() override;
+    auvc::ConsumerError closeConsumer() override;
+    jobject getJniConsumer() const { return jniConsumer; }
 };

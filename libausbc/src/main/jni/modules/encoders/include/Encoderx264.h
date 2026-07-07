@@ -29,7 +29,6 @@ public:
     virtual void open(const X264EncConfiguration &config) override;
     [[nodiscard]] std::future<void> close() override;
     void consume(const auvc::Frame& frame) override;
-    void stopConsuming() override;
     std::future<void> startProducing(const ProducingConfiguration &config) override;
     std::future<void> stopProducing() override;
     std::vector<auvc::FrameFormat> getSupportedFrameFormats() const override;
