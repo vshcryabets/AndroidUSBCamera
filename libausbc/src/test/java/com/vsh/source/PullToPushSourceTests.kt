@@ -92,7 +92,7 @@ class PullToPushSourceTests {
         val consumer = CountConsumer()
         pullSource.open(Source.OpenConfiguration("pull"))
 
-        consumer.openConsumer()
+        consumer.startConsuming()
 
         val pullToPush = PullToPushSource()
         pullToPush.open(
@@ -125,7 +125,7 @@ class PullToPushSourceTests {
 
         Assertions.assertTrue(consumer.getFrameCount() > 0, "Consumer should have received frames")
 
-        consumer.closeConsumer()
+        consumer.stopConsuming()
         consumer.close()
         pullSource.close()
         pullToPush.close()

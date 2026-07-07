@@ -31,7 +31,7 @@ TestFileWriter::TestFileWriter(const std::string &fileName,
 
 TestFileWriter::~TestFileWriter()
 {
-    closeConsumer();
+    stopConsuming();
 }
 
 void TestFileWriter::consume(const auvc::Frame& frame)
@@ -55,7 +55,7 @@ void TestFileWriter::consume(const auvc::Frame& frame)
     }
 }
 
-auvc::ConsumerError TestFileWriter::openConsumer()
+auvc::ConsumerError TestFileWriter::startConsuming()
 {
     if (!dataFile.is_open()) {
         return auvc::ConsumerError(auvc::ConsumerErrorCode::WRONG_CONFIGURATION, "Data file is not open");
@@ -63,7 +63,7 @@ auvc::ConsumerError TestFileWriter::openConsumer()
     return auvc::ConsumerError::SUCCESS;
 }
 
-auvc::ConsumerError TestFileWriter::closeConsumer()
+auvc::ConsumerError TestFileWriter::stopConsuming()
 {
     framesCount = 0;
     if (dataFile.is_open()) {

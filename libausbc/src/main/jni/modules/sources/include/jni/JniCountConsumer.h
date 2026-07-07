@@ -20,7 +20,7 @@ public:
     void setOpenConfiguration(
         jobject jniConsumer
     );
-    auvc::ConsumerError openConsumer() override;
-    auvc::ConsumerError closeConsumer() override;
+    auvc::ConsumerError startConsuming() override;
+    auvc::ConsumerError stopConsuming() override;
     jobject getJniConsumer() const { return jniConsumer; }
 };

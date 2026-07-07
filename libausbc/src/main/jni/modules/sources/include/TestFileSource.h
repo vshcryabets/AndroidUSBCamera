@@ -64,8 +64,8 @@ public:
     ~TestFileWriter();
 
     void consume(const auvc::Frame& frame) override;
-    auvc::ConsumerError openConsumer() override;
-    auvc::ConsumerError closeConsumer() override;
+    auvc::ConsumerError startConsuming() override;
+    auvc::ConsumerError stopConsuming() override;
     uint32_t getFramesCount() const {
         return framesCount;
     }

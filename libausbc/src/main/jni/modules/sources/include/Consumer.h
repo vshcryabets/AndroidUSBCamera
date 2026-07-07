@@ -35,8 +35,8 @@ public:
 class OpenCloseConsumer: public Consumer {
 public:
     virtual ~OpenCloseConsumer() = default;
-    virtual auvc::ConsumerError openConsumer();
-    virtual auvc::ConsumerError closeConsumer();
+    virtual auvc::ConsumerError startConsuming();
+    virtual auvc::ConsumerError stopConsuming();
 };
 
 
