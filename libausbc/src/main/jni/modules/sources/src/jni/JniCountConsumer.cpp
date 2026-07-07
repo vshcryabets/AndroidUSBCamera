@@ -85,6 +85,7 @@ JniCountConsumer::~JniCountConsumer() {
 }
 
 auvc::ConsumerError JniCountConsumer::startConsuming() {
+    std::lock_guard<std::mutex> lock(jniConsumerMutex);
     if (jniConsumer == nullptr) {
         return auvc::ConsumerError(auvc::ConsumerErrorCode::WRONG_CONFIGURATION, "JniCountConsumer: jniConsumer is null");
     }
