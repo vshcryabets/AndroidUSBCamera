@@ -40,7 +40,7 @@ import com.vsh.font.FontSrcImpl
 import com.vsh.screens.AusbcApp
 import com.vsh.screens.DeviceListViewModel
 import com.vsh.screens.DeviceListViewModelFactory
-import com.vsh.screens.TestSourceViewModelFactory
+import com.vsh.screens.testsource.TestSourceViewModelFactory
 import com.vsh.uvc.CheckRequirementsImpl
 import com.vsh.uvc.JpegBenchmarkImpl
 import com.vsh.uvc.UsbDeviceMonitorImpl

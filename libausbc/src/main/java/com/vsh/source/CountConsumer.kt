@@ -14,4 +14,6 @@ class CountConsumer: JniConsumer() {
     private external fun nativeCreate(): Int
     external override fun nativeRelease(ptr: Int)
     external override fun nativeStopConsuming(ptr: Int)
+
+    fun getFrameCount() = counter.get()
 }

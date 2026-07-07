@@ -55,6 +55,10 @@ import com.jiangdg.demo.R
 import com.vsh.uvc.UsbDevicesMonitor
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.navigation
+import com.vsh.screens.testsource.TestSourceConfiguration
+import com.vsh.screens.testsource.TestSourcePreview
+import com.vsh.screens.testsource.TestSourceViewModel
+import com.vsh.screens.testsource.TestSourceViewModelFactory
 
 enum class AusbcScreen() {
     Start,

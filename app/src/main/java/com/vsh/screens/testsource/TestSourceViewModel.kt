@@ -1,5 +1,5 @@
 /*
-* Copyright 2025 vschryabets@gmail.com
+* Copyright 2025-2026 vschryabets@gmail.com
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -13,14 +13,15 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package com.vsh.screens
+package com.vsh.screens.testsource
 
 import android.view.Surface
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.vsh.source.Source
 import com.jiangdg.uvc.SourceResolution
 import com.vsh.domain.usecases.GetTestSourceUseCase
+import com.vsh.source.PullToPushSource
+import com.vsh.source.Source
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -43,9 +44,10 @@ data class TestSourceViewState(
 )
 
 class TestSourceViewModel(
-    private val getTestSourceUseCase: GetTestSourceUseCase
+    getTestSourceUseCase: GetTestSourceUseCase
 ) : ViewModel() {
     private val source: Source<*,*>
+    private val pullToPushSource: PullToPushSource
     private val _state = MutableStateFlow(TestSourceViewState())
     val state: StateFlow<TestSourceViewState> = _state
 
@@ -56,6 +58,7 @@ class TestSourceViewModel(
             Source.OpenConfiguration(
             tag = "TestSource"
         ))
+        pullToPushSource = PullToPushSource()
         val sourceResolutionsMap = source.getSupportedResolutions()
         // find the first resolution with the highest FPS
         val resolutionsBySize = sourceResolutionsMap.values
@@ -101,7 +104,8 @@ class TestSourceViewModel(
         Timber.d("onSurfaceDestroyed called")
     }
 
-    fun onSurfaceReady(surface: Surface?) {
+    fun onSurfaceReady(surface: Surface) {
+        // we should pass surface
 
     }
 

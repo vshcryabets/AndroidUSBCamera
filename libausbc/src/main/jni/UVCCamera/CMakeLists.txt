@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.22)
+cmake_minimum_required(VERSION 3.31)
 
 if(BUILD_JNIWRAPPER_MODULE)
     #message(${ANDROID_ABI})
@@ -33,14 +33,23 @@ if(BUILD_JNIWRAPPER_MODULE)
             src/Camera.cpp
     )
 
+    ## Force linker to include all symbols from the Sources library
     target_link_libraries(native
-            Images
-            Sources
+            PRIVATE
             libJpegStatic
             LibUvc
-            U8x8Font
             android
-            log)
+            log
+            "$<LINK_LIBRARY:WHOLE_ARCHIVE,Sources>"
+            "$<LINK_LIBRARY:WHOLE_ARCHIVE,U8x8Font>"
+            "$<LINK_LIBRARY:WHOLE_ARCHIVE,Images>"
+    )
+
+    # Force linker to report undefined symbols as errors during shared library creation
+    target_link_options(native PRIVATE
+            -Wl,--no-undefined
+            -Wl,--no-allow-shlib-undefined
+    )
 
     target_include_directories(native PUBLIC
             $<INSTALL_INTERFACE:include>

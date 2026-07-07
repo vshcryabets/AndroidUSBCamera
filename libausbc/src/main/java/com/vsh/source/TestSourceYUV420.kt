@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 vschryabets@gmail.com
+ * Copyright 2025-2026 vschryabets@gmail.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,12 +46,18 @@ class TestSourceYUV420(
         super.close()
     }
 
-    override fun startProducing(configuration: Source.ProducingConfiguration) {
-        _srcId.ifPresent { nativeStartProducing(it, configuration) }
+    override fun startProducing(configuration: Source.ProducingConfiguration): JniSourceError {
+        if (_srcId.isEmpty)
+            return JniSourceError(JniSourceErrorType.SOURCE_NOT_INITIALIZED)
+        val errorCode = nativeStartProducing(_srcId.get(), configuration)
+        return JniSourceError.fromErrorCode(errorCode)
     }
 
-    override fun stopProducing() {
-        _srcId.ifPresent { nativeStopProducing(it) }
+    override fun stopProducing(): JniSourceError {
+        if (_srcId.isEmpty)
+            return JniSourceError(JniSourceErrorType.SOURCE_NOT_INITIALIZED)
+        val errorCode = nativeStopProducing(_srcId.get())
+        return JniSourceError.fromErrorCode(errorCode)
     }
 
     override fun getProducingConfiguration(): Source.ProducingConfiguration? {
@@ -103,14 +109,14 @@ class TestSourceYUV420(
 
     private external fun nativeCreate(fontPtr: Long): Int
     external override fun nativeRelease(srcId: Int)
-    private external fun nativeStopProducing(srcId: Int)
+    private external fun nativeStopProducing(srcId: Int): Int
     private external fun nativeClose(srcId: Int)
     private external fun nativeIsReadyForProducing(srcId: Int): Boolean
     private external fun nativeWaitNextFrame(srcId: Int): Boolean
     external override fun nativeGetSupportedResolutions(srcId: Int): Map<Integer, List<SourceResolution>>
     external override fun nativeGetSupportedFrameFormats(srcId: Int): List<Integer>
     external fun nativeOpen(srcId: Int)
-    external fun nativeStartProducing(srcId: Int, configuration: Source.ProducingConfiguration)
+    external fun nativeStartProducing(srcId: Int, configuration: Source.ProducingConfiguration): Int
     external fun nativeReadFrame(srcId: Int): Frame
     private external fun nativeIsPullSource(srcId: Int): Boolean
     private external fun nativeIsPushSource(srcId: Int): Boolean
