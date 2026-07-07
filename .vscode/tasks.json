@@ -25,7 +25,9 @@
             "command": "cmake",
             "args": [
                 "--build",
-                "${workspaceFolder}/linux/build"
+                "${workspaceFolder}/linux/build",
+                "--parallel",
+                "8"
             ],
             "group": {
                 "kind": "build",
