@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         submodules: 'recursive'
 
@@ -38,7 +38,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get -y update
-        sudo apt-get install -y libx264-dev libgtk-4-dev libportaudio2 portaudio19-dev libavcodec-dev libavformat-dev libavutil-dev pkg-config
+        sudo apt-get install -y libx264-dev libgtk-4-dev libportaudio2 portaudio19-dev libavcodec-dev libavformat-dev libavutil-dev pkg-config libudev-dev
 
     - name: Prepare build
       run: python workflow_build.py --prepare

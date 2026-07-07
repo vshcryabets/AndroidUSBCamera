@@ -5,7 +5,7 @@ Debug build:
 Complete time 135088 ms, iterations=30
 Build type: Debug
 Device: SM-X205 (gta8)
-JPEG decoder: TurboJPEG (version unknown))
+JPEG decoder: TurboJPEG (version unknown)
 Sample id 10360, time 27 ms
 Sample id 10480, time 47 ms
 Sample id 10720, time 106 ms
@@ -32,7 +32,7 @@ Release build:
 Complete time 43203 ms, iterations=30
 Build type: Release
 Device: SM-X205 (gta8)
-JPEG decoder: TurboJPEG (version unknown))
+JPEG decoder: TurboJPEG (version unknown)
 Sample id 10360, time 9 ms
 Sample id 10480, time 17 ms
 Sample id 10720, time 38 ms
@@ -60,7 +60,7 @@ Debug build:
 Complete time 49639 ms, iterations=30
 Build type: Debug
 Device: Pixel 6 (oriole)
-JPEG decoder: TurboJPEG (version unknown))
+JPEG decoder: TurboJPEG (version unknown)
 Sample id 10360, time 12 ms
 Sample id 10480, time 19 ms
 Sample id 10720, time 41 ms
@@ -87,7 +87,7 @@ Release build:
 Complete time 21514 ms, iterations=30
 Build type: Release
 Device: Pixel 6 (oriole)
-JPEG decoder: TurboJPEG (version unknown))
+JPEG decoder: TurboJPEG (version unknown)
 Sample id 10360, time 5 ms
 Sample id 10480, time 8 ms
 Sample id 10720, time 17 ms
@@ -115,7 +115,7 @@ Debug build:
 Complete time 21415 ms, iterations=30
 Build type: Debug
 Device: Pixel 6 (oriole)
-JPEG decoder: TurboJPEG (version unknown))
+JPEG decoder: TurboJPEG (version unknown)
 Sample id 10360, time 5 ms
 Sample id 10480, time 7 ms
 Sample id 10720, time 17 ms
@@ -141,7 +141,7 @@ Release build:
 Complete time 21342 ms, iterations=30
 Build type: Release
 Device: Pixel 6 (oriole)
-JPEG decoder: TurboJPEG (version unknown))
+JPEG decoder: TurboJPEG (version unknown)
 Sample id 10360, time 4 ms
 Sample id 10480, time 7 ms
 Sample id 10720, time 17 ms
@@ -160,4 +160,32 @@ Sample id 30720, time 14 ms
 Sample id 31080, time 34 ms
 Sample id 31440, time 56 ms
 Sample id 32160, time 116 ms
+```
+
+## Google Pixel 9 Pro + TurboJPEG 3.1.0
+
+Debug build
+```
+Complete time 17433 ms, iterations=30
+Build type: Debug
+Device: Pixel 9 Pro (caiman)
+JPEG decoder: TurboJPEG (version unknown)
+Sample id 10360, time 4 ms
+Sample id 10480, time 5 ms
+Sample id 10720, time 13 ms
+Sample id 11080, time 33 ms
+Sample id 11440, time 53 ms
+Sample id 12160, time 109 ms
+Sample id 20360, time 2 ms
+Sample id 20480, time 4 ms
+Sample id 20720, time 9 ms
+Sample id 21080, time 24 ms
+Sample id 21440, time 42 ms
+Sample id 22160, time 87 ms
+Sample id 30360, time 3 ms
+Sample id 30480, time 5 ms
+Sample id 30720, time 11 ms
+Sample id 31080, time 27 ms
+Sample id 31440, time 46 ms
+Sample id 32160, time 96 ms
 ```
