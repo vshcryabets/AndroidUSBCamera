@@ -18,7 +18,7 @@ package com.vsh.screens
 import com.jiangdg.uvc.SourceResolution
 import com.vsh.domain.usecases.GetTestSourceUseCase
 import com.vsh.screens.testsource.TestSourceViewModel
-import com.vsh.source.JniSourceError
+import com.vsh.source.JniObjectError
 import com.vsh.source.Source
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -36,11 +36,11 @@ class TestSourceViewModelTests {
         override fun close() {
         }
 
-        override fun startProducing(configuration: Source.ProducingConfiguration): JniSourceError {
+        override fun startProducing(configuration: Source.ProducingConfiguration): JniObjectError {
             TODO("Not yet implemented")
         }
 
-        override fun stopProducing(): JniSourceError {
+        override fun stopProducing(): JniObjectError {
             TODO("Not yet implemented")
         }
 

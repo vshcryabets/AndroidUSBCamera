@@ -5,6 +5,8 @@
 #include "jni/JniSourcesRepo.h"
 #include "jni/JniSourceError.h"
 
+using namespace auvc::jni;
+
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_vsh_source_PullToPushSource_nativeOpen(

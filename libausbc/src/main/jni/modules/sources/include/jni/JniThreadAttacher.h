@@ -2,6 +2,8 @@
 
 #include "jni.h"
 
+namespace auvc::jni {
+
 class JniThreadAttacher {
 public:
     JNIEnv* env = nullptr;
@@ -29,3 +31,5 @@ public:
 private:
     bool needsDetach = false;
 };
+
+}

@@ -21,6 +21,10 @@ endif()
 if(BUILD_JNI_WRAPPERS)
     if (NOT (CMAKE_SYSTEM_NAME STREQUAL "Android"))
         find_package(JNI REQUIRED COMPONENTS JVM)
+    else()
+        target_sources(Sources PRIVATE
+            src/jni/JniSurfaceConsumer.cpp
+        )
     endif()
     target_sources(Sources PRIVATE
         src/jni/JniTestSource.cpp
@@ -28,6 +32,7 @@ if(BUILD_JNI_WRAPPERS)
         src/jni/JniPullToPushSource.cpp
         src/jni/JniCountConsumer.cpp
         src/jni/JniSourcesRepo.cpp
+        src/jni/JniSourceError.cpp
         )
     target_include_directories(
         Sources

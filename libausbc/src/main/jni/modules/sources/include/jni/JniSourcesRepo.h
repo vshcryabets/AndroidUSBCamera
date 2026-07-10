@@ -7,6 +7,8 @@
 #include "Source.h"
 #include "Consumer.h"
 
+namespace auvc::jni {
+
 class JniSourcesRepo {
 private:
     static std::unique_ptr<JniSourcesRepo> instance;
@@ -26,3 +28,5 @@ public:
     std::shared_ptr<auvc::Consumer> getConsumer(int id) const;
     void removeConsumer(int id);
 };
+
+}

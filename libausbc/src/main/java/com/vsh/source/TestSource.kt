@@ -45,7 +45,7 @@ class TestSource(
         _srcId = Optional.empty()
     }
 
-    override fun startProducing(configuration: Source.ProducingConfiguration): JniSourceError {
+    override fun startProducing(configuration: Source.ProducingConfiguration): JniObjectError {
         TODO("Not yet implemented")
     }
 
@@ -57,11 +57,11 @@ class TestSource(
         TODO("Not yet implemented")
     }
 
-    override fun stopProducing(): JniSourceError {
+    override fun stopProducing(): JniObjectError {
         if (_srcId.isEmpty)
-            return JniSourceError(JniSourceErrorType.SOURCE_NOT_INITIALIZED)
+            return JniObjectError(JniObjectErrorType.NOT_INITIALIZED)
         val errorCode = nativeStopCapturing(_srcId.get())
-        return JniSourceError.fromErrorCode(errorCode)
+        return JniObjectError.fromErrorCode(errorCode)
     }
 
     override fun isPullSource(): Boolean {

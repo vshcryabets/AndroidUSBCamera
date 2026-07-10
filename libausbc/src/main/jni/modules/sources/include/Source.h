@@ -10,7 +10,7 @@ namespace auvc {
     std::future<void> completed();
 
     enum class SourceErrorCode : uint16_t {
-        SOURCE_ERROR_WRONG_CONFIG,
+        SOURCE_ERROR_WRONG_CONFIG = 0,
         SOURCE_ERROR_CAPTURE_NOT_STARTED,
         SOURCE_ERROR_NOT_OPENED,
         SOURCE_ERROR_READ_AGAIN,

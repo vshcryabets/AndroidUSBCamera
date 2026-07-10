@@ -22,6 +22,7 @@ public:
     ConsumerError(ConsumerErrorCode code, const std::string &message) : code(code), message(message) {}
     ~ConsumerError() override = default;
     const char* what() const noexcept override;
+    ConsumerErrorCode getCode() const noexcept { return code; }
 
     static ConsumerError SUCCESS;
 };

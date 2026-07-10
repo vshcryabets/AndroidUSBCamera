@@ -8,19 +8,21 @@
 
 namespace auvc::jni {
 
-class JniCountConsumer: public auvc::OpenCloseConsumer {
+class JniSurfaceConsumer: public auvc::OpenCloseConsumer {
 private:
-    std::atomic<int> frameCount {0};
     std::atomic<bool> consuming {false};
     std::mutex jniConsumerMutex;
     jobject jniConsumer {nullptr};
     JavaVM* g_jvm;
+    ANativeWindow *nativeWindow;
 public:
-    JniCountConsumer(JavaVM* g_jvm);
-    virtual ~JniCountConsumer() override;
+    JniSurfaceConsumer(JavaVM* g_jvm);
+    virtual ~JniSurfaceConsumer() override;
     void consume(const auvc::Frame& frame) override;
-    void setOpenConfiguration(
-        jobject jniConsumer
+    auvc::ConsumerError setOpenConfiguration(
+        JNIEnv* env,
+        jobject jniConsumer,
+        jobject surface
     );
     auvc::ConsumerError startConsuming() override;
     auvc::ConsumerError stopConsuming() override;

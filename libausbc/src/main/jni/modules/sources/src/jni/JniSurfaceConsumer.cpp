@@ -2,66 +2,60 @@
 #include <memory>
 
 #include "jni.h"
+#include <android/native_window_jni.h>
 
-#include "jni/JniCountConsumer.h"
+#include "jni/JniSurfaceConsumer.h"
 #include "jni/JniSources.h"
 #include "jni/JniSourcesRepo.h"
 #include "jni/JniThreadAttacher.h"
-#include "jni/JniSourceError.h"
 #include "Consumer.h"
-
-using namespace auvc::jni;
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_com_vsh_source_CountConsumer_nativeCreate(
+Java_com_vsh_source_SurfaceConsumer_nativeCreate(
         JNIEnv *env,
         jobject thiz) {
     JavaVM* g_jvm;
     env->GetJavaVM(&g_jvm);
-    return JniSourcesRepo::getInstance()->addConsumer(std::make_shared<JniCountConsumer>(g_jvm));
+    return JniSourcesRepo::getInstance()->addConsumer(std::make_shared<JniSurfaceConsumer>(g_jvm));
 }
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_com_vsh_source_CountConsumer_nativeRelease(JNIEnv *env, jobject thiz, jint sourceId) {
+Java_com_vsh_source_SurfaceConsumer_nativeRelease(JNIEnv *env, jobject thiz, jint sourceId) {
     auto source = JniSourcesRepo::getInstance()->getConsumer(sourceId);
+    if (source) {
+        auto jniConsumer = std::dynamic_pointer_cast<JniSurfaceConsumer>(source);
+        if (jniConsumer) {
+            jniConsumer->stopConsuming();
+        }
+    }
     JniSourcesRepo::getInstance()->removeConsumer(sourceId);
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_com_vsh_source_SurfaceConsumer_nativeStopConsuming(JNIEnv *env, jobject thiz, jint sourceId) {
+    auto source = std::dynamic_pointer_cast<JniSurfaceConsumer>(JniSourcesRepo::getInstance()->getConsumer(sourceId));
     if (source) {
-        auto jniConsumer = std::dynamic_pointer_cast<JniCountConsumer>(source);
-        return fromConsumerError(jniConsumer->stopConsuming());
-    } else {
-        return JniSourceErrorType::SOURCE_NOT_FOUND;
+        source->stopConsuming();
     }
 }
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_com_vsh_source_CountConsumer_nativeStopConsuming(JNIEnv *env, jobject thiz, jint sourceId) {
-    auto source = std::dynamic_pointer_cast<JniCountConsumer>(JniSourcesRepo::getInstance()->getConsumer(sourceId));
-    if (source) {
-        return fromConsumerError(source->stopConsuming());
-    } else {
-        return JniSourceErrorType::SOURCE_NOT_FOUND;
-    }
-}
-
-extern "C"
-JNIEXPORT jint JNICALL
-Java_com_vsh_source_CountConsumer_nativeStartConsuming(JNIEnv *env, jobject thiz, jint sourceId) {
-    auto source = std::dynamic_pointer_cast<JniCountConsumer>(JniSourcesRepo::getInstance()->getConsumer(sourceId));
+Java_com_vsh_source_SurfaceConsumer_nativeStartConsuming(JNIEnv *env, jobject thiz, jint sourceId) {
+    auto source = std::dynamic_pointer_cast<JniSurfaceConsumer>(JniSourcesRepo::getInstance()->getConsumer(sourceId));
     if (source) {
         source->stopConsuming();
         source->setOpenConfiguration(env->NewGlobalRef(thiz));
-        return fromConsumerError(source->startConsuming());
-    } else {
-        return JniSourceErrorType::SOURCE_NOT_FOUND;
+        source->startConsuming();
     }
 }
 
 namespace auvc::jni {
 
-void JniCountConsumer::consume(const auvc::Frame &frame) {
+void JniSurfaceConsumer::consume(const auvc::Frame &frame) {
     thread_local JniThreadAttacher attacher(g_jvm);
     JNIEnv* env = attacher.env;
     if (env == nullptr) return;
@@ -86,25 +80,25 @@ void JniCountConsumer::consume(const auvc::Frame &frame) {
     }
 }
 
-JniCountConsumer::JniCountConsumer(JavaVM* g_jvm): 
+JniSurfaceConsumer::JniSurfaceConsumer(JavaVM* g_jvm): 
     jniConsumer(nullptr), g_jvm(g_jvm) {
 
 }
 
-JniCountConsumer::~JniCountConsumer() {
+JniSurfaceConsumer::~JniSurfaceConsumer() {
     stopConsuming();
 }
 
-auvc::ConsumerError JniCountConsumer::startConsuming() {
+auvc::ConsumerError JniSurfaceConsumer::startConsuming() {
     std::lock_guard<std::mutex> lock(jniConsumerMutex);
     if (jniConsumer == nullptr) {
-        return auvc::ConsumerError(auvc::ConsumerErrorCode::WRONG_CONFIGURATION, "JniCountConsumer: jniConsumer is null");
+        return auvc::ConsumerError(auvc::ConsumerErrorCode::WRONG_CONFIGURATION, "JniSurfaceConsumer: jniConsumer is null");
     }
     consuming = true;
     return auvc::ConsumerError::SUCCESS;
 }
 
-auvc::ConsumerError JniCountConsumer::stopConsuming() {
+auvc::ConsumerError JniSurfaceConsumer::stopConsuming() {
     std::lock_guard<std::mutex> lock(jniConsumerMutex);
     consuming = false;
     if (jniConsumer != nullptr) {
@@ -112,15 +106,22 @@ auvc::ConsumerError JniCountConsumer::stopConsuming() {
         JNIEnv* env = attacher.env;
         env->DeleteGlobalRef(jniConsumer);
         jniConsumer = nullptr;
+        if (nativeWindow != nullptr) {
+            ANativeWindow_release(nativeWindow);
+            nativeWindow = nullptr;
+        }
     }
     return auvc::ConsumerError::SUCCESS;
 }
 
-void JniCountConsumer::setOpenConfiguration(
-    jobject jniConsumer
+void JniSurfaceConsumer::setOpenConfiguration(
+    JNIEnv* env,
+    jobject jniConsumer,
+    jobject surface
 ) {
     std::lock_guard<std::mutex> lock(jniConsumerMutex);
     this->jniConsumer = jniConsumer;
+    nativeWindow = ANativeWindow_fromSurface(env, surface);
 }
 
 }

@@ -3,6 +3,8 @@
 
 #include "jni/JniSources.h"
 
+namespace auvc::jni {
+
 jobject resolutionMapToJObject(const auvc::ExpectedResolutions &map, JNIEnv *env)
 {
     if (!map) {
@@ -81,4 +83,6 @@ jobject frameFormatsToJList(const std::vector<auvc::FrameFormat> &formats, JNIEn
     env->DeleteLocalRef(integerClass);
     env->DeleteLocalRef(arrayListCls);
     return list;
+}
+
 }

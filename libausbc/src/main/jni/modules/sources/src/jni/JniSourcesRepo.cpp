@@ -1,5 +1,7 @@
 #include "jni/JniSourcesRepo.h"
 
+namespace auvc::jni {
+
 std::unique_ptr<JniSourcesRepo> JniSourcesRepo::instance = nullptr;
 
 JniSourcesRepo* JniSourcesRepo::getInstance() {
@@ -47,4 +49,6 @@ std::shared_ptr<auvc::Consumer> JniSourcesRepo::getConsumer(int id) const {
 
 void JniSourcesRepo::removeConsumer(int id) {
     consumers.erase(id);
+}
+
 }

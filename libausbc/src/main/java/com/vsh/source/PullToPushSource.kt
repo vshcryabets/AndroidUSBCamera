@@ -41,18 +41,18 @@ class PullToPushSource :
 
     override fun getOpenConfiguration(): OpenConfiguration? = openConfig
 
-    override fun startProducing(configuration: Source.ProducingConfiguration): JniSourceError {
+    override fun startProducing(configuration: Source.ProducingConfiguration): JniObjectError {
         if (_srcId.isEmpty)
-            return JniSourceError(JniSourceErrorType.SOURCE_NOT_INITIALIZED)
+            return JniObjectError(JniObjectErrorType.NOT_INITIALIZED)
         val errorCode = nativeStartProducing(_srcId.get())
-        return JniSourceError.fromErrorCode(errorCode)
+        return JniObjectError.fromErrorCode(errorCode)
     }
 
-    override fun stopProducing(): JniSourceError {
+    override fun stopProducing(): JniObjectError {
         if (_srcId.isEmpty)
-            return JniSourceError(JniSourceErrorType.SOURCE_NOT_INITIALIZED)
+            return JniObjectError(JniObjectErrorType.NOT_INITIALIZED)
         val errorCode = nativeStopProducing(_srcId.get())
-        return JniSourceError.fromErrorCode(errorCode)
+        return JniObjectError.fromErrorCode(errorCode)
     }
 
     override fun getProducingConfiguration(): Source.ProducingConfiguration? {
