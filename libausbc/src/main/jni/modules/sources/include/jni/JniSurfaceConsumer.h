@@ -3,6 +3,7 @@
 #include "jni.h"
 #include <atomic>
 #include <mutex>
+#include <android/native_window_jni.h>
 
 #include "Consumer.h"
 
@@ -14,7 +15,7 @@ private:
     std::mutex jniConsumerMutex;
     jobject jniConsumer {nullptr};
     JavaVM* g_jvm;
-    ANativeWindow *nativeWindow;
+    ANativeWindow *nativeWindow {nullptr};
 public:
     JniSurfaceConsumer(JavaVM* g_jvm);
     virtual ~JniSurfaceConsumer() override;

@@ -2136,7 +2136,7 @@ Java_com_jiangdg_uvc_UVCCamera_nativeGetSupportedSize(JNIEnv *env, jclass clazz,
     if (LIKELY(camera)) {
         supportedSized = camera->getSupportedResolutions();
     }
-    return resolutionMapToJObject(supportedSized, env);
+    return auvc::jni::resolutionMapToJObject(supportedSized, env);
 }
 
 JNIEXPORT jint JNICALL
