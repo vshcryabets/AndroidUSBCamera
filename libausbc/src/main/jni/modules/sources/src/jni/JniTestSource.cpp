@@ -256,4 +256,49 @@ Java_com_vsh_source_TestSourceYUV420_nativeIsPushSource(
     }
     return source->isPushSource() ? JNI_TRUE : JNI_FALSE;
 }
+
+JNIEXPORT jboolean JNICALL
+Java_com_vsh_source_TestSource_nativeIsPullSource(
+        JNIEnv *env,
+        jobject thiz,
+        jint sourceId)
+{
+    auto source = std::dynamic_pointer_cast<auvc::TestSource>(
+            auvc::jni::JniSourcesRepo::getInstance()->getSource(sourceId));
+    if (!source) {
+        return JNI_FALSE;
+    }
+    return source->isPullSource() ? JNI_TRUE : JNI_FALSE;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_com_vsh_source_TestSource_nativeIsPushSource(
+        JNIEnv *env,
+        jobject thiz,
+        jint sourceId)
+{
+    auto source = std::dynamic_pointer_cast<auvc::TestSource>(
+            auvc::jni::JniSourcesRepo::getInstance()->getSource(sourceId));
+    if (!source) {
+        return JNI_FALSE;
+    }
+    return source->isPushSource() ? JNI_TRUE : JNI_FALSE;
+}
+
+JNIEXPORT jint JNICALL
+Java_com_vsh_source_TestSource_nativeStartProducing(
+        JNIEnv *env,
+        jobject thiz,
+        jint sourceId,
+        jobject producingConfiguration)
+{
+    auto source = auvc::jni::JniSourcesRepo::getInstance()->getSource(sourceId);
+    if (source == nullptr) {
+        return auvc::jni::JniSourceErrorType::SOURCE_NOT_FOUND;
+    }
+    auvc::Source::ProducingConfiguration config = auvc::jni::parseProducingConfiguration(
+            producingConfiguration, env);
+    source->startProducing(config).get();
+    return auvc::jni::JniSourceErrorType::SUCCESS;
+}
 }

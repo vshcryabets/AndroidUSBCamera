@@ -11,7 +11,7 @@ android {
     defaultConfig {
         minSdk = libs.versions.minSdk.get().toInt()
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        ndk.abiFilters.addAll(listOf("armeabi-v7a","arm64-v8a")) // x86, x86_64 still in progress
+        ndk.abiFilters.addAll(listOf("armeabi-v7a","arm64-v8a","x86_64")) // x86,  still in progress
         externalNativeBuild {
             cmake {
                 arguments.add("-DANDROID_ALIGNED_AS_PAGE_SIZE=ON")

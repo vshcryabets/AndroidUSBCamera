@@ -46,7 +46,10 @@ class TestSource(
     }
 
     override fun startProducing(configuration: Source.ProducingConfiguration): JniObjectError {
-        TODO("Not yet implemented")
+        if (_srcId.isEmpty)
+            return JniObjectError(JniObjectErrorType.NOT_INITIALIZED)
+        val errorCode = nativeStartProducing(_srcId.get(), configuration)
+        return JniObjectError.fromErrorCode(errorCode)
     }
 
     override fun getProducingConfiguration(): Source.ProducingConfiguration? {
@@ -65,11 +68,19 @@ class TestSource(
     }
 
     override fun isPullSource(): Boolean {
-        TODO("Not yet implemented")
+        return _srcId.map {
+            nativeIsPullSource(it)
+        }.orElseThrow({
+            IllegalStateException("Source is not initialized")
+        })
     }
 
     override fun isPushSource(): Boolean {
-        TODO("Not yet implemented")
+        return _srcId.map {
+            nativeIsPushSource(it)
+        }.orElseThrow({
+            IllegalStateException("Source is not initialized")
+        })
     }
 
     private external fun nativeCreate(fontPtr: Long): Int
@@ -78,5 +89,7 @@ class TestSource(
     private external fun nativeClose(srcId: Int)
     external override fun nativeGetSupportedResolutions(srcId: Int): Map<Integer, List<SourceResolution>>
     override external fun nativeGetSupportedFrameFormats(srcId: Int): List<Integer>
-
+    private external fun nativeIsPullSource(srcId: Int): Boolean
+    private external fun nativeIsPushSource(srcId: Int): Boolean
+    private external fun nativeStartProducing(srcId: Int, configuration: Source.ProducingConfiguration): Int
 }

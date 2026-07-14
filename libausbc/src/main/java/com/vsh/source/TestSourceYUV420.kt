@@ -116,7 +116,7 @@ class TestSourceYUV420(
     external override fun nativeGetSupportedResolutions(srcId: Int): Map<Integer, List<SourceResolution>>
     external override fun nativeGetSupportedFrameFormats(srcId: Int): List<Integer>
     external fun nativeOpen(srcId: Int)
-    external fun nativeStartProducing(srcId: Int, configuration: Source.ProducingConfiguration): Int
+    private external fun nativeStartProducing(srcId: Int, configuration: Source.ProducingConfiguration): Int
     external fun nativeReadFrame(srcId: Int): Frame
     private external fun nativeIsPullSource(srcId: Int): Boolean
     private external fun nativeIsPushSource(srcId: Int): Boolean

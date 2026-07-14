@@ -22,6 +22,8 @@ import com.jiangdg.uvc.SourceResolution
 import com.vsh.domain.usecases.GetTestSourceUseCase
 import com.vsh.source.PullToPushSource
 import com.vsh.source.Source
+import com.vsh.source.SurfaceConsumer
+import com.vsh.source.TestSource
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -46,8 +48,9 @@ data class TestSourceViewState(
 class TestSourceViewModel(
     getTestSourceUseCase: GetTestSourceUseCase
 ) : ViewModel() {
-    private val source: Source<*,*>
+    private val source: TestSource
     private val pullToPushSource: PullToPushSource
+    private val surfaceConsumer: SurfaceConsumer
     private val _state = MutableStateFlow(TestSourceViewState())
     val state: StateFlow<TestSourceViewState> = _state
 
@@ -58,7 +61,16 @@ class TestSourceViewModel(
             Source.OpenConfiguration(
             tag = "TestSource"
         ))
+        surfaceConsumer = SurfaceConsumer()
         pullToPushSource = PullToPushSource()
+        pullToPushSource.open(
+            PullToPushSource.OpenConfiguration(
+                tag = "PullToPushSource",
+                pullSource = source,
+                consumer = surfaceConsumer
+            )
+        )
+
         val sourceResolutionsMap = source.getSupportedResolutions()
         // find the first resolution with the highest FPS
         val resolutionsBySize = sourceResolutionsMap.values
@@ -102,11 +114,40 @@ class TestSourceViewModel(
 
     fun onSurfaceDestroyed() {
         Timber.d("onSurfaceDestroyed called")
+        surfaceConsumer.stopConsuming()
     }
 
     fun onSurfaceReady(surface: Surface) {
-        // we should pass surface
-
+        if (!source.startProducing(
+                Source.ProducingConfiguration(
+                    tag = "TestSourceProducing",
+                    width = _state.value.resolutionList[_state.value.selectedResolutionIdx].width,
+                    height = _state.value.resolutionList[_state.value.selectedResolutionIdx].height,
+                    fps = _state.value.resolutionList[_state.value.selectedResolutionIdx].fps.firstOrNull()
+                        ?: 30f
+                )
+            )
+                .doOnError {
+                    Timber.e("Failed to start producing: ${it.type}  ${it.message}")
+                }
+                .isSuccess()
+        ) {
+            return
+        }
+        surfaceConsumer.setSurface(surface)
+        if (!surfaceConsumer.startConsuming().doOnError {
+                Timber.e("Failed to start consuming: ${it.type}  ${it.message}")
+            }.isSuccess()) {
+            return
+        }
+        pullToPushSource.startProducing(
+            Source.ProducingConfiguration(
+                tag = "PullToPushProducing",
+                width = 0,
+                height = 0,
+                fps = 0f
+            )
+        )
     }
 
     fun onSurfaceChanged(surface: Surface, format: Int, width: Int, height: Int) {

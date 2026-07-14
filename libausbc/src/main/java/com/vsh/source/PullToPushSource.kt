@@ -2,6 +2,15 @@ package com.vsh.source
 
 import com.jiangdg.uvc.SourceResolution
 
+/**
+ * Sample of usage
+ * 1. Prepare Consumer and Source, call Source::open()
+ * 2. Create PullToPushSource.OpenConfiguration with Consumer and Source
+ * 3. Open PullToPushSource with configuration
+ * 4. Start source and consumer, then start producing
+ * 5. Stop producing, then stop source and consumer
+ * 6. Close PullToPushSource
+ */
 class PullToPushSource :
     JniSource<PullToPushSource.OpenConfiguration, Source.ProducingConfiguration>(),
     PushSource<PullToPushSource.OpenConfiguration, Source.ProducingConfiguration> {
