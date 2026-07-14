@@ -7,7 +7,7 @@
 #include "jni/JniSources.h"
 #include "jni/JniSourcesRepo.h"
 #include "jni/JniThreadAttacher.h"
-#include "jni/JniSourceError.h"
+#include "jni/JniObjectError.h"
 #include "Consumer.h"
 
 using namespace auvc::jni;
@@ -23,39 +23,41 @@ Java_com_vsh_source_CountConsumer_nativeCreate(
 }
 
 extern "C"
-JNIEXPORT jint JNICALL
+JNIEXPORT jobject JNICALL
 Java_com_vsh_source_CountConsumer_nativeRelease(JNIEnv *env, jobject thiz, jint sourceId) {
     auto source = JniSourcesRepo::getInstance()->getConsumer(sourceId);
     JniSourcesRepo::getInstance()->removeConsumer(sourceId);
     if (source) {
         auto jniConsumer = std::dynamic_pointer_cast<JniCountConsumer>(source);
-        return fromConsumerError(jniConsumer->stopConsuming());
+        return fromConsumerError(env, jniConsumer->stopConsuming());
     } else {
-        return JniSourceErrorType::SOURCE_NOT_FOUND;
+        return fromConsumerError(env, auvc::ConsumerError::NOT_FOUND);
     }
 }
 
 extern "C"
-JNIEXPORT jint JNICALL
+JNIEXPORT jobject JNICALL
 Java_com_vsh_source_CountConsumer_nativeStopConsuming(JNIEnv *env, jobject thiz, jint sourceId) {
-    auto source = std::dynamic_pointer_cast<JniCountConsumer>(JniSourcesRepo::getInstance()->getConsumer(sourceId));
+    auto source = std::dynamic_pointer_cast<JniCountConsumer>(
+            JniSourcesRepo::getInstance()->getConsumer(sourceId));
     if (source) {
-        return fromConsumerError(source->stopConsuming());
+        return fromConsumerError(env, source->stopConsuming());
     } else {
-        return JniSourceErrorType::SOURCE_NOT_FOUND;
+        return fromConsumerError(env, auvc::ConsumerError::NOT_FOUND);
     }
 }
 
 extern "C"
-JNIEXPORT jint JNICALL
+JNIEXPORT jobject JNICALL
 Java_com_vsh_source_CountConsumer_nativeStartConsuming(JNIEnv *env, jobject thiz, jint sourceId) {
-    auto source = std::dynamic_pointer_cast<JniCountConsumer>(JniSourcesRepo::getInstance()->getConsumer(sourceId));
+    auto source = std::dynamic_pointer_cast<JniCountConsumer>(
+            JniSourcesRepo::getInstance()->getConsumer(sourceId));
     if (source) {
         source->stopConsuming();
         source->setOpenConfiguration(env->NewGlobalRef(thiz));
-        return fromConsumerError(source->startConsuming());
+        return fromConsumerError(env, source->startConsuming());
     } else {
-        return JniSourceErrorType::SOURCE_NOT_FOUND;
+        return fromConsumerError(env, auvc::ConsumerError::NOT_FOUND);
     }
 }
 

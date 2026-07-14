@@ -49,15 +49,13 @@ class TestSourceYUV420(
     override fun startProducing(configuration: Source.ProducingConfiguration): JniObjectError {
         if (_srcId.isEmpty)
             return JniObjectError(JniObjectErrorType.NOT_INITIALIZED)
-        val errorCode = nativeStartProducing(_srcId.get(), configuration)
-        return JniObjectError.fromErrorCode(errorCode)
+        return nativeStartProducing(_srcId.get(), configuration)
     }
 
     override fun stopProducing(): JniObjectError {
         if (_srcId.isEmpty)
             return JniObjectError(JniObjectErrorType.NOT_INITIALIZED)
-        val errorCode = nativeStopProducing(_srcId.get())
-        return JniObjectError.fromErrorCode(errorCode)
+        return nativeStopProducing(_srcId.get())
     }
 
     override fun getProducingConfiguration(): Source.ProducingConfiguration? {
@@ -109,14 +107,14 @@ class TestSourceYUV420(
 
     private external fun nativeCreate(fontPtr: Long): Int
     external override fun nativeRelease(srcId: Int)
-    private external fun nativeStopProducing(srcId: Int): Int
+    private external fun nativeStopProducing(srcId: Int): JniObjectError
     private external fun nativeClose(srcId: Int)
     private external fun nativeIsReadyForProducing(srcId: Int): Boolean
     private external fun nativeWaitNextFrame(srcId: Int): Boolean
     external override fun nativeGetSupportedResolutions(srcId: Int): Map<Integer, List<SourceResolution>>
     external override fun nativeGetSupportedFrameFormats(srcId: Int): List<Integer>
     external fun nativeOpen(srcId: Int)
-    private external fun nativeStartProducing(srcId: Int, configuration: Source.ProducingConfiguration): Int
+    private external fun nativeStartProducing(srcId: Int, configuration: Source.ProducingConfiguration): JniObjectError
     external fun nativeReadFrame(srcId: Int): Frame
     private external fun nativeIsPullSource(srcId: Int): Boolean
     private external fun nativeIsPushSource(srcId: Int): Boolean

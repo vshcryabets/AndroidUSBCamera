@@ -5,7 +5,7 @@
 
 #include "jni/JniSources.h"
 #include "jni/JniSourcesRepo.h"
-#include "jni/JniSourceError.h"
+#include "jni/JniObjectError.h"
 
 namespace auvc::jni {
 
@@ -71,15 +71,15 @@ Java_com_vsh_source_TestSource_nativeRelease(JNIEnv *env, jobject thiz, jint sou
     auvc::jni::JniSourcesRepo::getInstance()->removeSource(sourceId);
 }
 
-JNIEXPORT jint JNICALL
+JNIEXPORT jobject JNICALL
 Java_com_vsh_source_TestSource_nativeStopCapturing(
         JNIEnv *env, jobject thiz, jint sourceId) {
     auto source = auvc::jni::JniSourcesRepo::getInstance()->getSource(sourceId);
     if (source == nullptr) {
-        return auvc::jni::JniSourceErrorType::SOURCE_NOT_FOUND;
+        return auvc::jni::fromSourceError(env, auvc::SourceError::NOT_FOUND);
     }
     auvc::jni::JniSourcesRepo::getInstance()->getSource(sourceId)->stopProducing().get();
-    return auvc::jni::JniSourceErrorType::SUCCESS;
+    return auvc::jni::fromSourceError(env, auvc::SourceError::SUCCESS);
 }
 
 JNIEXPORT void JNICALL
@@ -143,7 +143,7 @@ Java_com_vsh_source_TestSourceYUV420_nativeGetSupportedResolutions(JNIEnv *env,
     return auvc::jni::resolutionMapToJObject(supportedSizes, env);
 }
 
-JNIEXPORT jint JNICALL
+JNIEXPORT jobject JNICALL
 Java_com_vsh_source_TestSourceYUV420_nativeStopProducing(
         JNIEnv *env,
         jobject thiz,
@@ -151,10 +151,10 @@ Java_com_vsh_source_TestSourceYUV420_nativeStopProducing(
 {
     auto source = auvc::jni::JniSourcesRepo::getInstance()->getSource(sourceId);
     if (source == nullptr) {
-        return auvc::jni::JniSourceErrorType::SOURCE_NOT_FOUND;
+        return auvc::jni::fromSourceError(env, auvc::SourceError::NOT_FOUND);
     }
     source->stopProducing().get();
-    return auvc::jni::JniSourceErrorType::SUCCESS;
+    return auvc::jni::fromSourceError(env, auvc::SourceError::SUCCESS);
 }
 
 JNIEXPORT void JNICALL
@@ -200,7 +200,7 @@ Java_com_vsh_source_TestSourceYUV420_nativeWaitNextFrame(
     return source->waitNextFrame();
 }
 
-JNIEXPORT jint JNICALL
+JNIEXPORT jobject JNICALL
 Java_com_vsh_source_TestSourceYUV420_nativeStartProducing(
         JNIEnv *env,
         jobject thiz,
@@ -209,12 +209,12 @@ Java_com_vsh_source_TestSourceYUV420_nativeStartProducing(
 {
     auto source = auvc::jni::JniSourcesRepo::getInstance()->getSource(sourceId);
     if (source == nullptr) {
-        return auvc::jni::JniSourceErrorType::SOURCE_NOT_FOUND;
+        return auvc::jni::fromSourceError(env, auvc::SourceError::NOT_FOUND);
     }
     auvc::Source::ProducingConfiguration config = auvc::jni::parseProducingConfiguration(
             producingConfiguration, env);
     source->startProducing(config).get();
-    return auvc::jni::JniSourceErrorType::SUCCESS;
+    return auvc::jni::fromSourceError(env, auvc::SourceError::SUCCESS);
 }
 
 JNIEXPORT jobject JNICALL
@@ -285,7 +285,7 @@ Java_com_vsh_source_TestSource_nativeIsPushSource(
     return source->isPushSource() ? JNI_TRUE : JNI_FALSE;
 }
 
-JNIEXPORT jint JNICALL
+JNIEXPORT jobject JNICALL
 Java_com_vsh_source_TestSource_nativeStartProducing(
         JNIEnv *env,
         jobject thiz,
@@ -294,11 +294,11 @@ Java_com_vsh_source_TestSource_nativeStartProducing(
 {
     auto source = auvc::jni::JniSourcesRepo::getInstance()->getSource(sourceId);
     if (source == nullptr) {
-        return auvc::jni::JniSourceErrorType::SOURCE_NOT_FOUND;
+        return auvc::jni::fromSourceError(env, auvc::SourceError::NOT_FOUND);
     }
     auvc::Source::ProducingConfiguration config = auvc::jni::parseProducingConfiguration(
             producingConfiguration, env);
     source->startProducing(config).get();
-    return auvc::jni::JniSourceErrorType::SUCCESS;
+    return auvc::jni::fromSourceError(env, auvc::SourceError::SUCCESS);
 }
 }

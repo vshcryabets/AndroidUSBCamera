@@ -2,12 +2,13 @@
 #include <memory>
 
 #include "jni.h"
+#include <android/log.h>
 
 #include "jni/JniSurfaceConsumer.h"
 #include "jni/JniSources.h"
 #include "jni/JniSourcesRepo.h"
 #include "jni/JniThreadAttacher.h"
-#include "jni/JniSourceError.h"
+#include "jni/JniObjectError.h"
 #include "Consumer.h"
 
 using namespace auvc::jni;
@@ -23,7 +24,7 @@ Java_com_vsh_source_SurfaceConsumer_nativeCreate(
 }
 
 extern "C"
-JNIEXPORT jint JNICALL
+JNIEXPORT jobject JNICALL
 Java_com_vsh_source_SurfaceConsumer_nativeRelease(JNIEnv *env, jobject thiz, jint sourceId) {
     auto source = JniSourcesRepo::getInstance()->getConsumer(sourceId);
     if (source) {
@@ -32,26 +33,26 @@ Java_com_vsh_source_SurfaceConsumer_nativeRelease(JNIEnv *env, jobject thiz, jin
             jniConsumer->stopConsuming();
         }
     } else {
-        return JniSourceErrorType::SOURCE_NOT_FOUND;
+        return fromConsumerError(env, auvc::ConsumerError::NOT_FOUND);
     }
     JniSourcesRepo::getInstance()->removeConsumer(sourceId);
-    return JniSourceErrorType::SUCCESS;
+    return fromConsumerError(env, auvc::ConsumerError::SUCCESS);
 }
 
 extern "C"
-JNIEXPORT jint JNICALL
+JNIEXPORT jobject JNICALL
 Java_com_vsh_source_SurfaceConsumer_nativeStopConsuming(JNIEnv *env, jobject thiz, jint sourceId) {
     auto source = std::dynamic_pointer_cast<JniSurfaceConsumer>(
             JniSourcesRepo::getInstance()->getConsumer(sourceId)
     );
     if (source) {
-        return fromConsumerError(source->stopConsuming());
+        return fromConsumerError(env, source->stopConsuming());
     }
-    return JniSourceErrorType::SOURCE_NOT_FOUND;
+    return fromConsumerError(env, auvc::ConsumerError::NOT_FOUND);
 }
 
 extern "C"
-JNIEXPORT jint JNICALL
+JNIEXPORT jobject JNICALL
 Java_com_vsh_source_SurfaceConsumer_nativeStartConsuming(
         JNIEnv *env,
         jobject thiz,
@@ -59,13 +60,13 @@ Java_com_vsh_source_SurfaceConsumer_nativeStartConsuming(
     auto source = std::dynamic_pointer_cast<JniSurfaceConsumer>(
             JniSourcesRepo::getInstance()->getConsumer(sourceId));
     if (source) {
-        return fromConsumerError(source->startConsuming());
+        return fromConsumerError(env, source->startConsuming());
     }
-    return JniSourceErrorType::SOURCE_NOT_FOUND;
+    return fromConsumerError(env, auvc::ConsumerError::NOT_FOUND);
 }
 
 extern "C"
-JNIEXPORT jint JNICALL
+JNIEXPORT jobject JNICALL
 Java_com_vsh_source_SurfaceConsumer_nativeSetOpenConfiguration(
         JNIEnv *env,
         jobject thiz,
@@ -78,9 +79,9 @@ Java_com_vsh_source_SurfaceConsumer_nativeSetOpenConfiguration(
                 env,
                 env->NewGlobalRef(thiz),
                 surface);
-        return fromConsumerError(error);
+        return fromConsumerError(env, error);
     }
-    return JniSourceErrorType::SOURCE_NOT_FOUND;
+    return fromConsumerError(env, auvc::ConsumerError::NOT_FOUND);
 }
 
 namespace auvc::jni {
@@ -108,7 +109,8 @@ namespace auvc::jni {
 //            env->DeleteLocalRef(consumerObj);
 //        }
         if (nativeWindow != nullptr) {
-            ANativeWindow_lock(nativeWindow, nullptr, nullptr);
+            ANativeWindow_Buffer buffer;
+            ANativeWindow_lock(nativeWindow, &buffer, nullptr);
 
             ANativeWindow_unlockAndPost(nativeWindow);
 

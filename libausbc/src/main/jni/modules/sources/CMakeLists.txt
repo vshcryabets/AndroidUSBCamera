@@ -32,7 +32,7 @@ if(BUILD_JNI_WRAPPERS)
         src/jni/JniPullToPushSource.cpp
         src/jni/JniCountConsumer.cpp
         src/jni/JniSourcesRepo.cpp
-        src/jni/JniSourceError.cpp
+            src/jni/JniObjectError.cpp
         )
     target_include_directories(
         Sources

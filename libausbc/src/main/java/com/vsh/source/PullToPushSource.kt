@@ -53,15 +53,13 @@ class PullToPushSource :
     override fun startProducing(configuration: Source.ProducingConfiguration): JniObjectError {
         if (_srcId.isEmpty)
             return JniObjectError(JniObjectErrorType.NOT_INITIALIZED)
-        val errorCode = nativeStartProducing(_srcId.get())
-        return JniObjectError.fromErrorCode(errorCode)
+        return nativeStartProducing(_srcId.get())
     }
 
     override fun stopProducing(): JniObjectError {
         if (_srcId.isEmpty)
             return JniObjectError(JniObjectErrorType.NOT_INITIALIZED)
-        val errorCode = nativeStopProducing(_srcId.get())
-        return JniObjectError.fromErrorCode(errorCode)
+        return nativeStopProducing(_srcId.get())
     }
 
     override fun getProducingConfiguration(): Source.ProducingConfiguration? {
@@ -80,6 +78,6 @@ class PullToPushSource :
     private external fun nativeOpen(srcId: Int, tag: String, pullSrcId: Int, consumerId: Int)
     external override fun nativeGetSupportedResolutions(srcId: Int): Map<Integer, List<SourceResolution>>
     external override fun nativeGetSupportedFrameFormats(srcId: Int): List<Integer>
-    private external fun nativeStartProducing(srcId: Int): Int
-    private external fun nativeStopProducing(srcId: Int): Int
+    private external fun nativeStartProducing(srcId: Int): JniObjectError
+    private external fun nativeStopProducing(srcId: Int): JniObjectError
 }

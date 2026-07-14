@@ -13,7 +13,7 @@ abstract class JniConsumer : Consumer, AutoCloseable {
     protected fun releaseNativeObject(): JniObjectError {
         if (_srcId.isEmpty)
             return JniObjectError(JniObjectErrorType.NOT_INITIALIZED)
-        val result = JniObjectError.fromErrorCode(nativeRelease(_srcId.get()))
+        val result = nativeRelease(_srcId.get())
         _srcId = Optional.empty()
         return result
     }
@@ -21,18 +21,13 @@ abstract class JniConsumer : Consumer, AutoCloseable {
     override fun stopConsuming(): JniObjectError {
         if (_srcId.isEmpty)
             return JniObjectError(JniObjectErrorType.NOT_INITIALIZED)
-        val error = nativeStopConsuming(_srcId.get())
-        return JniObjectError.fromErrorCode(error)
+        return nativeStopConsuming(_srcId.get())
     }
 
     override fun startConsuming(): JniObjectError {
         if (_srcId.isEmpty)
             return JniObjectError(JniObjectErrorType.NOT_INITIALIZED)
-        return JniObjectError.fromErrorCode(
-            nativeRelease(
-                nativeStartConsuming(_srcId.get())
-            )
-        )
+        return nativeStartConsuming(_srcId.get())
     }
 
     fun getConsumerId(): Optional<Int> = _srcId
@@ -42,9 +37,9 @@ abstract class JniConsumer : Consumer, AutoCloseable {
         releaseNativeObject()
     }
 
-    protected abstract fun nativeRelease(ptr: Int): Int
-    protected abstract fun nativeStopConsuming(ptr: Int): Int
-    protected abstract fun nativeStartConsuming(ptr: Int): Int
+    protected abstract fun nativeRelease(ptr: Int): JniObjectError
+    protected abstract fun nativeStopConsuming(ptr: Int): JniObjectError
+    protected abstract fun nativeStartConsuming(ptr: Int): JniObjectError
 
 
 }

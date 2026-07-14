@@ -3,7 +3,7 @@
 #include "jni/JniSources.h"
 #include "PullToPushSource.h"
 #include "jni/JniSourcesRepo.h"
-#include "jni/JniSourceError.h"
+#include "jni/JniObjectError.h"
 
 using namespace auvc::jni;
 
@@ -42,7 +42,7 @@ Java_com_vsh_source_PullToPushSource_nativeRelease(JNIEnv *env, jobject thiz, ji
 }
 
 extern "C"
-JNIEXPORT jint JNICALL
+JNIEXPORT jobject JNICALL
 Java_com_vsh_source_PullToPushSource_nativeStartProducing(
         JNIEnv *env,
         jobject thiz,
@@ -51,7 +51,7 @@ Java_com_vsh_source_PullToPushSource_nativeStartProducing(
 {
     auto source = JniSourcesRepo::getInstance()->getSource(sourceId);
     if (source == nullptr) {
-        return JniSourceErrorType::SOURCE_NOT_FOUND;
+        return auvc::jni::fromSourceError(env, auvc::SourceError::NOT_FOUND);
     }
     source->startProducing(
             // there is no configuration for PullToPushSource, so we pass an empty ProducingConfiguration
@@ -61,11 +61,11 @@ Java_com_vsh_source_PullToPushSource_nativeStartProducing(
                     .fps = 0.0f
             }
     ).get();
-    return JniSourceErrorType::SUCCESS;
+    return auvc::jni::fromSourceError(env, auvc::SourceError::SUCCESS);
 }
 
 extern "C"
-JNIEXPORT jint JNICALL
+JNIEXPORT jobject JNICALL
 Java_com_vsh_source_PullToPushSource_nativeStopProducing(
         JNIEnv *env,
         jobject thiz,
@@ -74,8 +74,8 @@ Java_com_vsh_source_PullToPushSource_nativeStopProducing(
 {
     auto source = JniSourcesRepo::getInstance()->getSource(sourceId);
     if (source == nullptr) {
-        return JniSourceErrorType::SOURCE_NOT_FOUND;
+        return auvc::jni::fromSourceError(env, auvc::SourceError::NOT_FOUND);
     }
     JniSourcesRepo::getInstance()->getSource(sourceId)->stopProducing().get();
-    return JniSourceErrorType::SUCCESS;
+    return auvc::jni::fromSourceError(env, auvc::SourceError::SUCCESS);
 }

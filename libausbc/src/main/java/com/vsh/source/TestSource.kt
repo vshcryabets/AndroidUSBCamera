@@ -48,8 +48,7 @@ class TestSource(
     override fun startProducing(configuration: Source.ProducingConfiguration): JniObjectError {
         if (_srcId.isEmpty)
             return JniObjectError(JniObjectErrorType.NOT_INITIALIZED)
-        val errorCode = nativeStartProducing(_srcId.get(), configuration)
-        return JniObjectError.fromErrorCode(errorCode)
+        return nativeStartProducing(_srcId.get(), configuration)
     }
 
     override fun getProducingConfiguration(): Source.ProducingConfiguration? {
@@ -63,8 +62,7 @@ class TestSource(
     override fun stopProducing(): JniObjectError {
         if (_srcId.isEmpty)
             return JniObjectError(JniObjectErrorType.NOT_INITIALIZED)
-        val errorCode = nativeStopCapturing(_srcId.get())
-        return JniObjectError.fromErrorCode(errorCode)
+        return nativeStopCapturing(_srcId.get())
     }
 
     override fun isPullSource(): Boolean {
@@ -85,11 +83,11 @@ class TestSource(
 
     private external fun nativeCreate(fontPtr: Long): Int
     external override fun nativeRelease(srcId: Int)
-    private external fun nativeStopCapturing(srcId: Int): Int
+    private external fun nativeStopCapturing(srcId: Int): JniObjectError
     private external fun nativeClose(srcId: Int)
     external override fun nativeGetSupportedResolutions(srcId: Int): Map<Integer, List<SourceResolution>>
     override external fun nativeGetSupportedFrameFormats(srcId: Int): List<Integer>
     private external fun nativeIsPullSource(srcId: Int): Boolean
     private external fun nativeIsPushSource(srcId: Int): Boolean
-    private external fun nativeStartProducing(srcId: Int, configuration: Source.ProducingConfiguration): Int
+    private external fun nativeStartProducing(srcId: Int, configuration: Source.ProducingConfiguration): JniObjectError
 }

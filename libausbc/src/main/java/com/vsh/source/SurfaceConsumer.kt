@@ -9,13 +9,23 @@ class SurfaceConsumer: Consumer, JniConsumer() {
         TODO("Not yet implemented")
     }
 
-    fun setSurface(surface: Surface) {
+    fun setSurface(surface: Surface): JniObjectError {
+        if (_srcId.isEmpty) {
+            return JniObjectError(JniObjectErrorType.NOT_INITIALIZED)
+        }
         this.surface = surface
+        nativeSetOpenConfiguration(
+            _srcId.get(),
+            surface
+        )
+        return JniObjectError(JniObjectErrorType.SUCCESS)
     }
 
     override fun startConsuming(): JniObjectError {
         if (surface == null) {
-            return JniObjectError(JniObjectErrorType.NOT_INITIALIZED)
+            return JniObjectError(JniObjectErrorType.INVALID_ARGUMENT,
+                "Surface is not set. Call setSurface() before startConsuming()"
+            )
         }
         return super.startConsuming()
     }
@@ -29,8 +39,8 @@ class SurfaceConsumer: Consumer, JniConsumer() {
     override fun initNative(): Int = nativeCreate()
 
     private external fun nativeCreate(): Int
-    external override fun nativeRelease(ptr: Int): Int
-    external override fun nativeStopConsuming(ptr: Int): Int
-    external override fun nativeStartConsuming(ptr: Int): Int
-    external fun nativeSetOpenConfiguration(ptr: Int, surface: Surface): Int
+    external override fun nativeRelease(ptr: Int): JniObjectError
+    external override fun nativeStopConsuming(ptr: Int): JniObjectError
+    external override fun nativeStartConsuming(ptr: Int): JniObjectError
+    external fun nativeSetOpenConfiguration(ptr: Int, surface: Surface): JniObjectError
 }
