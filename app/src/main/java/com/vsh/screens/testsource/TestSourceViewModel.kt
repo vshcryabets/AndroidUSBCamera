@@ -19,23 +19,27 @@ import android.view.Surface
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.jiangdg.uvc.SourceResolution
+import com.vsh.domain.usecases.GetSurfaceConsumerUseCase
 import com.vsh.domain.usecases.GetTestSourceUseCase
+import com.vsh.source.Consumer
+import com.vsh.source.JniSource
 import com.vsh.source.PullToPushSource
 import com.vsh.source.Source
 import com.vsh.source.SurfaceConsumer
-import com.vsh.source.TestSource
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import timber.log.Timber
 
 class TestSourceViewModelFactory(
-    private val getTestSourceUseCase: GetTestSourceUseCase
+    private val getTestSourceUseCase: GetTestSourceUseCase,
+    private val getSurfaceConsumerUseCase: GetSurfaceConsumerUseCase,
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T =
         TestSourceViewModel(
-            getTestSourceUseCase = getTestSourceUseCase
+            getTestSourceUseCase = getTestSourceUseCase,
+            getSurfaceConsumerUseCase = getSurfaceConsumerUseCase
         ) as T
 }
 
@@ -46,11 +50,12 @@ data class TestSourceViewState(
 )
 
 class TestSourceViewModel(
-    getTestSourceUseCase: GetTestSourceUseCase
+    getTestSourceUseCase: GetTestSourceUseCase,
+    getSurfaceConsumerUseCase: GetSurfaceConsumerUseCase,
 ) : ViewModel() {
-    private val source: TestSource
+    private val source: JniSource<Source.OpenConfiguration, Source.ProducingConfiguration>
     private val pullToPushSource: PullToPushSource
-    private val surfaceConsumer: SurfaceConsumer
+    private val surfaceConsumer: Consumer
     private val _state = MutableStateFlow(TestSourceViewState())
     val state: StateFlow<TestSourceViewState> = _state
 
@@ -62,7 +67,7 @@ class TestSourceViewModel(
                 tag = "TestSource"
             )
         )
-        surfaceConsumer = SurfaceConsumer()
+        surfaceConsumer = getSurfaceConsumerUseCase()
         pullToPushSource = PullToPushSource()
         pullToPushSource.open(
             PullToPushSource.OpenConfiguration(
@@ -151,10 +156,12 @@ class TestSourceViewModel(
         surfaceConsumer.stopConsuming().doOnError {
             Timber.e("Failed to stop consuming: $it")
         }
-        if (!surfaceConsumer.setSurface(surface, format, width, height).doOnError {
-                Timber.e("Failed to set surface: $it")
-            }.isSuccess()) {
-            return
+        if (surfaceConsumer is SurfaceConsumer) {
+            if (!surfaceConsumer.setSurface(surface, format, width, height).doOnError {
+                    Timber.e("Failed to set surface: $it")
+                }.isSuccess()) {
+                return
+            }
         }
         if (!surfaceConsumer.startConsuming().doOnError {
                 Timber.e("Failed to start consuming: $it")
