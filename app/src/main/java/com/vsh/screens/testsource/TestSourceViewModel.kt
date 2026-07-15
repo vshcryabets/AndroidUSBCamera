@@ -59,8 +59,9 @@ class TestSourceViewModel(
         source = getTestSourceUseCase()
         source.open(
             Source.OpenConfiguration(
-            tag = "TestSource"
-        ))
+                tag = "TestSource"
+            )
+        )
         surfaceConsumer = SurfaceConsumer()
         pullToPushSource = PullToPushSource()
         pullToPushSource.open(
@@ -134,12 +135,7 @@ class TestSourceViewModel(
         ) {
             return
         }
-        surfaceConsumer.setSurface(surface)
-        if (!surfaceConsumer.startConsuming().doOnError {
-                Timber.e("Failed to start consuming: ${it.type}  ${it.message}")
-            }.isSuccess()) {
-            return
-        }
+
         pullToPushSource.startProducing(
             Source.ProducingConfiguration(
                 tag = "PullToPushProducing",
@@ -151,6 +147,19 @@ class TestSourceViewModel(
     }
 
     fun onSurfaceChanged(surface: Surface, format: Int, width: Int, height: Int) {
-        Timber.d("Surface changed: format=$format, width=$width, height=$height")
+        Timber.d("Surface changed: surface=$surface format=$format, width=$width, height=$height")
+        surfaceConsumer.stopConsuming().doOnError {
+            Timber.e("Failed to stop consuming: $it")
+        }
+        if (!surfaceConsumer.setSurface(surface, format, width, height).doOnError {
+                Timber.e("Failed to set surface: $it")
+            }.isSuccess()) {
+            return
+        }
+        if (!surfaceConsumer.startConsuming().doOnError {
+                Timber.e("Failed to start consuming: $it")
+            }.isSuccess()) {
+            return
+        }
     }
 }

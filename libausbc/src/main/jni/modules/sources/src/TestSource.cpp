@@ -35,7 +35,7 @@ auvc::ExpectedFrame TestSource::readFrame()
                 testData[pixelOffset + 0] = (color >> 24) & 0xFF; // R
                 testData[pixelOffset + 1] = (color >> 16) & 0xFF; // G
                 testData[pixelOffset + 2] = (color >> 8) & 0xFF; // B
-                testData[pixelOffset + 3] = 0xFF; // A
+                testData[pixelOffset + 3] = color & 0xFF; // A
                 pixelOffset += 4;
             }
         }

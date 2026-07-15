@@ -23,7 +23,10 @@ public:
     auvc::ConsumerError setOpenConfiguration(
         JNIEnv* env,
         jobject jniConsumer,
-        jobject surface
+        jobject surface,
+        jint format,
+        jint width,
+        jint height
     );
     auvc::ConsumerError startConsuming() override;
     auvc::ConsumerError stopConsuming() override;

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <memory>
+#include <algorithm>
 
 #include "jni.h"
 #include <android/log.h>
@@ -71,14 +72,20 @@ Java_com_vsh_source_SurfaceConsumer_nativeSetOpenConfiguration(
         JNIEnv *env,
         jobject thiz,
         jint sourceId,
-        jobject surface) {
+        jobject surface,
+        jint format,
+        jint width,
+        jint height) {
     auto source = std::dynamic_pointer_cast<JniSurfaceConsumer>(
             JniSourcesRepo::getInstance()->getConsumer(sourceId));
     if (source) {
         auto error = source->setOpenConfiguration(
                 env,
                 env->NewGlobalRef(thiz),
-                surface);
+                surface,
+                format,
+                width,
+                height);
         return fromConsumerError(env, error);
     }
     return fromConsumerError(env, auvc::ConsumerError::NOT_FOUND);
@@ -87,33 +94,30 @@ Java_com_vsh_source_SurfaceConsumer_nativeSetOpenConfiguration(
 namespace auvc::jni {
 
     void JniSurfaceConsumer::consume(const auvc::Frame &frame) {
+        if (!consuming) {
+            return;
+        }
         thread_local JniThreadAttacher attacher(g_jvm);
         JNIEnv *env = attacher.env;
         if (env == nullptr) return;
 
-        jobject consumerObj = nullptr;
-        {
-            std::lock_guard<std::mutex> lock(jniConsumerMutex);
-            if (consuming && jniConsumer != nullptr) {
-                consumerObj = env->NewLocalRef(jniConsumer);
-            }
-        }
-
-//        if (consumerObj != nullptr) {
-//            jclass clazz = env->GetObjectClass(consumerObj);
-//            jmethodID methodId = env->GetMethodID(clazz, "consume", "(Lcom/vsh/source/Frame;)V");
-//            if (methodId != nullptr) {
-//                env->CallVoidMethod(consumerObj, methodId, nullptr);
-//            }
-//            env->DeleteLocalRef(clazz);
-//            env->DeleteLocalRef(consumerObj);
-//        }
         if (nativeWindow != nullptr) {
             ANativeWindow_Buffer buffer;
-            ANativeWindow_lock(nativeWindow, &buffer, nullptr);
-
-            ANativeWindow_unlockAndPost(nativeWindow);
-
+            if (ANativeWindow_lock(nativeWindow, &buffer, nullptr) == 0) {
+                auto *dest = (uint8_t *) buffer.bits;
+                const size_t bytes = buffer.width * 4; // Assuming RGBA_8888 format
+                const int dstStride = buffer.stride * 4;
+                const int32_t copyWidth = std::min(buffer.width, (int32_t) frame.getWidth());
+                const int32_t copyHeight = std::min(buffer.height, (int32_t) frame.getHeight());
+                uint8_t *frameBufferPos = frame.getData();
+                const int32_t srcStride = frame.getWidth() * 4; // Assuming RGBA_8888 format
+                for (int cy = 0; cy < copyHeight; cy++) {
+                    memcpy(dest, frameBufferPos, copyWidth * 4); // Assuming RGBA_8888 format
+                    dest += dstStride;
+                    frameBufferPos += srcStride;
+                }
+                ANativeWindow_unlockAndPost(nativeWindow);
+            }
         }
     }
 
@@ -159,7 +163,10 @@ namespace auvc::jni {
     auvc::ConsumerError JniSurfaceConsumer::setOpenConfiguration(
             JNIEnv *env,
             jobject jniConsumer,
-            jobject surface
+            jobject surface,
+            jint format,
+            jint width,
+            jint height
     ) {
         std::lock_guard<std::mutex> lock(jniConsumerMutex);
         this->jniConsumer = jniConsumer;
@@ -167,6 +174,14 @@ namespace auvc::jni {
         if (nativeWindow == nullptr) {
             return auvc::ConsumerError(auvc::ConsumerErrorCode::WRONG_CONFIGURATION,
                                        "JniSurfaceConsumer: failed to create native window");
+        }
+        if (ANativeWindow_setBuffersGeometry(
+                nativeWindow,
+                width,
+                height,
+                WINDOW_FORMAT_RGBA_8888) != 0) {
+            return auvc::ConsumerError(auvc::ConsumerErrorCode::WRONG_CONFIGURATION,
+                                       "JniSurfaceConsumer: failed to set buffers geometry");
         }
         return auvc::ConsumerError::SUCCESS;
     }
