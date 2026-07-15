@@ -2,11 +2,11 @@ package com.vsh.source
 
 import android.view.Surface
 
-class SurfaceConsumer : Consumer, JniConsumer() {
+class SurfaceConsumer : JniConsumer() {
     private var surface: Surface? = null
 
     override fun consume(frame: Frame?) {
-        TODO("Not yet implemented")
+        // No-op: frames are consumed on the native side and rendered to the configured Surface.
     }
 
     fun setSurface(surface: Surface, format: Int, width: Int, height: Int): JniObjectError {

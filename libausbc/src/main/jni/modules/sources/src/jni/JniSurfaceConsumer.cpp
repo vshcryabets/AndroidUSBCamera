@@ -94,29 +94,35 @@ Java_com_vsh_source_SurfaceConsumer_nativeSetOpenConfiguration(
 namespace auvc::jni {
 
     void JniSurfaceConsumer::consume(const auvc::Frame &frame) {
-        if (!consuming) {
-            return;
+        {
+            std::lock_guard<std::mutex> lock(jniConsumerMutex);
+            if (!consuming) {
+                return;
+            }
         }
         thread_local JniThreadAttacher attacher(g_jvm);
         JNIEnv *env = attacher.env;
         if (env == nullptr) return;
 
-        if (nativeWindow != nullptr) {
-            ANativeWindow_Buffer buffer;
-            if (ANativeWindow_lock(nativeWindow, &buffer, nullptr) == 0) {
-                auto *dest = (uint8_t *) buffer.bits;
-                const size_t bytes = buffer.width * 4; // Assuming RGBA_8888 format
-                const int dstStride = buffer.stride * 4;
-                const int32_t copyWidth = std::min(buffer.width, (int32_t) frame.getWidth());
-                const int32_t copyHeight = std::min(buffer.height, (int32_t) frame.getHeight());
-                uint8_t *frameBufferPos = frame.getData();
-                const int32_t srcStride = frame.getWidth() * 4; // Assuming RGBA_8888 format
-                for (int cy = 0; cy < copyHeight; cy++) {
-                    memcpy(dest, frameBufferPos, copyWidth * 4); // Assuming RGBA_8888 format
-                    dest += dstStride;
-                    frameBufferPos += srcStride;
+        {
+            std::lock_guard<std::mutex> lock(jniConsumerMutex);
+            if (nativeWindow != nullptr) {
+                ANativeWindow_Buffer buffer;
+                if (ANativeWindow_lock(nativeWindow, &buffer, nullptr) == 0) {
+                    auto *dest = (uint8_t *) buffer.bits;
+                    const size_t bytes = buffer.width * 4; // Assuming RGBA_8888 format
+                    const int dstStride = buffer.stride * 4;
+                    const int32_t copyWidth = std::min(buffer.width, (int32_t) frame.getWidth());
+                    const int32_t copyHeight = std::min(buffer.height, (int32_t) frame.getHeight());
+                    uint8_t *frameBufferPos = frame.getData();
+                    const int32_t srcStride = frame.getWidth() * 4; // Assuming RGBA_8888 format
+                    for (int cy = 0; cy < copyHeight; cy++) {
+                        memcpy(dest, frameBufferPos, copyWidth * 4); // Assuming RGBA_8888 format
+                        dest += dstStride;
+                        frameBufferPos += srcStride;
+                    }
+                    ANativeWindow_unlockAndPost(nativeWindow);
                 }
-                ANativeWindow_unlockAndPost(nativeWindow);
             }
         }
     }
@@ -150,12 +156,13 @@ namespace auvc::jni {
         if (jniConsumer != nullptr) {
             thread_local JniThreadAttacher attacher(g_jvm);
             JNIEnv *env = attacher.env;
-            env->DeleteGlobalRef(jniConsumer);
+            if (env != nullptr)
+                env->DeleteGlobalRef(jniConsumer);
             jniConsumer = nullptr;
-            if (nativeWindow != nullptr) {
-                ANativeWindow_release(nativeWindow);
-                nativeWindow = nullptr;
-            }
+        }
+        if (nativeWindow != nullptr) {
+            ANativeWindow_release(nativeWindow);
+            nativeWindow = nullptr;
         }
         return auvc::ConsumerError::SUCCESS;
     }
@@ -169,6 +176,16 @@ namespace auvc::jni {
             jint height
     ) {
         std::lock_guard<std::mutex> lock(jniConsumerMutex);
+
+        if (this->jniConsumer != nullptr) {
+            env->DeleteGlobalRef(this->jniConsumer);
+            this->jniConsumer = nullptr;
+        }
+        if (nativeWindow != nullptr) {
+            ANativeWindow_release(nativeWindow);
+            nativeWindow = nullptr;
+        }
+
         this->jniConsumer = jniConsumer;
         nativeWindow = ANativeWindow_fromSurface(env, surface);
         if (nativeWindow == nullptr) {

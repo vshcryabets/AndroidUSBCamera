@@ -9,13 +9,14 @@ namespace auvc::jni
     {
         jclass cls = env->FindClass("com/vsh/source/JniObjectError");
         if (cls == nullptr) {
-            throw std::runtime_error("JniObjectError class not found");
+            env->ThrowNew(env->FindClass("java/lang/RuntimeException"), "JniObjectError class not found");
             return nullptr; // Class not found
         }
 
         jmethodID constructor = env->GetMethodID(cls, "<init>", "(ILjava/lang/String;)V");
         if (constructor == nullptr) {
-            throw std::runtime_error("JniObjectError constructor not found");
+            env->ThrowNew(env->FindClass("java/lang/RuntimeException"), "JniObjectError constructor not found");
+            return nullptr;
         }
 
         // convert to JniObjectErrorType.kt
@@ -25,10 +26,10 @@ namespace auvc::jni
                 code = 0;
                 break;
             case auvc::ConsumerErrorCode::WRONG_CONFIGURATION:
-                code = 2;
+                code = 5;
                 break;
             case auvc::ConsumerErrorCode::OBJECT_NOT_FOUND:
-                code = 3;
+                code = 4;
                 break;
             default:
                 code = 1; // Unknown error
@@ -55,13 +56,14 @@ namespace auvc::jni
     {
         jclass cls = env->FindClass("com/vsh/source/JniObjectError");
         if (cls == nullptr) {
-            throw std::runtime_error("JniObjectError class not found");
+            env->ThrowNew(env->FindClass("java/lang/RuntimeException"), "JniObjectError class not found");
             return nullptr; // Class not found
         }
 
         jmethodID constructor = env->GetMethodID(cls, "<init>", "(ILjava/lang/String;)V");
         if (constructor == nullptr) {
-            throw std::runtime_error("JniObjectError constructor not found");
+            env->ThrowNew(env->FindClass("java/lang/RuntimeException"), "JniObjectError constructor not found");
+            return nullptr;
         }
 
         // convert to JniObjectErrorType.kt
