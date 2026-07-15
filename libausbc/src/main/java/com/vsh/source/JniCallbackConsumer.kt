@@ -8,15 +8,15 @@ class JniCallbackConsumer(
         TODO("Not yet implemented")
     }
 
-    override fun nativeRelease(ptr: Int) {
+    override fun nativeRelease(ptr: Int): JniObjectError {
         TODO("Not yet implemented")
     }
 
-    override fun nativeStopConsuming(ptr: Int) {
+    override fun nativeStopConsuming(ptr: Int): JniObjectError {
         TODO("Not yet implemented")
     }
 
-    override fun nativeStartConsuming(ptr: Int) {
+    override fun nativeStartConsuming(ptr: Int): JniObjectError {
         TODO("Not yet implemented")
     }
 

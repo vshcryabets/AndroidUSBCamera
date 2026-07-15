@@ -7,7 +7,10 @@
 #include "jni/JniSources.h"
 #include "jni/JniSourcesRepo.h"
 #include "jni/JniThreadAttacher.h"
+#include "jni/JniObjectError.h"
 #include "Consumer.h"
+
+using namespace auvc::jni;
 
 extern "C"
 JNIEXPORT jint JNICALL
@@ -20,35 +23,45 @@ Java_com_vsh_source_CountConsumer_nativeCreate(
 }
 
 extern "C"
-JNIEXPORT void JNICALL
+JNIEXPORT jobject JNICALL
 Java_com_vsh_source_CountConsumer_nativeRelease(JNIEnv *env, jobject thiz, jint sourceId) {
     auto source = JniSourcesRepo::getInstance()->getConsumer(sourceId);
     JniSourcesRepo::getInstance()->removeConsumer(sourceId);
     if (source) {
         auto jniConsumer = std::dynamic_pointer_cast<JniCountConsumer>(source);
-        jniConsumer->stopConsuming();
+        return fromConsumerError(env, jniConsumer->stopConsuming());
+    } else {
+        return fromConsumerError(env, auvc::ConsumerError::NOT_FOUND);
     }
 }
 
 extern "C"
-JNIEXPORT void JNICALL
+JNIEXPORT jobject JNICALL
 Java_com_vsh_source_CountConsumer_nativeStopConsuming(JNIEnv *env, jobject thiz, jint sourceId) {
-    auto source = std::dynamic_pointer_cast<JniCountConsumer>(JniSourcesRepo::getInstance()->getConsumer(sourceId));
+    auto source = std::dynamic_pointer_cast<JniCountConsumer>(
+            JniSourcesRepo::getInstance()->getConsumer(sourceId));
     if (source) {
-        source->stopConsuming();
+        return fromConsumerError(env, source->stopConsuming());
+    } else {
+        return fromConsumerError(env, auvc::ConsumerError::NOT_FOUND);
     }
 }
 
 extern "C"
-JNIEXPORT void JNICALL
+JNIEXPORT jobject JNICALL
 Java_com_vsh_source_CountConsumer_nativeStartConsuming(JNIEnv *env, jobject thiz, jint sourceId) {
-    auto source = std::dynamic_pointer_cast<JniCountConsumer>(JniSourcesRepo::getInstance()->getConsumer(sourceId));
+    auto source = std::dynamic_pointer_cast<JniCountConsumer>(
+            JniSourcesRepo::getInstance()->getConsumer(sourceId));
     if (source) {
         source->stopConsuming();
         source->setOpenConfiguration(env->NewGlobalRef(thiz));
-        source->startConsuming();
+        return fromConsumerError(env, source->startConsuming());
+    } else {
+        return fromConsumerError(env, auvc::ConsumerError::NOT_FOUND);
     }
 }
+
+namespace auvc::jni {
 
 void JniCountConsumer::consume(const auvc::Frame &frame) {
     thread_local JniThreadAttacher attacher(g_jvm);
@@ -110,4 +123,6 @@ void JniCountConsumer::setOpenConfiguration(
 ) {
     std::lock_guard<std::mutex> lock(jniConsumerMutex);
     this->jniConsumer = jniConsumer;
+}
+
 }

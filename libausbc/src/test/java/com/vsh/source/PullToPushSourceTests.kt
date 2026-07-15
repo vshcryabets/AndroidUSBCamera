@@ -50,11 +50,11 @@ class PullToPushSourceTests {
                     Source.OpenConfiguration("pull")
 
                 override fun close() {}
-                override fun startProducing(configuration: Source.ProducingConfiguration): JniSourceError {
+                override fun startProducing(configuration: Source.ProducingConfiguration): JniObjectError {
                     TODO("Not yet implemented")
                 }
 
-                override fun stopProducing() = JniSourceError(JniSourceErrorType.SOURCE_NOT_INITIALIZED)
+                override fun stopProducing() = JniObjectError(JniObjectErrorType.NOT_INITIALIZED)
                 override fun getProducingConfiguration(): Source.ProducingConfiguration? {
                     TODO("Not yet implemented")
                 }

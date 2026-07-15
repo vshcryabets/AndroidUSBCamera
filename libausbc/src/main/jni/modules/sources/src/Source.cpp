@@ -2,6 +2,9 @@
 
 namespace auvc {
 
+const SourceError SourceError::NOT_FOUND = SourceError(SourceErrorCode::OBJECT_NOT_FOUND, "Source object not found");
+const SourceError SourceError::SUCCESS = SourceError(SourceErrorCode::SUCCESS, "Success");
+
 std::future<void> completed() {
     std::promise<void> promise;
     promise.set_value();

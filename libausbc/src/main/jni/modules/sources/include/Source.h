@@ -10,11 +10,13 @@ namespace auvc {
     std::future<void> completed();
 
     enum class SourceErrorCode : uint16_t {
+        SUCCESS = 0,
         SOURCE_ERROR_WRONG_CONFIG,
         SOURCE_ERROR_CAPTURE_NOT_STARTED,
         SOURCE_ERROR_NOT_OPENED,
         SOURCE_ERROR_READ_AGAIN,
-        SOURCE_FRAME_NOT_AVAILABLE
+        SOURCE_FRAME_NOT_AVAILABLE,
+        OBJECT_NOT_FOUND
     };
 
     class SourceError : public std::exception {
@@ -25,6 +27,10 @@ namespace auvc {
         public:
             SourceError(SourceErrorCode code, const std::string &message) : code(code), message(message) {}
             const char* what() const noexcept override;
+            SourceErrorCode getCode() const noexcept { return code; }
+
+            static const SourceError NOT_FOUND;
+            static const SourceError SUCCESS;
     };
 
     struct Resolution {

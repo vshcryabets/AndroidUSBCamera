@@ -10,7 +10,8 @@ namespace auvc {
 
 enum class ConsumerErrorCode : uint16_t {
     SUCCESS = 0,
-    WRONG_CONFIGURATION
+    WRONG_CONFIGURATION,
+    OBJECT_NOT_FOUND
 };
 
 class ConsumerError : public std::exception {
@@ -22,8 +23,10 @@ public:
     ConsumerError(ConsumerErrorCode code, const std::string &message) : code(code), message(message) {}
     ~ConsumerError() override = default;
     const char* what() const noexcept override;
+    ConsumerErrorCode getCode() const noexcept { return code; }
 
     static ConsumerError SUCCESS;
+    static ConsumerError NOT_FOUND;
 };
 
 class Consumer {

@@ -19,21 +19,27 @@ import android.view.Surface
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.jiangdg.uvc.SourceResolution
+import com.vsh.domain.usecases.GetSurfaceConsumerUseCase
 import com.vsh.domain.usecases.GetTestSourceUseCase
+import com.vsh.source.Consumer
+import com.vsh.source.JniSource
 import com.vsh.source.PullToPushSource
 import com.vsh.source.Source
+import com.vsh.source.SurfaceConsumer
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import timber.log.Timber
 
 class TestSourceViewModelFactory(
-    private val getTestSourceUseCase: GetTestSourceUseCase
+    private val getTestSourceUseCase: GetTestSourceUseCase,
+    private val getSurfaceConsumerUseCase: GetSurfaceConsumerUseCase,
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T =
         TestSourceViewModel(
-            getTestSourceUseCase = getTestSourceUseCase
+            getTestSourceUseCase = getTestSourceUseCase,
+            getSurfaceConsumerUseCase = getSurfaceConsumerUseCase
         ) as T
 }
 
@@ -44,10 +50,12 @@ data class TestSourceViewState(
 )
 
 class TestSourceViewModel(
-    getTestSourceUseCase: GetTestSourceUseCase
+    getTestSourceUseCase: GetTestSourceUseCase,
+    getSurfaceConsumerUseCase: GetSurfaceConsumerUseCase,
 ) : ViewModel() {
-    private val source: Source<*,*>
+    private val source: JniSource<Source.OpenConfiguration, Source.ProducingConfiguration>
     private val pullToPushSource: PullToPushSource
+    private val surfaceConsumer: Consumer
     private val _state = MutableStateFlow(TestSourceViewState())
     val state: StateFlow<TestSourceViewState> = _state
 
@@ -56,9 +64,19 @@ class TestSourceViewModel(
         source = getTestSourceUseCase()
         source.open(
             Source.OpenConfiguration(
-            tag = "TestSource"
-        ))
+                tag = "TestSource"
+            )
+        )
+        surfaceConsumer = getSurfaceConsumerUseCase()
         pullToPushSource = PullToPushSource()
+        pullToPushSource.open(
+            PullToPushSource.OpenConfiguration(
+                tag = "PullToPushSource",
+                pullSource = source,
+                consumer = surfaceConsumer
+            )
+        )
+
         val sourceResolutionsMap = source.getSupportedResolutions()
         // find the first resolution with the highest FPS
         val resolutionsBySize = sourceResolutionsMap.values
@@ -102,14 +120,53 @@ class TestSourceViewModel(
 
     fun onSurfaceDestroyed() {
         Timber.d("onSurfaceDestroyed called")
+        surfaceConsumer.stopConsuming()
     }
 
     fun onSurfaceReady(surface: Surface) {
-        // we should pass surface
+        if (!source.startProducing(
+                Source.ProducingConfiguration(
+                    tag = "TestSourceProducing",
+                    width = _state.value.resolutionList[_state.value.selectedResolutionIdx].width,
+                    height = _state.value.resolutionList[_state.value.selectedResolutionIdx].height,
+                    fps = _state.value.resolutionList[_state.value.selectedResolutionIdx].fps.firstOrNull()
+                        ?: 30f
+                )
+            )
+                .doOnError {
+                    Timber.e("Failed to start producing: ${it.type}  ${it.message}")
+                }
+                .isSuccess()
+        ) {
+            return
+        }
 
+        pullToPushSource.startProducing(
+            Source.ProducingConfiguration(
+                tag = "PullToPushProducing",
+                width = 0,
+                height = 0,
+                fps = 0f
+            )
+        )
     }
 
     fun onSurfaceChanged(surface: Surface, format: Int, width: Int, height: Int) {
-        Timber.d("Surface changed: format=$format, width=$width, height=$height")
+        Timber.d("Surface changed: surface=$surface format=$format, width=$width, height=$height")
+        surfaceConsumer.stopConsuming().doOnError {
+            Timber.e("Failed to stop consuming: $it")
+        }
+        if (surfaceConsumer is SurfaceConsumer) {
+            if (!surfaceConsumer.setSurface(surface, format, width, height).doOnError {
+                    Timber.e("Failed to set surface: $it")
+                }.isSuccess()) {
+                return
+            }
+        }
+        if (!surfaceConsumer.startConsuming().doOnError {
+                Timber.e("Failed to start consuming: $it")
+            }.isSuccess()) {
+            return
+        }
     }
 }

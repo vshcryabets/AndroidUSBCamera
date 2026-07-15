@@ -32,8 +32,8 @@ import androidx.annotation.NonNull;
 
 import com.jiangdg.usb.USBMonitor;
 import com.jiangdg.usb.UsbControlBlock;
-import com.vsh.source.JniSourceError;
-import com.vsh.source.JniSourceErrorType;
+import com.vsh.source.JniObjectError;
+import com.vsh.source.JniObjectErrorType;
 import com.vsh.source.Source;
 import com.vsh.uvc.UvcVsDeskSubtype;
 
@@ -67,8 +67,8 @@ public class UVCCamera implements Source<UVCCamera.OpenConfiguration, Source.Pro
 	}
 
 	@Override
-	public JniSourceError startProducing(@NotNull ProducingConfiguration configuration)  {
-		return new JniSourceError(JniSourceErrorType.SOURCE_NOT_INITIALIZED, "");
+	public JniObjectError startProducing(@NotNull ProducingConfiguration configuration)  {
+		return new JniObjectError(JniObjectErrorType.NOT_INITIALIZED, "");
 	}
 
 	@Override
@@ -386,12 +386,12 @@ public class UVCCamera implements Source<UVCCamera.OpenConfiguration, Source.Pro
     }
 
 	@Override
-    public synchronized JniSourceError stopProducing() {
+    public synchronized JniObjectError stopProducing() {
     	setFrameCallback(null, PixelFormat.PIXEL_FORMAT_RAW);
     	if (mCtrlBlock != null) {
     		nativeStopPreview(mNativePtr);
     	}
-		return new JniSourceError(JniSourceErrorType.SUCCESS, "");
+		return new JniObjectError(JniObjectErrorType.SUCCESS, "");
     }
 
     /**

@@ -2,6 +2,15 @@ package com.vsh.source
 
 import com.jiangdg.uvc.SourceResolution
 
+/**
+ * Sample of usage
+ * 1. Prepare Consumer and Source, call Source::open()
+ * 2. Create PullToPushSource.OpenConfiguration with Consumer and Source
+ * 3. Open PullToPushSource with configuration
+ * 4. Start source and consumer, then start producing
+ * 5. Stop producing, then stop source and consumer
+ * 6. Close PullToPushSource
+ */
 class PullToPushSource :
     JniSource<PullToPushSource.OpenConfiguration, Source.ProducingConfiguration>(),
     PushSource<PullToPushSource.OpenConfiguration, Source.ProducingConfiguration> {
@@ -41,18 +50,16 @@ class PullToPushSource :
 
     override fun getOpenConfiguration(): OpenConfiguration? = openConfig
 
-    override fun startProducing(configuration: Source.ProducingConfiguration): JniSourceError {
+    override fun startProducing(configuration: Source.ProducingConfiguration): JniObjectError {
         if (_srcId.isEmpty)
-            return JniSourceError(JniSourceErrorType.SOURCE_NOT_INITIALIZED)
-        val errorCode = nativeStartProducing(_srcId.get())
-        return JniSourceError.fromErrorCode(errorCode)
+            return JniObjectError(JniObjectErrorType.NOT_INITIALIZED)
+        return nativeStartProducing(_srcId.get())
     }
 
-    override fun stopProducing(): JniSourceError {
+    override fun stopProducing(): JniObjectError {
         if (_srcId.isEmpty)
-            return JniSourceError(JniSourceErrorType.SOURCE_NOT_INITIALIZED)
-        val errorCode = nativeStopProducing(_srcId.get())
-        return JniSourceError.fromErrorCode(errorCode)
+            return JniObjectError(JniObjectErrorType.NOT_INITIALIZED)
+        return nativeStopProducing(_srcId.get())
     }
 
     override fun getProducingConfiguration(): Source.ProducingConfiguration? {
@@ -71,6 +78,6 @@ class PullToPushSource :
     private external fun nativeOpen(srcId: Int, tag: String, pullSrcId: Int, consumerId: Int)
     external override fun nativeGetSupportedResolutions(srcId: Int): Map<Integer, List<SourceResolution>>
     external override fun nativeGetSupportedFrameFormats(srcId: Int): List<Integer>
-    private external fun nativeStartProducing(srcId: Int): Int
-    private external fun nativeStopProducing(srcId: Int): Int
+    private external fun nativeStartProducing(srcId: Int): JniObjectError
+    private external fun nativeStopProducing(srcId: Int): JniObjectError
 }

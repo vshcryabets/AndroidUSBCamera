@@ -5,7 +5,9 @@
 
 #include "jni/JniSources.h"
 #include "jni/JniSourcesRepo.h"
-#include "jni/JniSourceError.h"
+#include "jni/JniObjectError.h"
+
+namespace auvc::jni {
 
 auvc::Source::ProducingConfiguration parseProducingConfiguration(jobject object, JNIEnv* env) {
     auvc::Source::ProducingConfiguration config;
@@ -50,13 +52,15 @@ jobject prepareJniFrame(const auvc::ExpectedFrame &expectedFrame, JNIEnv *env) {
     return result;
 }
 
+}
+
 extern "C"
 {
 
 JNIEXPORT jint JNICALL
 Java_com_vsh_source_TestSource_nativeCreate(JNIEnv *env, jobject thiz, jlong fontPtr)
 {
-    return JniSourcesRepo::getInstance()->addSource(
+    return auvc::jni::JniSourcesRepo::getInstance()->addSource(
             std::make_shared<auvc::TestSource>((const uint8_t *)fontPtr)
                     );
 }
@@ -64,24 +68,24 @@ Java_com_vsh_source_TestSource_nativeCreate(JNIEnv *env, jobject thiz, jlong fon
 JNIEXPORT void JNICALL
 Java_com_vsh_source_TestSource_nativeRelease(JNIEnv *env, jobject thiz, jint sourceId)
 {
-    JniSourcesRepo::getInstance()->removeSource(sourceId);
+    auvc::jni::JniSourcesRepo::getInstance()->removeSource(sourceId);
 }
 
-JNIEXPORT jint JNICALL
+JNIEXPORT jobject JNICALL
 Java_com_vsh_source_TestSource_nativeStopCapturing(
         JNIEnv *env, jobject thiz, jint sourceId) {
-    auto source = JniSourcesRepo::getInstance()->getSource(sourceId);
+    auto source = auvc::jni::JniSourcesRepo::getInstance()->getSource(sourceId);
     if (source == nullptr) {
-        return JniSourceErrorType::SOURCE_NOT_FOUND;
+        return auvc::jni::fromSourceError(env, auvc::SourceError::NOT_FOUND);
     }
-    JniSourcesRepo::getInstance()->getSource(sourceId)->stopProducing().get();
-    return JniSourceErrorType::SUCCESS;
+    auvc::jni::JniSourcesRepo::getInstance()->getSource(sourceId)->stopProducing().get();
+    return auvc::jni::fromSourceError(env, auvc::SourceError::SUCCESS);
 }
 
 JNIEXPORT void JNICALL
 Java_com_vsh_source_TestSource_nativeClose(JNIEnv *env, jobject thiz, jint sourceId)
 {
-    JniSourcesRepo::getInstance()->getSource(sourceId)->close().get();
+    auvc::jni::JniSourcesRepo::getInstance()->getSource(sourceId)->close().get();
 }
 
 JNIEXPORT jobject JNICALL
@@ -90,8 +94,8 @@ Java_com_vsh_source_TestSource_nativeGetSupportedResolutions(JNIEnv *env,
                                                              jint sourceId)
 {    
     auvc::ExpectedResolutions supportedSizes =
-        JniSourcesRepo::getInstance()->getSource(sourceId)->getSupportedResolutions();
-    return resolutionMapToJObject(supportedSizes, env);
+        auvc::jni::JniSourcesRepo::getInstance()->getSource(sourceId)->getSupportedResolutions();
+    return auvc::jni::resolutionMapToJObject(supportedSizes, env);
 }
 
 #pragma region TestSourceYUV420
@@ -102,7 +106,7 @@ Java_com_vsh_source_TestSourceYUV420_nativeCreate(
     jobject thiz,
     jlong fontPtr)
 {
-    return JniSourcesRepo::getInstance()->
+    return auvc::jni::JniSourcesRepo::getInstance()->
         addSource(std::make_shared<auvc::TestSourceYUV420>((const uint8_t *)fontPtr));
 }
 
@@ -112,9 +116,9 @@ Java_com_vsh_source_TestSourceYUV420_nativeGetSupportedFrameFormats(
     jobject thiz,
     jint sourceId)
 {
-    auto source = JniSourcesRepo::getInstance()->getSource(sourceId);
+    auto source = auvc::jni::JniSourcesRepo::getInstance()->getSource(sourceId);
     std::vector<auvc::FrameFormat> formats = source->getSupportedFrameFormats();
-    return frameFormatsToJList(formats, env);
+    return auvc::jni::frameFormatsToJList(formats, env);
 }
 
 JNIEXPORT void JNICALL
@@ -123,7 +127,7 @@ Java_com_vsh_source_TestSourceYUV420_nativeOpen(
     jobject thiz,
     jint sourceId)
 {
-    auto source = JniSourcesRepo::getInstance()->getSource(sourceId);
+    auto source = auvc::jni::JniSourcesRepo::getInstance()->getSource(sourceId);
     source->open({
 
     });
@@ -134,23 +138,23 @@ Java_com_vsh_source_TestSourceYUV420_nativeGetSupportedResolutions(JNIEnv *env,
                                                                    jobject thiz,
                                                                    jint sourceId)
 {
-    auto source = JniSourcesRepo::getInstance()->getSource(sourceId);
+    auto source = auvc::jni::JniSourcesRepo::getInstance()->getSource(sourceId);
     auvc::ExpectedResolutions supportedSizes = source->getSupportedResolutions();
-    return resolutionMapToJObject(supportedSizes, env);
+    return auvc::jni::resolutionMapToJObject(supportedSizes, env);
 }
 
-JNIEXPORT jint JNICALL
+JNIEXPORT jobject JNICALL
 Java_com_vsh_source_TestSourceYUV420_nativeStopProducing(
         JNIEnv *env,
         jobject thiz,
         jint sourceId)
 {
-    auto source = JniSourcesRepo::getInstance()->getSource(sourceId);
+    auto source = auvc::jni::JniSourcesRepo::getInstance()->getSource(sourceId);
     if (source == nullptr) {
-        return JniSourceErrorType::SOURCE_NOT_FOUND;
+        return auvc::jni::fromSourceError(env, auvc::SourceError::NOT_FOUND);
     }
     source->stopProducing().get();
-    return JniSourceErrorType::SUCCESS;
+    return auvc::jni::fromSourceError(env, auvc::SourceError::SUCCESS);
 }
 
 JNIEXPORT void JNICALL
@@ -159,7 +163,7 @@ Java_com_vsh_source_TestSourceYUV420_nativeClose(
     jobject thiz,
     jint sourceId)
 {
-    auto source = JniSourcesRepo::getInstance()->getSource(sourceId);
+    auto source = auvc::jni::JniSourcesRepo::getInstance()->getSource(sourceId);
     source->close().get();
 }
 
@@ -169,7 +173,7 @@ Java_com_vsh_source_TestSourceYUV420_nativeRelease(
     jobject thiz,
     jint sourceId)
 {
-    JniSourcesRepo::getInstance()->removeSource(sourceId);
+    auvc::jni::JniSourcesRepo::getInstance()->removeSource(sourceId);
 }
 
 JNIEXPORT jboolean JNICALL
@@ -178,7 +182,7 @@ Java_com_vsh_source_TestSourceYUV420_nativeIsReadyForProducing(
         jobject thiz,
         jint sourceId)
 {
-    auto source = JniSourcesRepo::getInstance()->getSource(sourceId);
+    auto source = auvc::jni::JniSourcesRepo::getInstance()->getSource(sourceId);
     return source->isReadyForProducing();
 }
 
@@ -189,28 +193,28 @@ Java_com_vsh_source_TestSourceYUV420_nativeWaitNextFrame(
         jint sourceId)
 {
     auto source = std::dynamic_pointer_cast<auvc::TestSourceYUV420>(
-            JniSourcesRepo::getInstance()->getSource(sourceId));
+            auvc::jni::JniSourcesRepo::getInstance()->getSource(sourceId));
     if (!source) {
         return JNI_FALSE;
     }
     return source->waitNextFrame();
 }
 
-JNIEXPORT jint JNICALL
+JNIEXPORT jobject JNICALL
 Java_com_vsh_source_TestSourceYUV420_nativeStartProducing(
         JNIEnv *env,
         jobject thiz,
         jint sourceId,
         jobject producingConfiguration)
 {
-    auto source = JniSourcesRepo::getInstance()->getSource(sourceId);
+    auto source = auvc::jni::JniSourcesRepo::getInstance()->getSource(sourceId);
     if (source == nullptr) {
-        return JniSourceErrorType::SOURCE_NOT_FOUND;
+        return auvc::jni::fromSourceError(env, auvc::SourceError::NOT_FOUND);
     }
-    auvc::Source::ProducingConfiguration config = parseProducingConfiguration(
+    auvc::Source::ProducingConfiguration config = auvc::jni::parseProducingConfiguration(
             producingConfiguration, env);
     source->startProducing(config).get();
-    return JniSourceErrorType::SUCCESS;
+    return auvc::jni::fromSourceError(env, auvc::SourceError::SUCCESS);
 }
 
 JNIEXPORT jobject JNICALL
@@ -220,9 +224,9 @@ Java_com_vsh_source_TestSourceYUV420_nativeReadFrame(
         jint sourceId)
 {
     auto source = std::dynamic_pointer_cast<auvc::TestSourceYUV420>(
-            JniSourcesRepo::getInstance()->getSource(sourceId));
+            auvc::jni::JniSourcesRepo::getInstance()->getSource(sourceId));
     auto frame = source->readFrame();
-    return prepareJniFrame(frame, env);
+    return auvc::jni::prepareJniFrame(frame, env);
 }
 
 JNIEXPORT jboolean JNICALL
@@ -232,7 +236,7 @@ Java_com_vsh_source_TestSourceYUV420_nativeIsPullSource(
         jint sourceId)
 {
     auto source = std::dynamic_pointer_cast<auvc::TestSourceYUV420>(
-            JniSourcesRepo::getInstance()->getSource(sourceId));
+            auvc::jni::JniSourcesRepo::getInstance()->getSource(sourceId));
     if (!source) {
         return JNI_FALSE;
     }
@@ -246,10 +250,55 @@ Java_com_vsh_source_TestSourceYUV420_nativeIsPushSource(
         jint sourceId)
 {
     auto source = std::dynamic_pointer_cast<auvc::TestSourceYUV420>(
-            JniSourcesRepo::getInstance()->getSource(sourceId));
+            auvc::jni::JniSourcesRepo::getInstance()->getSource(sourceId));
     if (!source) {
         return JNI_FALSE;
     }
     return source->isPushSource() ? JNI_TRUE : JNI_FALSE;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_com_vsh_source_TestSource_nativeIsPullSource(
+        JNIEnv *env,
+        jobject thiz,
+        jint sourceId)
+{
+    auto source = std::dynamic_pointer_cast<auvc::TestSource>(
+            auvc::jni::JniSourcesRepo::getInstance()->getSource(sourceId));
+    if (!source) {
+        return JNI_FALSE;
+    }
+    return source->isPullSource() ? JNI_TRUE : JNI_FALSE;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_com_vsh_source_TestSource_nativeIsPushSource(
+        JNIEnv *env,
+        jobject thiz,
+        jint sourceId)
+{
+    auto source = std::dynamic_pointer_cast<auvc::TestSource>(
+            auvc::jni::JniSourcesRepo::getInstance()->getSource(sourceId));
+    if (!source) {
+        return JNI_FALSE;
+    }
+    return source->isPushSource() ? JNI_TRUE : JNI_FALSE;
+}
+
+JNIEXPORT jobject JNICALL
+Java_com_vsh_source_TestSource_nativeStartProducing(
+        JNIEnv *env,
+        jobject thiz,
+        jint sourceId,
+        jobject producingConfiguration)
+{
+    auto source = auvc::jni::JniSourcesRepo::getInstance()->getSource(sourceId);
+    if (source == nullptr) {
+        return auvc::jni::fromSourceError(env, auvc::SourceError::NOT_FOUND);
+    }
+    auvc::Source::ProducingConfiguration config = auvc::jni::parseProducingConfiguration(
+            producingConfiguration, env);
+    source->startProducing(config).get();
+    return auvc::jni::fromSourceError(env, auvc::SourceError::SUCCESS);
 }
 }

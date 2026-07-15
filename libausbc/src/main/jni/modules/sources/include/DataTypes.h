@@ -17,8 +17,8 @@ enum FrameFormat {
 
 class Frame {
 private:
-    uint16_t width;
-    uint16_t height;
+    int16_t width;
+    int16_t height;
     FrameFormat format;
     uint8_t* data;
     std::chrono::high_resolution_clock::time_point timestamp;
@@ -26,8 +26,8 @@ protected:
     size_t size;
 public:
 
-    Frame(uint16_t width, 
-        uint16_t height, 
+    Frame(int16_t width,
+        int16_t height,
         FrameFormat format,
         uint8_t* data,
         size_t size,
@@ -43,8 +43,8 @@ public:
     virtual ~Frame() = default;
 
     Frame& operator=(const Frame& other);
-    [[nodiscard]] uint16_t getWidth() const { return width; }
-    [[nodiscard]] uint16_t getHeight() const { return height; }
+    [[nodiscard]] int16_t getWidth() const { return width; }
+    [[nodiscard]] int16_t getHeight() const { return height; }
     [[nodiscard]] FrameFormat getFormat() const { return format; }
     [[nodiscard]] virtual uint8_t* getData() const { return data; }
     [[nodiscard]] size_t getSize() const { return size; }
@@ -59,8 +59,8 @@ class OwnBufferFrame: public Frame {
 private:    
     std::unique_ptr<uint8_t[]> ownData;
 public:
-    OwnBufferFrame(uint16_t width, 
-        uint16_t height, 
+    OwnBufferFrame(int16_t width,
+        int16_t height,
         FrameFormat format,
         size_t size,
         std::chrono::high_resolution_clock::time_point timestamp

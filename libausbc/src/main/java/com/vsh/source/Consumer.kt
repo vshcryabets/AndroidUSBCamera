@@ -2,6 +2,6 @@ package com.vsh.source
 
 interface Consumer {
     fun consume(frame: Frame?)
-    fun stopConsuming()
-    fun startConsuming()
+    fun stopConsuming(): JniObjectError
+    fun startConsuming(): JniObjectError
 }

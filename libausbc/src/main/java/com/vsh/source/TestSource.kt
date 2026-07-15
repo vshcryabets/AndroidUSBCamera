@@ -45,8 +45,10 @@ class TestSource(
         _srcId = Optional.empty()
     }
 
-    override fun startProducing(configuration: Source.ProducingConfiguration): JniSourceError {
-        TODO("Not yet implemented")
+    override fun startProducing(configuration: Source.ProducingConfiguration): JniObjectError {
+        if (_srcId.isEmpty)
+            return JniObjectError(JniObjectErrorType.NOT_INITIALIZED)
+        return nativeStartProducing(_srcId.get(), configuration)
     }
 
     override fun getProducingConfiguration(): Source.ProducingConfiguration? {
@@ -57,26 +59,35 @@ class TestSource(
         TODO("Not yet implemented")
     }
 
-    override fun stopProducing(): JniSourceError {
+    override fun stopProducing(): JniObjectError {
         if (_srcId.isEmpty)
-            return JniSourceError(JniSourceErrorType.SOURCE_NOT_INITIALIZED)
-        val errorCode = nativeStopCapturing(_srcId.get())
-        return JniSourceError.fromErrorCode(errorCode)
+            return JniObjectError(JniObjectErrorType.NOT_INITIALIZED)
+        return nativeStopCapturing(_srcId.get())
     }
 
     override fun isPullSource(): Boolean {
-        TODO("Not yet implemented")
+        return _srcId.map {
+            nativeIsPullSource(it)
+        }.orElseThrow({
+            IllegalStateException("Source is not initialized")
+        })
     }
 
     override fun isPushSource(): Boolean {
-        TODO("Not yet implemented")
+        return _srcId.map {
+            nativeIsPushSource(it)
+        }.orElseThrow({
+            IllegalStateException("Source is not initialized")
+        })
     }
 
     private external fun nativeCreate(fontPtr: Long): Int
     external override fun nativeRelease(srcId: Int)
-    private external fun nativeStopCapturing(srcId: Int): Int
+    private external fun nativeStopCapturing(srcId: Int): JniObjectError
     private external fun nativeClose(srcId: Int)
     external override fun nativeGetSupportedResolutions(srcId: Int): Map<Integer, List<SourceResolution>>
     override external fun nativeGetSupportedFrameFormats(srcId: Int): List<Integer>
-
+    private external fun nativeIsPullSource(srcId: Int): Boolean
+    private external fun nativeIsPushSource(srcId: Int): Boolean
+    private external fun nativeStartProducing(srcId: Int, configuration: Source.ProducingConfiguration): JniObjectError
 }

@@ -3,6 +3,8 @@
 #include "TestFileSource.h"
 #include "Consumer.h"
 
+using namespace auvc::jni;
+
 class TestConsumer : public auvc::Consumer {
 public:
     void consume(const auvc::Frame& frame) override {

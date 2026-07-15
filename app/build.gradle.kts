@@ -16,7 +16,7 @@ android {
         versionCode = 127
         versionName = "3.3.3"
 
-        ndk.abiFilters.addAll(listOf("armeabi-v7a","arm64-v8a")) // x86, x86_64 still in progress
+        ndk.abiFilters.addAll(listOf("armeabi-v7a","arm64-v8a","x86_64")) // x86 still in progress
     }
     buildTypes {
         release {

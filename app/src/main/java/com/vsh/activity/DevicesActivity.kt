@@ -35,6 +35,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.cupcake.ui.theme.AusbcTheme
 import com.jiangdg.ausbc.utils.CheckCameraPermissionUseCaseImpl
 import com.jiangdg.demo.MainActivity
+import com.vsh.domain.usecases.GetSurfaceConsumerUseCaseImpl
 import com.vsh.domain.usecases.GetTestSourceUseCaseImpl
 import com.vsh.font.FontSrcImpl
 import com.vsh.screens.AusbcApp
@@ -92,7 +93,8 @@ class DevicesActivity : ComponentActivity() {
                     testSourceViewModelFactory = TestSourceViewModelFactory(
                         getTestSourceUseCase = GetTestSourceUseCaseImpl(
                             fontSrc = FontSrcImpl()
-                        )
+                        ),
+                        getSurfaceConsumerUseCase = GetSurfaceConsumerUseCaseImpl()
                     )
                 )
             }

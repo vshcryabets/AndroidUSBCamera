@@ -32,8 +32,8 @@ interface Source<OC: Source.OpenConfiguration, PC: Source.ProducingConfiguration
     fun getOpenConfiguration(): OC?
     fun close()
 
-    fun startProducing(configuration: PC): JniSourceError
-    fun stopProducing(): JniSourceError
+    fun startProducing(configuration: PC): JniObjectError
+    fun stopProducing(): JniObjectError
     fun getProducingConfiguration(): PC?
     fun isReadyForProducing(): Boolean
     fun getSupportedResolutions(): Map<Int, List<SourceResolution>>

@@ -2,7 +2,7 @@ package com.vsh.source
 
 import java.util.Optional
 
-abstract class JniConsumer: Consumer, AutoCloseable {
+abstract class JniConsumer : Consumer, AutoCloseable {
     protected var _srcId: Optional<Int> = Optional.empty()
 
     init {
@@ -10,27 +10,24 @@ abstract class JniConsumer: Consumer, AutoCloseable {
     }
 
     protected abstract fun initNative(): Int
-    protected fun releaseNativeObject() {
-        if (_srcId.isPresent) {
-            nativeRelease(_srcId.get())
-            _srcId = Optional.empty()
-        }
+    protected fun releaseNativeObject(): JniObjectError {
+        if (_srcId.isEmpty)
+            return JniObjectError(JniObjectErrorType.NOT_INITIALIZED)
+        val result = nativeRelease(_srcId.get())
+        _srcId = Optional.empty()
+        return result
     }
 
-    override fun stopConsuming() {
-        return _srcId.map {
-            nativeStopConsuming(it)
-        }.orElseThrow({
-            IllegalStateException("Consumer is not initialized")
-        })
+    override fun stopConsuming(): JniObjectError {
+        if (_srcId.isEmpty)
+            return JniObjectError(JniObjectErrorType.NOT_INITIALIZED)
+        return nativeStopConsuming(_srcId.get())
     }
 
-    override fun startConsuming() {
-        return _srcId.map {
-            nativeStartConsuming(it)
-        }.orElseThrow({
-            IllegalStateException("Consumer is not initialized")
-        })
+    override fun startConsuming(): JniObjectError {
+        if (_srcId.isEmpty)
+            return JniObjectError(JniObjectErrorType.NOT_INITIALIZED)
+        return nativeStartConsuming(_srcId.get())
     }
 
     fun getConsumerId(): Optional<Int> = _srcId
@@ -40,9 +37,9 @@ abstract class JniConsumer: Consumer, AutoCloseable {
         releaseNativeObject()
     }
 
-    protected abstract fun nativeRelease(ptr: Int)
-    protected abstract fun nativeStopConsuming(ptr: Int)
-    protected abstract fun nativeStartConsuming(ptr: Int)
+    protected abstract fun nativeRelease(ptr: Int): JniObjectError
+    protected abstract fun nativeStopConsuming(ptr: Int): JniObjectError
+    protected abstract fun nativeStartConsuming(ptr: Int): JniObjectError
 
 
 }
