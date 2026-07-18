@@ -62,11 +62,10 @@ class UvcSource: public PullSource {
         virtual ~UvcSource();
         virtual void open(const UvcSource::OpenConfiguration & config);
         std::future<void> close() override;
-        std::future<void> startProducing(const Source::ProducingConfiguration &config) override;
+        std::future<void> startProducing(const ProducingConfiguration &config) override;
         std::future<void> stopProducing() override;
         auvc::ExpectedFrame readFrame() override;
         bool waitNextFrame() override;
-        std::vector<auvc::FrameFormat> getSupportedFrameFormats() const override;
         [[nodiscard]] virtual auvc::ExpectedResolutions getSupportedResolutions() const override;
 };
 #endif

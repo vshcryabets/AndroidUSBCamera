@@ -2,18 +2,22 @@
 #include <cstdint>
 #include <cstddef>
 #include <chrono>
+#include <memory>
 
 namespace auvc {
 
-enum FrameFormat {
-        YUYV,
-        RGBA,
-        RGB,
-        RGBX,
-        YUV420P,
-        ENCODED,
-        NONE
-    };
+enum class FrameFormat: uint8_t {
+    RAW = 0,
+    YUYV = 1,
+    RGB565 = 2,
+    RGBA = 3,
+    RGB = 4,
+    RGBX = 5,
+    YUV420P = 6,
+    NV21 = 7,
+    ENCODED = 8,
+    NONE = 9
+};
 
 class Frame {
 private:

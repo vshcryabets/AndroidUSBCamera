@@ -107,7 +107,7 @@ void TestFileSource::open(const ConnectConfiguration &config)
     dataFile.seekg(TOC_POSITION, std::ios::beg);
     dataFile.read(reinterpret_cast<char*>(&fileTocPosition), sizeof(fileTocPosition));
 
-    supportedResolutions[0].push_back({0, width, height, {fps}});
+    supportedProducingConfigurations[0].push_back({0, width, height, fps, auvc::FrameFormat::ENCODED});
 
     dataFile.seekg(fileTocPosition, std::ios::beg);
     dataFile.read(reinterpret_cast<char*>(&framesCount), sizeof(framesCount));
@@ -116,7 +116,6 @@ void TestFileSource::open(const ConnectConfiguration &config)
     {
         dataFile.read(reinterpret_cast<char*>(&framesTocItems[i]), sizeof(framesTocItems[i]));
     }
-    supportedFormats.push_back(auvc::FrameFormat::ENCODED);
 }
 
 std::future<void> TestFileSource::close()
@@ -130,12 +129,7 @@ std::future<void> TestFileSource::close()
 
 auvc::ExpectedResolutions TestFileSource::getSupportedResolutions() const
 {
-    return supportedResolutions;
-}
-
-std::vector<auvc::FrameFormat> TestFileSource::getSupportedFrameFormats() const
-{
-    return supportedFormats;
+    return supportedProducingConfigurations;
 }
 
 TestFileSource::TestFileSource(): framesCount(0)

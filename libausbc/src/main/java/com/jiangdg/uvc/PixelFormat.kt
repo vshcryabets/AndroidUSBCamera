@@ -24,10 +24,19 @@
 package com.jiangdg.uvc
 
 enum class PixelFormat(val value: Int) {
-    PIXEL_FORMAT_RAW(0),
-    PIXEL_FORMAT_YUV(1),
-    PIXEL_FORMAT_RGB565(2),
-    PIXEL_FORMAT_RGBX(3),
-    PIXEL_FORMAT_YUV420SP(4), // NV12
-    PIXEL_FORMAT_NV21(5) // = YVU420SemiPlanar,NV21，但是保存到jpg颜色失真
+    RAW(0),
+    YUYV(1),
+    RGB565(2),
+    RGBA(3),
+    RGB(4),
+    RGBX(5),
+    YUV420P(6), // NV12
+    NV21(7), // = YVU420SemiPlanar,NV21，但是保存到jpg颜色失真
+    ENCODED(8);
+
+    companion object {
+        @JvmStatic
+        fun fromValue(value: Int): PixelFormat =
+            entries.firstOrNull { it.value == value } ?: RAW
+    }
 }

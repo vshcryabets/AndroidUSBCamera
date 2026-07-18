@@ -31,13 +31,8 @@ auvc::ExpectedResolutions PullToPushSource::getSupportedResolutions() const
     return {};
 }
 
-std::vector<auvc::FrameFormat> 
-PullToPushSource::getSupportedFrameFormats() const
-{
-    return {};
-}
-
-std::future<void> PullToPushSource::startProducing(const Source::ProducingConfiguration &config) 
+std::future<void> 
+PullToPushSource::startProducing(const ProducingConfiguration &config) 
 {
     // start worker thread that pulls frames from pullSource and pushes them via pushFrame
     if (!pullSource) {

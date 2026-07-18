@@ -33,27 +33,22 @@ namespace auvc {
             static const SourceError SUCCESS;
     };
 
-    struct Resolution {
+    struct ProducingConfiguration {
         uint8_t id;
         uint16_t width;
         uint16_t height;
-        std::vector<float> fps;
+        float fps;
+        FrameFormat frameFormat;
     };
 
-    using ExpectedResolutions = std::expected<std::map<uint16_t, std::vector<Resolution>>, SourceError>;
+    using ExpectedResolutions = std::expected<std::map<uint16_t, std::vector<ProducingConfiguration>>, SourceError>;
     using ExpectedFrame = std::expected<auvc::Frame, auvc::SourceError>;
 
     class Source {
     public:
         struct OpenConfiguration {
             std::string tag;
-        };
-        struct ProducingConfiguration {
-            uint32_t width {0};
-            uint32_t height {0};
-            float fps {0.0f};
-        };
-        
+        };        
     protected:
         OpenConfiguration sourceConfig;
         ProducingConfiguration captureConfiguration;
@@ -84,7 +79,6 @@ namespace auvc {
         [[nodiscard]] virtual bool isReadyForProducing() const;
 
         [[nodiscard]] virtual auvc::ExpectedResolutions getSupportedResolutions() const = 0;
-        [[nodiscard]] virtual std::vector<auvc::FrameFormat> getSupportedFrameFormats() const = 0;
         [[nodiscard]] virtual bool isPullSource() const = 0;
         [[nodiscard]] virtual bool isPushSource() const = 0;
     };

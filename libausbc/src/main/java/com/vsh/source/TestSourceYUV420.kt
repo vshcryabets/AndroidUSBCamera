@@ -112,7 +112,6 @@ class TestSourceYUV420(
     private external fun nativeIsReadyForProducing(srcId: Int): Boolean
     private external fun nativeWaitNextFrame(srcId: Int): Boolean
     external override fun nativeGetSupportedResolutions(srcId: Int): Map<Integer, List<SourceResolution>>
-    external override fun nativeGetSupportedFrameFormats(srcId: Int): List<Integer>
     external fun nativeOpen(srcId: Int)
     private external fun nativeStartProducing(srcId: Int, configuration: Source.ProducingConfiguration): JniObjectError
     external fun nativeReadFrame(srcId: Int): Frame

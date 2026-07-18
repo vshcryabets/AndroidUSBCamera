@@ -305,7 +305,7 @@ void UvcSource::init_device() {
     }
 }
 
-std::future<void> UvcSource::startProducing(const Source::ProducingConfiguration &config)
+std::future<void> UvcSource::startProducing(const ProducingConfiguration &config)
 {    
     return std::async(std::launch::async, [this, config]() {
         PullSource::startProducing(config).get();
@@ -505,12 +505,8 @@ bool UvcSource::waitNextFrame() {
     return r > 0;
 }
 
-std::vector<auvc::FrameFormat> UvcSource::getSupportedFrameFormats() const {
-    return { auvc::FrameFormat::YUYV };
-}
-
 auvc::ExpectedResolutions UvcSource::getSupportedResolutions() const {
-    std::map<uint16_t, std::vector<auvc::Resolution>> result;
+    std::map<uint16_t, std::vector<auvc::ProducingConfiguration>> result;
     if (deviceFd < 0) {
         return std::unexpected(auvc::SourceError(auvc::SourceErrorCode::SOURCE_ERROR_NOT_OPENED, "Device not opened"));
     }
@@ -521,7 +517,7 @@ auvc::ExpectedResolutions UvcSource::getSupportedResolutions() const {
 
     while (ioctl(deviceFd, VIDIOC_ENUM_FMT, &fmtdesc) == 0) {
         uint16_t pixfmt = fmtdesc.pixelformat;
-        std::vector<auvc::Resolution> resolutions;
+        std::vector<auvc::ProducingConfiguration> resolutions;
 
         struct v4l2_frmsizeenum frmsize;
         memset(&frmsize, 0, sizeof(frmsize));
@@ -530,20 +526,22 @@ auvc::ExpectedResolutions UvcSource::getSupportedResolutions() const {
         while (ioctl(deviceFd, VIDIOC_ENUM_FRAMESIZES, &frmsize) == 0) {
             if (frmsize.type == V4L2_FRMSIZE_TYPE_DISCRETE) {
                 resolutions.emplace_back(
-                    auvc::Resolution {
+                    auvc::ProducingConfiguration {
                         .id = frmsize.index,
                         .width = static_cast<uint16_t>(frmsize.discrete.width),
                         .height = static_cast<uint16_t>(frmsize.discrete.height),
-                        .fps = {}
+                        .fps = 0,
+                        .frameFormat = auvc::FrameFormat::YUYV
                     });
             } else if (frmsize.type == V4L2_FRMSIZE_TYPE_STEPWISE) {
                 if (frmsize.stepwise.step_width == 0 || frmsize.stepwise.step_height == 0) {
                     resolutions.emplace_back(
-                        auvc::Resolution {
+                        auvc::ProducingConfiguration {
                             .id = frmsize.index,
                             .width = static_cast<uint16_t>(frmsize.stepwise.min_width),
                             .height = static_cast<uint16_t>(frmsize.stepwise.min_height),
-                            .fps = {}
+                            .fps = 0,
+                            .frameFormat = auvc::FrameFormat::YUYV
                         });
                     continue;
                 }
@@ -554,11 +552,12 @@ auvc::ExpectedResolutions UvcSource::getSupportedResolutions() const {
                         h <= frmsize.stepwise.max_height; 
                         h += frmsize.stepwise.step_height) {
                         resolutions.emplace_back(
-                            auvc::Resolution {
+                            auvc::ProducingConfiguration {
                                 .id = frmsize.index,
                                 .width = static_cast<uint16_t>(w),
                                 .height = static_cast<uint16_t>(h),
-                                .fps = {}
+                                .fps = 0,
+                                .frameFormat = auvc::FrameFormat::YUYV
                             });
                     }
                 }

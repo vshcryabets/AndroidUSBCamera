@@ -17,10 +17,11 @@ TEST_CASE("testFormatsAndResolutions", "[PullToPushSource]") {
 
     source->open({});
 
-    const auvc::Source::ProducingConfiguration realConfig = {
+    const auvc::ProducingConfiguration realConfig = {
         .width = 320,
         .height = 240,
-        .fps = 30.0f
+        .fps = 30.0f,
+        .frameFormat = auvc::FrameFormat::YUV420P
     };
 
     auvc::PullToPushSource pullToPushSource;

@@ -26,9 +26,10 @@ data class SourceResolution(
     val id: Int,
     val width: Int,
     val height: Int,
-    val fps: List<Float>,
+    val fps: Float,
+    val format: PixelFormat,
 ) {
     companion object {
-        val EMPTY = SourceResolution(0, 0, 0, emptyList())
+        val EMPTY = SourceResolution(0, 0, 0, 0f, PixelFormat.RAW)
     }
 }

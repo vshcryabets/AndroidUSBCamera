@@ -86,7 +86,6 @@ class TestSource(
     private external fun nativeStopCapturing(srcId: Int): JniObjectError
     private external fun nativeClose(srcId: Int)
     external override fun nativeGetSupportedResolutions(srcId: Int): Map<Integer, List<SourceResolution>>
-    override external fun nativeGetSupportedFrameFormats(srcId: Int): List<Integer>
     private external fun nativeIsPullSource(srcId: Int): Boolean
     private external fun nativeIsPushSource(srcId: Int): Boolean
     private external fun nativeStartProducing(srcId: Int, configuration: Source.ProducingConfiguration): JniObjectError

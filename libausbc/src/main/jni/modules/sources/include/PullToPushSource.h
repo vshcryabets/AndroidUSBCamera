@@ -25,7 +25,6 @@ public:
     std::future<void> stopProducing() override;
     std::future<void> close() override;
     auvc::ExpectedResolutions getSupportedResolutions() const override;
-    std::vector<auvc::FrameFormat> getSupportedFrameFormats() const override;
 };
 
 } // namespace auvc

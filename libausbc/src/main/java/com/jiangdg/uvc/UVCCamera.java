@@ -387,7 +387,7 @@ public class UVCCamera implements Source<UVCCamera.OpenConfiguration, Source.Pro
 
 	@Override
     public synchronized JniObjectError stopProducing() {
-    	setFrameCallback(null, PixelFormat.PIXEL_FORMAT_RAW);
+    	setFrameCallback(null, PixelFormat.RAW);
     	if (mCtrlBlock != null) {
     		nativeStopPreview(mNativePtr);
     	}

@@ -9,17 +9,26 @@
 
 namespace auvc::jni {
 
-auvc::Source::ProducingConfiguration parseProducingConfiguration(jobject object, JNIEnv* env) {
-    auvc::Source::ProducingConfiguration config;
+auvc::ProducingConfiguration parseProducingConfiguration(jobject object, JNIEnv* env) {
+    auvc::ProducingConfiguration config;
     jclass cls = env->GetObjectClass(object);
 
     jfieldID widthField = env->GetFieldID(cls, "width", "I");
     jfieldID heightField = env->GetFieldID(cls, "height", "I");
     jfieldID fpsField = env->GetFieldID(cls, "fps", "F");
+    jfieldID formatField = env->GetFieldID(cls, "format", "Lcom/vsh/source/FrameFormat;");
 
     config.width = env->GetIntField(object, widthField);
     config.height = env->GetIntField(object, heightField);
     config.fps = env->GetFloatField(object, fpsField);
+    jobject formatObj = env->GetObjectField(object, formatField);
+    if (formatObj != nullptr) {
+        jclass formatCls = env->GetObjectClass(formatObj);
+        jfieldID valueField = env->GetFieldID(formatCls, "value", "I");
+        config.frameFormat = static_cast<auvc::FrameFormat>(env->GetIntField(formatObj, valueField));
+        env->DeleteLocalRef(formatCls);
+        env->DeleteLocalRef(formatObj);
+    }
     env->DeleteLocalRef(cls);
     return config;
 }
@@ -108,17 +117,6 @@ Java_com_vsh_source_TestSourceYUV420_nativeCreate(
 {
     return auvc::jni::JniSourcesRepo::getInstance()->
         addSource(std::make_shared<auvc::TestSourceYUV420>((const uint8_t *)fontPtr));
-}
-
-JNIEXPORT jobject JNICALL
-Java_com_vsh_source_TestSourceYUV420_nativeGetSupportedFrameFormats(
-    JNIEnv *env,
-    jobject thiz,
-    jint sourceId)
-{
-    auto source = auvc::jni::JniSourcesRepo::getInstance()->getSource(sourceId);
-    std::vector<auvc::FrameFormat> formats = source->getSupportedFrameFormats();
-    return auvc::jni::frameFormatsToJList(formats, env);
 }
 
 JNIEXPORT void JNICALL
@@ -211,7 +209,7 @@ Java_com_vsh_source_TestSourceYUV420_nativeStartProducing(
     if (source == nullptr) {
         return auvc::jni::fromSourceError(env, auvc::SourceError::NOT_FOUND);
     }
-    auvc::Source::ProducingConfiguration config = auvc::jni::parseProducingConfiguration(
+    auvc::ProducingConfiguration config = auvc::jni::parseProducingConfiguration(
             producingConfiguration, env);
     source->startProducing(config).get();
     return auvc::jni::fromSourceError(env, auvc::SourceError::SUCCESS);
@@ -296,7 +294,7 @@ Java_com_vsh_source_TestSource_nativeStartProducing(
     if (source == nullptr) {
         return auvc::jni::fromSourceError(env, auvc::SourceError::NOT_FOUND);
     }
-    auvc::Source::ProducingConfiguration config = auvc::jni::parseProducingConfiguration(
+    auvc::ProducingConfiguration config = auvc::jni::parseProducingConfiguration(
             producingConfiguration, env);
     source->startProducing(config).get();
     return auvc::jni::fromSourceError(env, auvc::SourceError::SUCCESS);
