@@ -11,7 +11,7 @@ std::future<void> completed() {
     return promise.get_future();
 }
 
-const Source::OpenConfiguration Source::getOpenConfiguration() const
+const SourceConfiguration Source::getOpenConfiguration() const
 {
     return this->sourceConfig;
 }

@@ -30,7 +30,7 @@ class UvcException : public std::exception {
 #ifdef SUPPORT_V4L2
 class UvcSource: public PullSource {
     public:
-        struct OpenConfiguration: public Source::OpenConfiguration  {
+        struct OpenConfiguration: public SourceConfiguration {
             std::string dev_name;
         };
         enum io_method {

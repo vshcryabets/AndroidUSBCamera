@@ -6,19 +6,11 @@
 
 namespace auvc {
     class PushSource : public Source {
-    public:
-        struct OpenConfiguration: public Source::OpenConfiguration {
-            std::shared_ptr<auvc::Consumer> consumer {nullptr};
-        };
     protected:
         std::shared_ptr<auvc::Consumer> consumer;
     public:
         PushSource() : Source() {}
         virtual ~PushSource() = default;
-        virtual void open(const OpenConfiguration &config) {
-            Source::open(config);
-            this->consumer = config.consumer;
-        }
         std::future<void> close() override {
             return std::async(std::launch::async, [this]() {
                 consumer = nullptr;
@@ -35,5 +27,14 @@ namespace auvc {
         [[nodiscard]] bool isPushSource() const override {
             return true;
         }
-    };
+        virtual void attachConsumer(std::shared_ptr<auvc::Consumer> consumer) {
+            this->consumer = consumer;
+        }
+        [[nodiscard]] std::shared_ptr<auvc::Consumer> getAttachedConsumer() const {
+            return consumer;
+        }
+        [[nodiscard]] virtual bool isReadyForProducing() const override {
+            return (consumer != nullptr);
+        }
+   };
 }

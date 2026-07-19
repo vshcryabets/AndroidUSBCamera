@@ -9,7 +9,7 @@ namespace auvc {
 
 class TestFileSource : public PullSource {
 public:
-    struct ConnectConfiguration: public Source::OpenConfiguration {
+    struct ConnectConfiguration: public SourceConfiguration {
         std::string fileName;
     };
 private:

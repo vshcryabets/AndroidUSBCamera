@@ -5,33 +5,12 @@
 #include <map>
 #include <future>
 #include <expected>
+#include <queue>
+
+#include "Errors.h"
 
 namespace auvc {
     std::future<void> completed();
-
-    enum class SourceErrorCode : uint16_t {
-        SUCCESS = 0,
-        SOURCE_ERROR_WRONG_CONFIG,
-        SOURCE_ERROR_CAPTURE_NOT_STARTED,
-        SOURCE_ERROR_NOT_OPENED,
-        SOURCE_ERROR_READ_AGAIN,
-        SOURCE_FRAME_NOT_AVAILABLE,
-        OBJECT_NOT_FOUND
-    };
-
-    class SourceError : public std::exception {
-        public:
-        private:
-            SourceErrorCode code;
-            std::string message;
-        public:
-            SourceError(SourceErrorCode code, const std::string &message) : code(code), message(message) {}
-            const char* what() const noexcept override;
-            SourceErrorCode getCode() const noexcept { return code; }
-
-            static const SourceError NOT_FOUND;
-            static const SourceError SUCCESS;
-    };
 
     struct ProducingConfiguration {
         uint8_t id;
@@ -44,27 +23,50 @@ namespace auvc {
     using ExpectedResolutions = std::expected<std::map<uint16_t, std::vector<ProducingConfiguration>>, SourceError>;
     using ExpectedFrame = std::expected<auvc::Frame, auvc::SourceError>;
 
-    class Source {
-    public:
-        struct OpenConfiguration {
+    class Source;
+
+    class SourceConfiguration {
+        private:
             std::string tag;
-        };        
+        public:
+            SourceConfiguration() : tag("") {}
+            SourceConfiguration(const std::string &tag) : tag(tag) {}
+            [[nodiscard]] const std::string &getTag() const { return tag; }
+    };
+
+    class Consumer {
     protected:
-        OpenConfiguration sourceConfig;
+        std::shared_ptr<Source> source;
+    public:
+        virtual ~Consumer() = default;
+        virtual void consume(const Frame& frame) = 0;
+        virtual ConsumerError attachTo(std::shared_ptr<Source> source);
+        [[nodiscard]] std::shared_ptr<Source> getAttachedSource() const {
+            return source;
+        }
+        virtual ConsumerError openChain(std::queue<SourceConfiguration> &openConfigurations);
+        virtual ConsumerError startChain(std::queue<ProducingConfiguration> &openConfigurations);
+        virtual ConsumerError stopChain();
+        virtual ConsumerError closeChain();
+    };
+
+    class Source {  
+    protected:
+        SourceConfiguration sourceConfig;
         ProducingConfiguration captureConfiguration;
     protected:
         uint32_t frameCounter {0};
     public:
         Source() {
-            sourceConfig = OpenConfiguration();
+            sourceConfig = SourceConfiguration();
             captureConfiguration = ProducingConfiguration();
         };
         virtual ~Source() = default;
         // open-close
-        virtual void open(const OpenConfiguration &config) {
+        virtual void open(const SourceConfiguration &config) {
             this->sourceConfig = config;
         }
-        [[nodiscard]] const OpenConfiguration getOpenConfiguration() const;
+        [[nodiscard]] const SourceConfiguration getOpenConfiguration() const;
         [[nodiscard]] virtual std::future<void> close() = 0;
         // producing
         [[nodiscard]] const ProducingConfiguration getProducingConfiguration() const;
