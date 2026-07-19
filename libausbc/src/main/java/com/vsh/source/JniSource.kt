@@ -3,7 +3,7 @@ package com.vsh.source
 import com.jiangdg.uvc.SourceResolution
 import java.util.Optional
 
-abstract class JniSource<OC : Source.OpenConfiguration, PC : Source.ProducingConfiguration> :
+abstract class JniSource<OC : Source.OpenConfiguration, PC : ProducingConfiguration> :
     Source<OC, PC>,
     AutoCloseable {
     protected var _srcId: Optional<Int> = Optional.empty()
@@ -15,16 +15,6 @@ abstract class JniSource<OC : Source.OpenConfiguration, PC : Source.ProducingCon
     fun getSrcId(): Optional<Int> = _srcId
 
     protected abstract fun initNative(): Int
-
-    override fun getSupportedFrameFormats(): List<Source.FrameFormat> {
-        return _srcId.map { id ->
-            nativeGetSupportedFrameFormats(id).map { formatId : Integer ->
-                Source.FrameFormat.entries[formatId.toInt()]
-            }
-        }.orElseGet {
-            emptyList()
-        }
-    }
 
     override fun close() {
         releaseNativeObject()
@@ -49,5 +39,4 @@ abstract class JniSource<OC : Source.OpenConfiguration, PC : Source.ProducingCon
 
     protected abstract fun nativeRelease(srcId: Int)
     protected abstract fun nativeGetSupportedResolutions(srcId: Int): Map<Integer, List<SourceResolution>>
-    protected abstract fun nativeGetSupportedFrameFormats(srcId: Int): List<Integer>
 }

@@ -1,6 +1,6 @@
 package com.vsh.source
 
-interface PullSource<OC:Source.OpenConfiguration, PC: Source.ProducingConfiguration>: Source<OC, PC> {
+interface PullSource<OC:Source.OpenConfiguration, PC: ProducingConfiguration>: Source<OC, PC> {
     fun readFrame(): Frame
     fun waitNextFrame(): Boolean
     override fun isPullSource(): Boolean = true

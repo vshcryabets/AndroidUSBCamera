@@ -20,8 +20,8 @@ import com.vsh.font.FontSrc
 
 class TestSourceYUV420(
     private val font: FontSrc
-) : JniSource<Source.OpenConfiguration, Source.ProducingConfiguration>(),
-    PullSource<Source.OpenConfiguration, Source.ProducingConfiguration> {
+) : JniSource<Source.OpenConfiguration, ProducingConfiguration>(),
+    PullSource<Source.OpenConfiguration, ProducingConfiguration> {
     private var openConfiguration: Source.OpenConfiguration? = null
 
     override fun open(configuration: Source.OpenConfiguration) {
@@ -46,7 +46,7 @@ class TestSourceYUV420(
         super.close()
     }
 
-    override fun startProducing(configuration: Source.ProducingConfiguration): JniObjectError {
+    override fun startProducing(configuration: ProducingConfiguration): JniObjectError {
         if (_srcId.isEmpty)
             return JniObjectError(JniObjectErrorType.NOT_INITIALIZED)
         return nativeStartProducing(_srcId.get(), configuration)
@@ -58,7 +58,7 @@ class TestSourceYUV420(
         return nativeStopProducing(_srcId.get())
     }
 
-    override fun getProducingConfiguration(): Source.ProducingConfiguration? {
+    override fun getProducingConfiguration(): ProducingConfiguration? {
         TODO("Not yet implemented")
     }
 
@@ -77,7 +77,7 @@ class TestSourceYUV420(
             result = object : Frame {
                 override fun getWidth(): Int = 0
                 override fun getHeight(): Int = 0
-                override fun getFormat(): Int = Source.FrameFormat.NONE.ordinal
+                override fun getFormat(): Int = FrameFormat.RAW.ordinal
                 override fun getTimestamp(): Long = 0
             }
         return result
@@ -113,7 +113,7 @@ class TestSourceYUV420(
     private external fun nativeWaitNextFrame(srcId: Int): Boolean
     external override fun nativeGetSupportedResolutions(srcId: Int): Map<Integer, List<SourceResolution>>
     external fun nativeOpen(srcId: Int)
-    private external fun nativeStartProducing(srcId: Int, configuration: Source.ProducingConfiguration): JniObjectError
+    private external fun nativeStartProducing(srcId: Int, configuration: ProducingConfiguration): JniObjectError
     external fun nativeReadFrame(srcId: Int): Frame
     private external fun nativeIsPullSource(srcId: Int): Boolean
     private external fun nativeIsPushSource(srcId: Int): Boolean

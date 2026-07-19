@@ -31,7 +31,7 @@ jobject resolutionMapToJObject(const auvc::ExpectedResolutions &map, JNIEnv *env
         "(I)Lcom/jiangdg/uvc/PixelFormat;"
     );
     jclass sourceResolutionCls = env->FindClass("com/jiangdg/uvc/SourceResolution");
-    jmethodID sourceResolutionInit = env->GetMethodID(sourceResolutionCls, "<init>", "(IIILjava/util/List;)V");
+    jmethodID sourceResolutionInit = env->GetMethodID(sourceResolutionCls, "<init>", "(IIIFLcom/jiangdg/uvc/PixelFormat;)V");
     jobject result = env->NewObject(hashMapCls, hashMapInit);
 
     for (const auto &[type, resolutions]: map.value()) {
@@ -47,10 +47,10 @@ jobject resolutionMapToJObject(const auvc::ExpectedResolutions &map, JNIEnv *env
             // Create a resolution object
             auto resolution = env->NewObject(sourceResolutionCls,
                                              sourceResolutionInit,
-                                             it.id,
-                                             it.width,
-                                             it.height,
-                                             it.fps,
+                                             (jint)it.id,
+                                             (jint)it.width,
+                                             (jint)it.height,
+                                             (jfloat)it.fps,
                                              pixelFormat);
             env->CallBooleanMethod(resolutionsList, arrayListAdd, resolution);
             env->DeleteLocalRef(resolution);
