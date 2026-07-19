@@ -41,10 +41,10 @@ void X264Encoder::open(const X264EncConfiguration &config)
     }
 }
 
-std::future<void> X264Encoder::startProducing(const ProducingConfiguration &config)
+std::future<void> X264Encoder::startProducing(const auvc::ProducingConfiguration &config)
 {
     return std::async(std::launch::async, [this, config]() {
-        PushSource::startProducing(config).get();
+        auvc::PushSource::startProducing(config).get();
         if (encoder == nullptr)
         {
             throw EncoderException(EncoderException::Type::NotInitialized, 
@@ -107,10 +107,6 @@ void X264Encoder::consume(const auvc::Frame &frame) {
             encoderConfig.consumer->consume(encFrame);
         }
     }
-}
-
-std::vector<auvc::FrameFormat> X264Encoder::getSupportedFrameFormats() const {
-    return {};
 }
 
 auvc::ExpectedResolutions X264Encoder::getSupportedResolutions() const {

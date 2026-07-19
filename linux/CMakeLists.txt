@@ -2,13 +2,15 @@ cmake_minimum_required(VERSION 3.31)
 
 project(LinuxUvcTests LANGUAGES CXX C)
 
-enable_testing()
-include(CTest)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED True)
+
+enable_testing()
+include(CTest)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(TARGET_OS "Linux")

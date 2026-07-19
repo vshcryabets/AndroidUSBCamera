@@ -1,6 +1,6 @@
 package com.vsh.source
 
-interface PushSource<OC : PushSource.OpenConfiguration, PC : Source.ProducingConfiguration> :
+interface PushSource<OC : PushSource.OpenConfiguration, PC : ProducingConfiguration> :
     Source<OC, PC> {
     open class OpenConfiguration(
         tag: String,

@@ -11,22 +11,18 @@ TEST_CASE("testFormatsAndResolutions", "[TestSourceYUV420]") {
     auvc::TestSourceYUV420 source(u8x8_font_amstrad_cpc_extended_f);
     source.open({});
 
-    auto supportedFormats = source.getSupportedFrameFormats();
     auto supportedResolutions = source.getSupportedResolutions();
-
-    REQUIRE(supportedFormats.size() == 1);
-    REQUIRE(supportedFormats[0] == auvc::FrameFormat::YUV420P);
 
     REQUIRE(supportedResolutions.value().size() == 1);
     auto firstResolution = supportedResolutions.value().begin();
     REQUIRE(firstResolution != supportedResolutions.value().end());
     uint16_t type = firstResolution->first;
-    std::vector<auvc::Resolution> resolutions = firstResolution->second;
+    std::vector<auvc::ProducingConfiguration> resolutions = firstResolution->second;
     REQUIRE(resolutions.size() > 1);
     REQUIRE(resolutions[0].width == 640);
     REQUIRE(resolutions[0].height == 480);
-    REQUIRE(resolutions[0].fps.size() > 1);
-    REQUIRE(resolutions[0].fps[0] == 30.00f);
+    REQUIRE(resolutions[0].fps == 30.00f);
+    REQUIRE(resolutions[0].frameFormat == auvc::FrameFormat::YUV420P);
 
     source.close().get();
 }
@@ -34,10 +30,11 @@ TEST_CASE("testFormatsAndResolutions", "[TestSourceYUV420]") {
 TEST_CASE("testCapture", "[TestSourceYUV420]") {
     auvc::TestSourceYUV420 source(u8x8_font_amstrad_cpc_extended_f);
     source.open({});
-    source.startProducing(auvc::Source::ProducingConfiguration {
+    source.startProducing(auvc::ProducingConfiguration {
         .width = 640, 
         .height = 480,
-        .fps = 30.0f
+        .fps = 30.0f,
+        .frameFormat = auvc::FrameFormat::YUV420P
     }).get();
     source.waitNextFrame();
     auto frame = source.readFrame();
@@ -56,10 +53,11 @@ TEST_CASE("testCapture", "[TestSourceYUV420]") {
 TEST_CASE("Test that source gives frames with delay", "[TestSourceYUV420]") {
     auvc::TestSourceYUV420 source(u8x8_font_amstrad_cpc_extended_f);
     source.open({});
-    source.startProducing(auvc::Source::ProducingConfiguration {
+    source.startProducing(auvc::ProducingConfiguration {
         .width = 640, 
         .height = 480,
-        .fps = 10.0f
+        .fps = 10.0f,
+        .frameFormat = auvc::FrameFormat::YUV420P
     }).get();
     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
     for (int i = 0; i < 10; i++) {

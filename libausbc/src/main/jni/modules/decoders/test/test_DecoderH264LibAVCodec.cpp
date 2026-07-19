@@ -44,7 +44,8 @@ TEST_CASE("testDecode", "[DecoderH264LibAVCodec]")
     fileSource->startProducing({
         .width = resolutions[0].width,
         .height = resolutions[0].height,
-        .fps = resolutions[0].fps[0]
+        .fps = resolutions[0].fps,
+        .frameFormat = resolutions[0].frameFormat
     }).get();
     decoder->startProducing({});
     pullToPushSource->startProducing({});

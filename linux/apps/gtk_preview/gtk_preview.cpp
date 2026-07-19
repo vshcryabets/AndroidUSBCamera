@@ -39,10 +39,12 @@ private:
 
     std::shared_ptr<ConvertBitmapUseCase> convertUseCase;
     ConvertBitmapUseCase::Buffer *rgbaBuffer = nullptr;
-    auvc::Source::ProducingConfiguration captureConfig = {
+    auvc::ProducingConfiguration captureConfig = {
         .width = 640,
         .height = 480,
-        .fps = 10.0f};
+        .fps = 10.0f,
+        .frameFormat = auvc::FrameFormat::RGBA
+    };
 
 private:
 

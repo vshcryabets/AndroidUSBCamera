@@ -1,5 +1,5 @@
 /*
-* Copyright 2025 vschryabets@gmail.com
+* Copyright 2025-2026 vschryabets@gmail.com
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -44,33 +44,28 @@ class PullToPushSourceTests {
 
         val pushSource = PullToPushSource.OpenConfiguration(
             "push",
-            pullSource = object : JniSource<Source.OpenConfiguration, Source.ProducingConfiguration>() {
+            pullSource = object : JniSource<Source.OpenConfiguration, ProducingConfiguration>() {
                 override fun initNative(): Int = 0
                 override fun getOpenConfiguration(): Source.OpenConfiguration =
                     Source.OpenConfiguration("pull")
 
                 override fun close() {}
-                override fun startProducing(configuration: Source.ProducingConfiguration): JniObjectError {
+                override fun startProducing(configuration: ProducingConfiguration): JniObjectError {
                     TODO("Not yet implemented")
                 }
 
                 override fun stopProducing() = JniObjectError(JniObjectErrorType.NOT_INITIALIZED)
-                override fun getProducingConfiguration(): Source.ProducingConfiguration? {
+                override fun getProducingConfiguration(): ProducingConfiguration? {
                     TODO("Not yet implemented")
                 }
 
                 override fun isReadyForProducing(): Boolean = false
-                override fun getSupportedFrameFormats(): List<Source.FrameFormat> = emptyList()
                 override fun getSupportedResolutions(): Map<Int, List<SourceResolution>> =
                     emptyMap()
 
                 override fun nativeRelease(nativePtr: Int) {}
                 override fun nativeGetSupportedResolutions(nativePtr: Int): Map<Integer, List<SourceResolution>> {
                     return emptyMap()
-                }
-
-                override fun nativeGetSupportedFrameFormats(srcId: Int): List<Integer> {
-                    return emptyList()
                 }
 
                 override fun isPullSource(): Boolean = false
@@ -104,7 +99,7 @@ class PullToPushSourceTests {
         )
 
         var result = pullSource.startProducing(
-            Source.ProducingConfiguration(
+            ProducingConfiguration(
                 tag = "producing1",
                 width  = 640,
                 height = 480,
@@ -113,7 +108,7 @@ class PullToPushSourceTests {
         )
         Assertions.assertTrue { result.isSuccess() }
 
-        result = pullToPush.startProducing(Source.ProducingConfiguration())
+        result = pullToPush.startProducing(ProducingConfiguration())
         Assertions.assertTrue { result.isSuccess() }
 
         Thread.sleep(1000)

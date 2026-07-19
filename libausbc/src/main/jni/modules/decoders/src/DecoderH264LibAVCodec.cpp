@@ -47,7 +47,7 @@ std::future<void> DecoderH264LibAVCodec::stopProducing() {
 }
 
 std::future<void> DecoderH264LibAVCodec::startProducing(
-    const Source::ProducingConfiguration &config) {
+    const auvc::ProducingConfiguration &config) {
     return PushSource::startProducing(config);
 }
 
@@ -126,7 +126,4 @@ void DecoderH264LibAVCodec::consume(const auvc::Frame &frame) {
 
 auvc::ExpectedResolutions DecoderH264LibAVCodec::getSupportedResolutions() const {
     return {};
-}
-std::vector<auvc::FrameFormat> DecoderH264LibAVCodec::getSupportedFrameFormats() const {
-    return {auvc::FrameFormat::NONE};
 }

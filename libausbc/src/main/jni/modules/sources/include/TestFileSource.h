@@ -9,7 +9,7 @@ namespace auvc {
 
 class TestFileSource : public PullSource {
 public:
-    struct ConnectConfiguration: public Source::OpenConfiguration {
+    struct ConnectConfiguration: public SourceConfiguration {
         std::string fileName;
     };
 private:
@@ -26,8 +26,8 @@ private:
     uint32_t fileTocPosition = 0;
     std::ifstream dataFile;
     std::vector<uint32_t> framesTocItems;
-    std::vector<auvc::FrameFormat> supportedFormats;
-    std::map<uint16_t, std::vector<auvc::Resolution>> supportedResolutions;
+    // std::vector<auvc::FrameFormat> supportedFormats;
+    std::map<uint16_t, std::vector<auvc::ProducingConfiguration>> supportedProducingConfigurations;
 public:
     TestFileSource();
     virtual ~TestFileSource();
@@ -35,7 +35,6 @@ public:
     std::future<void> startProducing(const ProducingConfiguration &config) override;
     std::future<void> close() override;
     auvc::ExpectedResolutions getSupportedResolutions() const override;
-    std::vector<auvc::FrameFormat> getSupportedFrameFormats() const override;
     std::future<void> stopProducing() override;
     bool waitNextFrame() override;
     virtual void open(const ConnectConfiguration &config);

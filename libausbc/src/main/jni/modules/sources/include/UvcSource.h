@@ -30,7 +30,7 @@ class UvcException : public std::exception {
 #ifdef SUPPORT_V4L2
 class UvcSource: public PullSource {
     public:
-        struct OpenConfiguration: public Source::OpenConfiguration  {
+        struct OpenConfiguration: public SourceConfiguration {
             std::string dev_name;
         };
         enum io_method {
@@ -62,11 +62,10 @@ class UvcSource: public PullSource {
         virtual ~UvcSource();
         virtual void open(const UvcSource::OpenConfiguration & config);
         std::future<void> close() override;
-        std::future<void> startProducing(const Source::ProducingConfiguration &config) override;
+        std::future<void> startProducing(const ProducingConfiguration &config) override;
         std::future<void> stopProducing() override;
         auvc::ExpectedFrame readFrame() override;
         bool waitNextFrame() override;
-        std::vector<auvc::FrameFormat> getSupportedFrameFormats() const override;
         [[nodiscard]] virtual auvc::ExpectedResolutions getSupportedResolutions() const override;
 };
 #endif

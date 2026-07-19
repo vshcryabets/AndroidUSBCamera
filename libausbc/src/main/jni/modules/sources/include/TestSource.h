@@ -23,7 +23,6 @@ class TestSource: public PullSource {
         std::future<void> startProducing(const ProducingConfiguration &config) override;
         std::future<void> close() override;
         auvc::ExpectedResolutions getSupportedResolutions() const override;
-        std::vector<auvc::FrameFormat> getSupportedFrameFormats() const override;
         std::future<void> stopProducing() override;
         bool waitNextFrame() override;
 };

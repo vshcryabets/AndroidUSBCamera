@@ -12,17 +12,12 @@ PullToPushSource::~PullToPushSource()
     close();
 }
 
-void PullToPushSource::open(const OpenConfiguration &config) {
-    PushSource::open(config);
-    this->pullSource = config.pullSource;
-}
-
 std::future<void> PullToPushSource::close()
 {
     return std::async(std::launch::async, [this]() {
         PushSource::close().get();
         stopProducing().get();
-        pullSource = nullptr;
+        source = nullptr;
     });
 }
 
@@ -31,19 +26,14 @@ auvc::ExpectedResolutions PullToPushSource::getSupportedResolutions() const
     return {};
 }
 
-std::vector<auvc::FrameFormat> 
-PullToPushSource::getSupportedFrameFormats() const
-{
-    return {};
-}
-
-std::future<void> PullToPushSource::startProducing(const Source::ProducingConfiguration &config) 
+std::future<void> 
+PullToPushSource::startProducing(const ProducingConfiguration &config) 
 {
     // start worker thread that pulls frames from pullSource and pushes them via pushFrame
-    if (!pullSource) {
+    if (!source) {
         throw auvc::SourceError(auvc::SourceErrorCode::SOURCE_ERROR_WRONG_CONFIG, "Pull source not set");
     }
-    if (!pullSource->isReadyForProducing()) {
+    if (!source->isReadyForProducing()) {
         throw auvc::SourceError(
             auvc::SourceErrorCode::SOURCE_ERROR_CAPTURE_NOT_STARTED, 
             "PullToPushSource::startProducing: Pull (input) source not started"

@@ -67,7 +67,7 @@ auvc::ExpectedFrame TestSource::readFrame()
         "Capture not started or invalid configuration");
 }
 
-std::future<void> TestSource::startProducing(const Source::ProducingConfiguration &config)
+std::future<void> TestSource::startProducing(const ProducingConfiguration &config)
 {
     return std::async(std::launch::async, [this, config]() {
         Source::startProducing(config).get(); // Call base implementation
@@ -90,11 +90,6 @@ std::future<void> TestSource::startProducing(const Source::ProducingConfiguratio
 std::future<void> TestSource::close()
 {
     return stopProducing();
-}
-
-std::vector<auvc::FrameFormat> TestSource::getSupportedFrameFormats() const
-{
-    return {auvc::FrameFormat::RGBA};
 }
 
 std::future<void> TestSource::stopProducing()
@@ -170,14 +165,17 @@ void TestSource::drawString(std::string str, uint16_t x, uint16_t y, uint8_t ups
 
 auvc::ExpectedResolutions TestSource::getSupportedResolutions() const
 {
-    std::map<uint16_t, std::vector<auvc::Resolution>> result;
-    std::vector<auvc::Resolution> resoltions {
-        {1, 640, 480, {30.0f, 60.0f}},
-        {1, 1280, 720, {30.0f, 60.0f}},
-        {1, 1920, 1080, {30.0f, 60.0f}},
-        {1, 3840, 2160, {30.0f}}
+    std::map<uint16_t, std::vector<auvc::ProducingConfiguration>> result;
+    std::vector<auvc::ProducingConfiguration> configurations {
+        {1, 640, 480, 30.0f, auvc::FrameFormat::RGBA},
+        {1, 640, 480, 60.0f, auvc::FrameFormat::RGBA},
+        {1, 1280, 720, 30.0f, auvc::FrameFormat::RGBA},
+        {1, 1280, 720, 60.0f, auvc::FrameFormat::RGBA},
+        {1, 1920, 1080, 30.0f, auvc::FrameFormat::RGBA},
+        {1, 1920, 1080, 60.0f, auvc::FrameFormat::RGBA},
+        {1, 3840, 2160, 30.0f, auvc::FrameFormat::RGBA}
     };
-    result[0] = std::move(resoltions);
+    result[0] = std::move(configurations);
     return result;
 }
 

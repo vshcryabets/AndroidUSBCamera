@@ -26,7 +26,7 @@ package com.vsh.source
 import com.jiangdg.usb.UsbControlBlock
 import com.jiangdg.uvc.SourceResolution
 
-class UVCCamera2 : Source<UVCCamera2.OpenConfiguration, Source.ProducingConfiguration> {
+class UVCCamera2 : Source<UVCCamera2.OpenConfiguration, ProducingConfiguration> {
     public class OpenConfiguration(
         val usbControlBlock: UsbControlBlock,
         tag: String
@@ -52,7 +52,7 @@ class UVCCamera2 : Source<UVCCamera2.OpenConfiguration, Source.ProducingConfigur
         }
     }
 
-    override fun startProducing(configuration: Source.ProducingConfiguration): JniObjectError {
+    override fun startProducing(configuration: ProducingConfiguration): JniObjectError {
         TODO("Not yet implemented")
     }
 
@@ -64,16 +64,12 @@ class UVCCamera2 : Source<UVCCamera2.OpenConfiguration, Source.ProducingConfigur
         return JniObjectError(JniObjectErrorType.NOT_INITIALIZED)
     }
 
-    override fun getProducingConfiguration(): Source.ProducingConfiguration? {
+    override fun getProducingConfiguration(): ProducingConfiguration? {
         TODO("Not yet implemented")
     }
 
     override fun isReadyForProducing(): Boolean {
         TODO("Not yet implemented")
-    }
-
-    override fun getSupportedFrameFormats(): List<Source.FrameFormat> {
-        return listOf(Source.FrameFormat.YUV420P, Source.FrameFormat.ENCODED)
     }
 
     override fun getSupportedResolutions(): Map<Int, List<SourceResolution>> {

@@ -23,6 +23,7 @@ import com.vsh.domain.usecases.GetSurfaceConsumerUseCase
 import com.vsh.domain.usecases.GetTestSourceUseCase
 import com.vsh.source.Consumer
 import com.vsh.source.JniSource
+import com.vsh.source.ProducingConfiguration
 import com.vsh.source.PullToPushSource
 import com.vsh.source.Source
 import com.vsh.source.SurfaceConsumer
@@ -53,7 +54,7 @@ class TestSourceViewModel(
     getTestSourceUseCase: GetTestSourceUseCase,
     getSurfaceConsumerUseCase: GetSurfaceConsumerUseCase,
 ) : ViewModel() {
-    private val source: JniSource<Source.OpenConfiguration, Source.ProducingConfiguration>
+    private val source: JniSource<Source.OpenConfiguration, ProducingConfiguration>
     private val pullToPushSource: PullToPushSource
     private val surfaceConsumer: Consumer
     private val _state = MutableStateFlow(TestSourceViewState())
@@ -79,26 +80,20 @@ class TestSourceViewModel(
 
         val sourceResolutionsMap = source.getSupportedResolutions()
         // find the first resolution with the highest FPS
-        val resolutionsBySize = sourceResolutionsMap.values
+        val configurations = sourceResolutionsMap.values
             .flatten()
             .sortedBy { it.height }
-        val resolutionByFps = mutableListOf<SourceResolution>()
-        resolutionsBySize.forEach { size ->
-            size.fps.forEach { fps ->
-                resolutionByFps.add(size.copy(fps = listOf(fps)))
-            }
-        }
         _state.update {
             it.copy(
-                resolutionList = resolutionByFps,
-                resolutionStrs = resolutionByFps.map { resolutionToString(it) },
+                resolutionList = configurations,
+                resolutionStrs = configurations.map { resolutionToString(it) },
                 selectedResolutionIdx = 0,
             )
         }
     }
 
     private fun resolutionToString(resolution: SourceResolution): String {
-        return "Type ${resolution.id} - ${resolution.width}x${resolution.height} @ ${resolution.fps.firstOrNull() ?: 0}"
+        return "Type ${resolution.id} - ${resolution.width}x${resolution.height} @ ${resolution.fps}"
     }
 
     override fun onCleared() {
@@ -125,12 +120,11 @@ class TestSourceViewModel(
 
     fun onSurfaceReady(surface: Surface) {
         if (!source.startProducing(
-                Source.ProducingConfiguration(
+                ProducingConfiguration(
                     tag = "TestSourceProducing",
                     width = _state.value.resolutionList[_state.value.selectedResolutionIdx].width,
                     height = _state.value.resolutionList[_state.value.selectedResolutionIdx].height,
-                    fps = _state.value.resolutionList[_state.value.selectedResolutionIdx].fps.firstOrNull()
-                        ?: 30f
+                    fps = _state.value.resolutionList[_state.value.selectedResolutionIdx].fps
                 )
             )
                 .doOnError {
@@ -142,7 +136,7 @@ class TestSourceViewModel(
         }
 
         pullToPushSource.startProducing(
-            Source.ProducingConfiguration(
+            ProducingConfiguration(
                 tag = "PullToPushProducing",
                 width = 0,
                 height = 0,

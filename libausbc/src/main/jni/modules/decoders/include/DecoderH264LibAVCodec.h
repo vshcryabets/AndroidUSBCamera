@@ -19,10 +19,9 @@ public:
     DecoderH264LibAVCodec();
     virtual ~DecoderH264LibAVCodec();
     virtual void open(const X264DecoderConfig &config) override;
-    std::future<void> startProducing(const Source::ProducingConfiguration &config) override;
+    std::future<void> startProducing(const auvc::ProducingConfiguration &config) override;
     void consume(const auvc::Frame &frame) override;
     std::future<void> stopProducing() override;
     std::future<void> close() override;
     auvc::ExpectedResolutions getSupportedResolutions() const override;
-    std::vector<auvc::FrameFormat> getSupportedFrameFormats() const override;
 };

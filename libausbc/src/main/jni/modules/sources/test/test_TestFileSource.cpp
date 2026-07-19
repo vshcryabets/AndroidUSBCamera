@@ -11,12 +11,9 @@ TEST_CASE("testReadHeaders", "[TestFileSource]") {
     source.open({
         .fileName = "test.bin"
     });
-    auto supportedFormats = source.getSupportedFrameFormats();
     auto supportedResolutions = source.getSupportedResolutions();
     REQUIRE(supportedResolutions.has_value());
     REQUIRE((*supportedResolutions).size() == 1);
-    REQUIRE(supportedFormats.size() == 1);
-    REQUIRE(supportedFormats[0] == auvc::FrameFormat::ENCODED);
     
     auto firstResolution = supportedResolutions.value().begin();
     REQUIRE(firstResolution != supportedResolutions.value().end());
@@ -25,8 +22,8 @@ TEST_CASE("testReadHeaders", "[TestFileSource]") {
     REQUIRE(resolutions.size() == 1);
     REQUIRE(resolutions[0].width == 640);
     REQUIRE(resolutions[0].height == 480);
-    REQUIRE(resolutions[0].fps.size() == 1);
-    REQUIRE(resolutions[0].fps[0] == 29.97f);
+    REQUIRE(resolutions[0].fps == 29.97f);
+    REQUIRE(resolutions[0].frameFormat == auvc::FrameFormat::ENCODED);
     REQUIRE(source.getFramesCount() == 0);
 }
 
@@ -45,8 +42,7 @@ TEST_CASE("testFramesReading", "[TestFileSource]") {
     REQUIRE(resolutions.size() == 1);
     REQUIRE(resolutions[0].width == 640);
     REQUIRE(resolutions[0].height == 480);
-    REQUIRE(resolutions[0].fps.size() == 1);
-    REQUIRE(resolutions[0].fps[0] == 30.00f);
+    REQUIRE(resolutions[0].fps == 30.00f);
 
     source.startProducing({
         .width = 640,

@@ -6,26 +6,22 @@
 
 namespace auvc {
 
-class PullToPushSource: public auvc::PushSource {
-public:
-    struct OpenConfiguration: public PushSource::OpenConfiguration {
-        std::shared_ptr<PullSource> pullSource;
-    };
+class PullToPushSource: public auvc::PushSource, public auvc::Consumer {
 protected:
-    std::shared_ptr<PullSource> pullSource {nullptr};
     std::thread workerThread;
     std::atomic<bool> running {false};
     std::atomic<bool> stopRequested {false};
     std::unique_ptr<std::promise<void>> startPromise {nullptr};
+    std::shared_ptr<PullSource> pullSource;
 public:
     PullToPushSource();
     virtual ~PullToPushSource();
-    virtual void open(const OpenConfiguration &config);
     std::future<void> startProducing(const ProducingConfiguration &config) override;
     std::future<void> stopProducing() override;
     std::future<void> close() override;
     auvc::ExpectedResolutions getSupportedResolutions() const override;
-    std::vector<auvc::FrameFormat> getSupportedFrameFormats() const override;
+    void consume(const auvc::Frame &frame) override {};
+    ConsumerError attachTo(std::shared_ptr<Source> source) override;
 };
 
 } // namespace auvc

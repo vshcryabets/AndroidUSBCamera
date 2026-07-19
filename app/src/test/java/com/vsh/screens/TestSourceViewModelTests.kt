@@ -15,6 +15,7 @@
 */
 package com.vsh.screens
 
+import com.jiangdg.uvc.PixelFormat
 import com.jiangdg.uvc.SourceResolution
 import com.vsh.LoadJniLibrary
 import com.vsh.domain.usecases.GetSurfaceConsumerUseCase
@@ -24,6 +25,7 @@ import com.vsh.source.Frame
 import com.vsh.source.JniConsumer
 import com.vsh.source.JniObjectError
 import com.vsh.source.JniSource
+import com.vsh.source.ProducingConfiguration
 import com.vsh.source.Source
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeAll
@@ -31,7 +33,7 @@ import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 class TestSourceViewModelTests {
-    val emptySource = object: JniSource<Source.OpenConfiguration, Source.ProducingConfiguration>() {
+    val emptySource = object: JniSource<Source.OpenConfiguration, ProducingConfiguration>() {
         var configuration: Source.OpenConfiguration? = null
 
         override fun open(configuration: Source.OpenConfiguration) {
@@ -47,7 +49,7 @@ class TestSourceViewModelTests {
         override fun close() {
         }
 
-        override fun startProducing(configuration: Source.ProducingConfiguration): JniObjectError {
+        override fun startProducing(configuration: ProducingConfiguration): JniObjectError {
             TODO("Not yet implemented")
         }
 
@@ -55,7 +57,7 @@ class TestSourceViewModelTests {
             TODO("Not yet implemented")
         }
 
-        override fun getProducingConfiguration(): Source.ProducingConfiguration? {
+        override fun getProducingConfiguration(): ProducingConfiguration? {
             TODO("Not yet implemented")
         }
 
@@ -63,19 +65,17 @@ class TestSourceViewModelTests {
             TODO("Not yet implemented")
         }
 
-        override fun getSupportedFrameFormats(): List<Source.FrameFormat> = emptyList()
-
         override fun getSupportedResolutions(): Map<Int, List<SourceResolution>> {
             return mapOf(
                 0 to listOf(
-                    SourceResolution(0, 640, 480, listOf(15.0f,30.0f,60.0f)),
-                    SourceResolution(0, 1280, 720, listOf(30.0f)),
-                    SourceResolution(0, 1920, 1080, listOf(30.0f))
+                    SourceResolution(0, 640, 480, 30.0f, PixelFormat.RAW),
+                    SourceResolution(0, 1280, 720, 30.0f, PixelFormat.RAW),
+                    SourceResolution(0, 1920, 1080, 30.0f, PixelFormat.RAW)
                 ),
                 1 to listOf(
-                    SourceResolution(1, 640, 480, listOf(15.0f,30.0f,60.0f)),
-                    SourceResolution(1, 1280, 720, listOf(30.0f)),
-                    SourceResolution(1, 1920, 1080, listOf(30.0f))
+                    SourceResolution(1, 640, 480, 30.0f, PixelFormat.RAW),
+                    SourceResolution(1, 1280, 720, 30.0f, PixelFormat.RAW),
+                    SourceResolution(1, 1920, 1080, 30.0f, PixelFormat.RAW)
                 ),
             )
         }
@@ -85,10 +85,6 @@ class TestSourceViewModelTests {
         }
 
         override fun nativeGetSupportedResolutions(srcId: Int): Map<Integer, List<SourceResolution>> {
-            TODO("Not yet implemented")
-        }
-
-        override fun nativeGetSupportedFrameFormats(srcId: Int): List<Integer> {
             TODO("Not yet implemented")
         }
 
@@ -127,7 +123,7 @@ class TestSourceViewModelTests {
     }
 
     val getTestSourceUseCase = object : GetTestSourceUseCase {
-        override fun invoke(): JniSource<Source.OpenConfiguration, Source.ProducingConfiguration> = emptySource
+        override fun invoke(): JniSource<Source.OpenConfiguration, ProducingConfiguration> = emptySource
     }
 
     val getSurfaceConsumerUseCase = object : GetSurfaceConsumerUseCase {

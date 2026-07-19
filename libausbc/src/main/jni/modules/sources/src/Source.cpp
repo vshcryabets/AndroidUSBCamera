@@ -11,12 +11,12 @@ std::future<void> completed() {
     return promise.get_future();
 }
 
-const Source::OpenConfiguration Source::getOpenConfiguration() const
+const SourceConfiguration Source::getOpenConfiguration() const
 {
     return this->sourceConfig;
 }
 
-const Source::ProducingConfiguration Source::getProducingConfiguration() const
+const auvc::ProducingConfiguration Source::getProducingConfiguration() const
 {
     return this->captureConfiguration;
 }

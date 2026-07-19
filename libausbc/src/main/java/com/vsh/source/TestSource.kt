@@ -21,7 +21,7 @@ import java.util.Optional
 
 class TestSource(
     private val font: FontSrc
-) : JniSource<Source.OpenConfiguration, Source.ProducingConfiguration>() {
+) : JniSource<Source.OpenConfiguration, ProducingConfiguration>() {
     private var openConfiguration: Source.OpenConfiguration? = null
 
     init {
@@ -45,13 +45,13 @@ class TestSource(
         _srcId = Optional.empty()
     }
 
-    override fun startProducing(configuration: Source.ProducingConfiguration): JniObjectError {
+    override fun startProducing(configuration: ProducingConfiguration): JniObjectError {
         if (_srcId.isEmpty)
             return JniObjectError(JniObjectErrorType.NOT_INITIALIZED)
         return nativeStartProducing(_srcId.get(), configuration)
     }
 
-    override fun getProducingConfiguration(): Source.ProducingConfiguration? {
+    override fun getProducingConfiguration(): ProducingConfiguration? {
         TODO("Not yet implemented")
     }
 
@@ -86,8 +86,7 @@ class TestSource(
     private external fun nativeStopCapturing(srcId: Int): JniObjectError
     private external fun nativeClose(srcId: Int)
     external override fun nativeGetSupportedResolutions(srcId: Int): Map<Integer, List<SourceResolution>>
-    override external fun nativeGetSupportedFrameFormats(srcId: Int): List<Integer>
     private external fun nativeIsPullSource(srcId: Int): Boolean
     private external fun nativeIsPushSource(srcId: Int): Boolean
-    private external fun nativeStartProducing(srcId: Int, configuration: Source.ProducingConfiguration): JniObjectError
+    private external fun nativeStartProducing(srcId: Int, configuration: ProducingConfiguration): JniObjectError
 }

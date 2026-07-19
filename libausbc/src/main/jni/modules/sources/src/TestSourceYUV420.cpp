@@ -87,7 +87,7 @@ auvc::ExpectedFrame TestSourceYUV420::readFrame()
         "Capture not started or invalid configuration");
 }
 
-std::future<void> TestSourceYUV420::startProducing(const Source::ProducingConfiguration &config)
+std::future<void> TestSourceYUV420::startProducing(const ProducingConfiguration &config)
 {
     return std::async(std::launch::async, [this, config]() {
         Source::startProducing(config).get();
@@ -113,11 +113,6 @@ std::future<void> TestSourceYUV420::startProducing(const Source::ProducingConfig
 [[nodiscard]] std::future<void> TestSourceYUV420::close()
 {
     return stopProducing();
-}
-
-std::vector<auvc::FrameFormat> TestSourceYUV420::getSupportedFrameFormats() const
-{
-    return {auvc::FrameFormat::YUV420P};
 }
 
 std::future<void> TestSourceYUV420::stopProducing()
@@ -196,12 +191,15 @@ void TestSourceYUV420::drawString(std::string str, uint16_t x, uint16_t y, uint8
 
 auvc::ExpectedResolutions TestSourceYUV420::getSupportedResolutions() const
 {
-    std::map<uint16_t, std::vector<auvc::Resolution>> result;
+    std::map<uint16_t, std::vector<auvc::ProducingConfiguration>> result;
     result[0] = {
-        {1, 640, 480, {30.0f, 60.0f}},
-        {1, 1280, 720, {30.0f, 60.0f}},
-        {1, 1920, 1080, {30.0f, 60.0f}},
-        {1, 3840, 2160, {30.0f}}
+        {1, 640, 480, 30.0f, auvc::FrameFormat::YUV420P},
+        {1, 1280, 720, 30.0f, auvc::FrameFormat::YUV420P},
+        {1, 1920, 1080, 30.0f, auvc::FrameFormat::YUV420P},
+        {1, 3840, 2160, 30.0f, auvc::FrameFormat::YUV420P},
+        {1, 640, 480, 60.0f, auvc::FrameFormat::YUV420P},
+        {1, 1280, 720, 60.0f, auvc::FrameFormat::YUV420P},
+        {1, 1920, 1080, 60.0f, auvc::FrameFormat::YUV420P},
     };
     return result;
 }

@@ -34,6 +34,7 @@ import com.jiangdg.usb.USBMonitor;
 import com.jiangdg.usb.UsbControlBlock;
 import com.vsh.source.JniObjectError;
 import com.vsh.source.JniObjectErrorType;
+import com.vsh.source.ProducingConfiguration;
 import com.vsh.source.Source;
 import com.vsh.uvc.UvcVsDeskSubtype;
 
@@ -47,7 +48,7 @@ import java.util.Map;
 
 import timber.log.Timber;
 
-public class UVCCamera implements Source<UVCCamera.OpenConfiguration, Source.ProducingConfiguration> {
+public class UVCCamera implements Source<UVCCamera.OpenConfiguration, ProducingConfiguration> {
 
 	private OpenConfiguration openConfiguration;
 
@@ -62,17 +63,12 @@ public class UVCCamera implements Source<UVCCamera.OpenConfiguration, Source.Pro
 	}
 
 	@Override
-	public @NotNull List<@NotNull FrameFormat> getSupportedFrameFormats() {
-		return List.of(Source.FrameFormat.YUV420P, Source.FrameFormat.ENCODED);
-	}
-
-	@Override
 	public JniObjectError startProducing(@NotNull ProducingConfiguration configuration)  {
 		return new JniObjectError(JniObjectErrorType.NOT_INITIALIZED, "");
 	}
 
 	@Override
-	public @Nullable Source.ProducingConfiguration getProducingConfiguration() {
+	public @Nullable ProducingConfiguration getProducingConfiguration() {
 		return null;
 	}
 
@@ -387,7 +383,7 @@ public class UVCCamera implements Source<UVCCamera.OpenConfiguration, Source.Pro
 
 	@Override
     public synchronized JniObjectError stopProducing() {
-    	setFrameCallback(null, PixelFormat.PIXEL_FORMAT_RAW);
+    	setFrameCallback(null, PixelFormat.RAW);
     	if (mCtrlBlock != null) {
     		nativeStopPreview(mNativePtr);
     	}

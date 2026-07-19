@@ -30,7 +30,6 @@ class TestSourceYUV420: public PullSource {
         virtual auvc::ExpectedFrame readFrame() override;
         [[nodiscard]] std::future<void> startProducing(const ProducingConfiguration &config) override;
         [[nodiscard]] std::future<void> close() override;
-        std::vector<auvc::FrameFormat> getSupportedFrameFormats() const override;
         [[nodiscard]] auvc::ExpectedResolutions getSupportedResolutions() const override;
         [[nodiscard]] std::future<void> stopProducing() override;
         bool waitNextFrame() override;

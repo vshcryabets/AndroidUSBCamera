@@ -17,16 +17,18 @@ TEST_CASE("testFormatsAndResolutions", "[PullToPushSource]") {
 
     source->open({});
 
-    const auvc::Source::ProducingConfiguration realConfig = {
+    const auvc::ProducingConfiguration realConfig = {
         .width = 320,
         .height = 240,
-        .fps = 30.0f
+        .fps = 30.0f,
+        .frameFormat = auvc::FrameFormat::YUV420P
     };
 
-    auvc::PullToPushSource pullToPushSource;
-    auvc::PullToPushSource::OpenConfiguration config;
-    config.pullSource = source;
-    config.consumer = std::make_shared<auvc::ConsumerToFrameCallback>([&](const auvc::Frame &frame) {
+    auto pullToPushSource = std::make_shared<auvc::PullToPushSource>();
+
+    pullToPushSource->attachTo(source);
+
+    auto consumer = std::make_shared<auvc::ConsumerToFrameCallback>([&](const auvc::Frame &frame) {
         REQUIRE(frame.getWidth() == realConfig.width);
         REQUIRE(frame.getHeight() == realConfig.height);
         REQUIRE(frame.getSize() > 0);
@@ -39,11 +41,13 @@ TEST_CASE("testFormatsAndResolutions", "[PullToPushSource]") {
         cv.notify_one();
     });
 
-    pullToPushSource.open(config);
+    consumer->attachTo(pullToPushSource);
+
+    pullToPushSource->open({});
 
     // pullToPush capture configuration doesn't matter, it uses the pull source's configuration
     source->startProducing(realConfig).get();
-    pullToPushSource.startProducing({
+    pullToPushSource->startProducing({
         .width = 0,
         .height = 0,
         .fps = 0.0f
@@ -55,8 +59,8 @@ TEST_CASE("testFormatsAndResolutions", "[PullToPushSource]") {
         cv.wait_for(lock, std::chrono::seconds(2), [&] { return callbackCalled.load(); });
     }
     REQUIRE(callbackCalled);
-    pullToPushSource.stopProducing().get();
+    pullToPushSource->stopProducing().get();
     source->stopProducing().get();
-    pullToPushSource.close().get();
+    pullToPushSource->close().get();
     source->close().get();
 }
